@@ -195,33 +195,11 @@ fun CookbookNavHost(
             })
         ) { backStackEntry ->
             val recipeId = backStackEntry.arguments?.getString(Route.ARG_RECIPE_ID) ?: return@composable
-            val viewModel: RecipeDetailViewModel = hiltViewModel()
-            val state by viewModel.state.collectAsState()
-            val actions by viewModel.actions.collectAsState()
-            
-            LaunchedEffect(recipeId) {
-                viewModel.handleEvent(com.ourcookbook.ui.viewmodel.RecipeDetailEvent.LoadRecipe(recipeId))
-            }
             
             RecipeDetailScreen(
-                viewModel = viewModel,
+                recipeId = recipeId,
                 navController = navController
             )
-            
-            // Handle navigation actions from ViewModel
-            actions?.let { action ->
-                when (action) {
-                    is com.ourcookbook.ui.viewmodel.RecipeDetailAction.ShowEditScreen -> {
-                        navController.navigate(Route.recipeEdit(action.recipeId))
-                        viewModel.clearAction()
-                    }
-                    is com.ourcookbook.ui.viewmodel.RecipeDetailAction.NavigateBack -> {
-                        navController.popBackStack()
-                        viewModel.clearAction()
-                    }
-                    else -> {}
-                }
-            }
         }
         
         composable(Route.RECIPE_CREATE) {
@@ -229,9 +207,10 @@ fun CookbookNavHost(
             val state by viewModel.state.collectAsState()
             val actions by viewModel.actions.collectAsState()
             
-            RecipeCreateScreen(
+            RecipeEditScreen(
                 viewModel = viewModel,
-                navController = navController
+                navController = navController,
+                recipeId = null
             )
             
             // Handle navigation actions from ViewModel
@@ -263,13 +242,10 @@ fun CookbookNavHost(
             val state by viewModel.state.collectAsState()
             val actions by viewModel.actions.collectAsState()
             
-            LaunchedEffect(recipeId) {
-                viewModel.handleEvent(com.ourcookbook.ui.viewmodel.RecipeEditEvent.LoadRecipe(recipeId))
-            }
-            
             RecipeEditScreen(
                 viewModel = viewModel,
-                navController = navController
+                navController = navController,
+                recipeId = recipeId
             )
             
             // Handle navigation actions from ViewModel

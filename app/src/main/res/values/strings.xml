@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Our Cookbook</string>
+    <string name="recipe_detail_title">Recipe Details</string>
+    <string name="loading_recipe">Loading recipe...</string>
+    <string name="error_loading_recipe">Error loading recipe</string>
+    <string name="recipe_not_found">Recipe Not Found</string>
+    <string name="no_image_available">No image available</string>
+    <string name="no_ingredients">No ingredients listed</string>
+    <string name="no_instructions">No instructions provided</string>
+    <string name="serves">Serves: %d</string>
+    <string name="prep_time">Prep: %d min</string>
+    <string name="cook_time">Cook: %d min</string>
+    <string name="total_time">Total: %d min</string>
+    <string name="share_recipe">Share Recipe</string>
+    <string name="favorite_recipe">Add to Favorites</string>
+    <string name="unfavorite_recipe">Remove from Favorites</string>
+    <string name="edit_recipe">Edit Recipe</string>
+    <string name="delete_recipe">Delete Recipe</string>
+    <string name="print_recipe">Print Recipe</string>
+    <string name="confirm_delete">Are you sure you want to delete this recipe? This action cannot be undone.</string>
+    <string name="delete">Delete</string>
+    <string name="cancel">Cancel</string>
+    <string name="retry">Retry</string>
+    <string name="go_back">Go Back</string>
+    <string name="ok">OK</string>
+</resources>

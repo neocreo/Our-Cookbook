@@ -70,9 +70,9 @@ fun AppNavigation(modifier: Modifier = Modifier) {
                 type = androidx.navigation.NavType.StringType
             })
         ) { backStackEntry ->
-            val recipeId = backStackEntry.arguments?.getString("recipeId")
+            val recipeId = backStackEntry.arguments?.getString("recipeId") ?: ""
             RecipeDetailScreen(
-                recipeId = recipeId ?: "",
+                recipeId = recipeId,
                 navController = navController
             )
         }
