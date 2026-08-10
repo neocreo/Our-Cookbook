@@ -1,16 +1,18 @@
 package com.ourcookbook.ui.components
 
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.Font
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.LineHeightStyle
-import androidx.compose.ui.unit.sp
+import com.ourcookbook.ui.theme.CookbookTypography
+import com.ourcookbook.ui.theme.CookbookSpacing
+import com.ourcookbook.ui.theme.CookbookElevation
 
 /**
  * Cookbook typography system following Material Design 3
+ * 
+ * This file now references the main theme system in com.ourcookbook.ui.theme
+ * to ensure consistency across the entire application.
  */
-val CookbookTypography = androidx.compose.material3.Typography(
+
+// Reference to the main typography system
+val ComponentTypography = CookbookTypography
     // Default font family - using system fonts as fallback
     // In production, you would use custom fonts loaded from resources
     defaultFontFamily = FontFamily.Default,
@@ -108,65 +110,15 @@ val CookbookTypography = androidx.compose.material3.Typography(
         lineHeight = 16.sp,
         letterSpacing = 1.25.sp
     ),
-    labelSmall = TextStyle(
-        fontSize = 11.sp,
-        fontWeight = FontWeight.Bold,
-        lineHeight = 16.sp,
-        letterSpacing = 1.5.sp
-    )
+    labelSmall = CookbookTypography.labelSmall
 )
 
 /**
- * Spacing system for consistent layout
+ * Component-specific typography, spacing, and elevation references
+ * 
+ * These reference the main theme system to ensure consistency.
  */
-object CookbookSpacing {
-    // Base unit: 4dp
-    val xxSmall: androidx.compose.ui.unit.Dp = 4.dp
-    val xSmall: androidx.compose.ui.unit.Dp = 8.dp
-    val small: androidx.compose.ui.unit.Dp = 12.dp
-    val medium: androidx.compose.ui.unit.Dp = 16.dp
-    val large: androidx.compose.ui.unit.Dp = 24.dp
-    val xLarge: androidx.compose.ui.unit.Dp = 32.dp
-    val xxLarge: androidx.compose.ui.unit.Dp = 48.dp
-    val xxxLarge: androidx.compose.ui.unit.Dp = 64.dp
-    
-    // Special spacing
-    val touchTarget: androidx.compose.ui.unit.Dp = 48.dp  // Minimum touch target size
-    val cardElevation: androidx.compose.ui.unit.Dp = 4.dp
-    val dividerHeight: androidx.compose.ui.unit.Dp = 1.dp
-    val borderWidth: androidx.compose.ui.unit.Dp = 1.dp
-    
-    // Screen margins
-    val screenMargin: androidx.compose.ui.unit.Dp = 16.dp
-    val screenMarginLarge: androidx.compose.ui.unit.Dp = 24.dp
-    
-    // Component spacing
-    val buttonPadding = androidx.compose.foundation.layout.PaddingValues(
-        horizontal = large,
-        vertical = medium
-    )
-    val cardPadding = androidx.compose.foundation.layout.PaddingValues(all = medium)
-    val listItemPadding = androidx.compose.foundation.layout.PaddingValues(
-        horizontal = medium,
-        vertical = small
-    )
-}
 
-/**
- * Elevation system for depth and hierarchy
- */
-object CookbookElevation {
-    val none: androidx.compose.ui.unit.Dp = 0.dp
-    val small: androidx.compose.ui.unit.Dp = 2.dp
-    val medium: androidx.compose.ui.unit.Dp = 4.dp
-    val large: androidx.compose.ui.unit.Dp = 8.dp
-    val xLarge: androidx.compose.ui.unit.Dp = 12.dp
-    
-    // Component elevations
-    val card: androidx.compose.ui.unit.Dp = medium
-    val dialog: androidx.compose.ui.unit.Dp = large
-    val bottomBar: androidx.compose.ui.unit.Dp = large
-    val fab: androidx.compose.ui.unit.Dp = large
-    val button: androidx.compose.ui.unit.Dp = small
-    val snackbar: androidx.compose.ui.unit.Dp = large
-}
+// Reference to main theme components
+val ComponentSpacing = CookbookSpacing
+val ComponentElevation = CookbookElevation
