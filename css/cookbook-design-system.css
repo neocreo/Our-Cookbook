@@ -1,0 +1,1858 @@
+/* Cookbook Android - Design System CSS */
+/* This file contains design tokens and styles for the Cookbook Android app */
+/* Used for documentation, web previews, and design system reference */
+
+/* ============================================ */
+/* COLOR PALETTE */
+/* ============================================ */
+
+:root {
+    /* Primary Colors - Food inspired */
+    --color-primary: #E57373;
+    --color-primary-variant: #C62828;
+    --color-primary-light: #FFCDD2;
+    
+    /* Secondary Colors - Earth tones */
+    --color-secondary: #81C784;
+    --color-secondary-variant: #388E3C;
+    --color-secondary-light: #C8E6C9;
+    
+    /* Surface Colors */
+    --color-surface: #FFFFFF;
+    --color-surface-variant: #F5F5F5;
+    --color-background: #F5F5F5;
+    
+    /* Text Colors */
+    --color-on-primary: #FFFFFF;
+    --color-on-secondary: #FFFFFF;
+    --color-on-surface: #212121;
+    --color-on-background: #212121;
+    
+    /* Status Colors */
+    --color-success: #4CAF50;
+    --color-warning: #FFC107;
+    --color-error: #F44336;
+    --color-info: #2196F3;
+    
+    /* Category Colors */
+    --color-category-breakfast: #FFC107;
+    --color-category-mains: #E57373;
+    --color-category-desserts: #E91E63;
+    --color-category-sides: #81C784;
+    --color-category-sauces: #FF9800;
+    
+    /* Semantic Colors */
+    --color-divider: rgba(0, 0, 0, 0.12);
+    --color-outline: #757575;
+    --color-outline-variant: #C2C2C2;
+}
+
+/* Dark Theme Colors */
+.dark-theme {
+    --color-surface: #121212;
+    --color-surface-variant: #1E1E1E;
+    --color-background: #121212;
+    --color-on-surface: #FFFFFF;
+    --color-on-background: #FFFFFF;
+    --color-divider: rgba(255, 255, 255, 0.12);
+    --color-outline: #9E9E9E;
+    --color-outline-variant: #424242;
+}
+
+/* ============================================ */
+/* TYPOGRAPHY */
+/* ============================================ */
+
+/* Font Families */
+--font-family-primary: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+--font-family-secondary: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+
+/* Font Weights */
+--font-weight-normal: 400;
+--font-weight-medium: 500;
+--font-weight-bold: 700;
+
+/* Font Sizes */
+--font-size-h1: 28px;
+--font-size-h2: 24px;
+--font-size-h3: 20px;
+--font-size-h4: 18px;
+--font-size-h5: 16px;
+--font-size-h6: 14px;
+--font-size-body1: 16px;
+--font-size-body2: 14px;
+--font-size-subtitle1: 16px;
+--font-size-subtitle2: 14px;
+--font-size-button: 14px;
+--font-size-caption: 12px;
+--font-size-overline: 12px;
+
+/* Line Heights */
+--line-height-h1: 32px;
+--line-height-h2: 28px;
+--line-height-h3: 24px;
+--line-height-h4: 22px;
+--line-height-h5: 20px;
+--line-height-h6: 18px;
+--line-height-body1: 24px;
+--line-height-body2: 20px;
+--line-height-subtitle1: 24px;
+--line-height-subtitle2: 20px;
+--line-height-button: 16px;
+--line-height-caption: 16px;
+--line-height-overline: 16px;
+
+/* Letter Spacing */
+--letter-spacing-h1: -0.5px;
+--letter-spacing-h2: -0.5px;
+--letter-spacing-h3: 0px;
+--letter-spacing-h4: 0px;
+--letter-spacing-h5: 0px;
+--letter-spacing-h6: 0px;
+--letter-spacing-body1: 0.5px;
+--letter-spacing-body2: 0.25px;
+--letter-spacing-subtitle1: 0.15px;
+--letter-spacing-subtitle2: 0.1px;
+--letter-spacing-button: 1.25px;
+--letter-spacing-caption: 0.4px;
+--letter-spacing-overline: 1.5px;
+
+/* ============================================ */
+/* SPACING */
+/* ============================================ */
+
+/* Base spacing unit: 4px */
+--spacing-xx-small: 4px;
+--spacing-x-small: 8px;
+--spacing-small: 12px;
+--spacing-medium: 16px;
+--spacing-large: 24px;
+--spacing-x-large: 32px;
+--spacing-xx-large: 48px;
+--spacing-xxx-large: 64px;
+
+/* Touch targets */
+--touch-target-min: 48px;
+
+/* Screen margins */
+--screen-margin: 16px;
+--screen-margin-large: 24px;
+
+/* Component spacing */
+--button-padding-horizontal: var(--spacing-large);
+--button-padding-vertical: var(--spacing-medium);
+--card-padding: var(--spacing-medium);
+--list-item-padding-horizontal: var(--spacing-medium);
+--list-item-padding-vertical: var(--spacing-small);
+
+/* ============================================ */
+/* ELEVATION */
+/* ============================================ */
+
+--elevation-none: 0px;
+--elevation-small: 2px;
+--elevation-medium: 4px;
+--elevation-large: 8px;
+--elevation-x-large: 12px;
+
+/* Component elevations */
+--elevation-card: var(--elevation-medium);
+--elevation-dialog: var(--elevation-large);
+--elevation-bottom-bar: var(--elevation-large);
+--elevation-fab: var(--elevation-large);
+--elevation-button: var(--elevation-small);
+--elevation-snackbar: var(--elevation-large);
+
+/* ============================================ */
+/* BORDER RADIUS */
+/* ============================================ */
+
+--border-radius-small: 4px;
+--border-radius-medium: 8px;
+--border-radius-large: 12px;
+--border-radius-x-large: 16px;
+--border-radius-full: 50%;
+
+/* Component border radii */
+--border-radius-button: var(--border-radius-medium);
+--border-radius-card: var(--border-radius-large);
+--border-radius-text-field: var(--border-radius-medium);
+--border-radius-image: var(--border-radius-medium);
+
+/* ============================================ */
+/* BORDER WIDTHS */
+/* ============================================ */
+
+--border-width-thin: 1px;
+--border-width-medium: 2px;
+--border-width-thick: 4px;
+
+/* ============================================ */
+/* SHADOWS */
+/* ============================================ */
+
+--shadow-small: 0 1px 2px rgba(0, 0, 0, 0.12);
+--shadow-medium: 0 2px 4px rgba(0, 0, 0, 0.12);
+--shadow-large: 0 4px 8px rgba(0, 0, 0, 0.16);
+--shadow-x-large: 0 8px 16px rgba(0, 0, 0, 0.24);
+
+/* ============================================ */
+/* TRANSITIONS */
+/* ============================================ */
+
+--transition-fast: 150ms ease;
+--transition-normal: 250ms ease;
+--transition-slow: 350ms ease;
+--transition-spring: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+
+/* ============================================ */
+/* Z-INDEX */
+/* ============================================ */
+
+--z-index-background: -1;
+--z-index-default: 0;
+--z-index-dropdown: 100;
+--z-index-sticky: 200;
+--z-index-fixed: 300;
+--z-index-modal-backdrop: 400;
+--z-index-modal: 500;
+--z-index-popover: 600;
+--z-index-tooltip: 700;
+
+/* ============================================ */
+/* BREAKPOINTS */
+/* ============================================ */
+
+--breakpoint-phone: 599px;
+--breakpoint-tablet: 600px;
+--breakpoint-desktop: 1200px;
+
+/* ============================================ */
+/* MEDIA QUERIES */
+/* ============================================ */
+
+@media (max-width: 599px) {
+    /* Phone styles */
+    :root {
+        --screen-max-width: 100%;
+        --columns: 1;
+    }
+}
+
+@media (min-width: 600px) and (max-width: 1199px) {
+    /* Tablet styles */
+    :root {
+        --screen-max-width: 800px;
+        --columns: 2;
+    }
+}
+
+@media (min-width: 1200px) {
+    /* Desktop/Chromebook styles */
+    :root {
+        --screen-max-width: 1200px;
+        --columns: 3;
+    }
+}
+
+/* ============================================ */
+/* COMPONENT STYLES */
+/* ============================================ */
+
+/* Buttons */
+.cookbook-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 48px;
+    padding: 0 var(--button-padding-horizontal);
+    border-radius: var(--border-radius-button);
+    font-family: var(--font-family-primary);
+    font-size: var(--font-size-button);
+    font-weight: var(--font-weight-bold);
+    line-height: var(--line-height-button);
+    letter-spacing: var(--letter-spacing-button);
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    border: none;
+    outline: none;
+}
+
+.cookbook-button-primary {
+    background-color: var(--color-primary);
+    color: var(--color-on-primary);
+    box-shadow: var(--shadow-small);
+}
+
+.cookbook-button-primary:hover {
+    background-color: var(--color-primary-variant);
+    box-shadow: var(--shadow-medium);
+}
+
+.cookbook-button-primary:active {
+    background-color: var(--color-primary-variant);
+    box-shadow: var(--shadow-small);
+}
+
+.cookbook-button-primary:disabled {
+    background-color: var(--color-primary);
+    color: var(--color-on-primary);
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.cookbook-button-secondary {
+    background-color: transparent;
+    color: var(--color-primary);
+    border: 1px solid var(--color-outline);
+}
+
+.cookbook-button-secondary:hover {
+    background-color: var(--color-primary-light);
+    border-color: var(--color-primary);
+}
+
+.cookbook-button-secondary:active {
+    background-color: var(--color-primary-light);
+}
+
+.cookbook-button-secondary:disabled {
+    color: var(--color-primary);
+    border-color: var(--color-outline);
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Cards */
+.cookbook-card {
+    background-color: var(--color-surface);
+    border-radius: var(--border-radius-card);
+    box-shadow: var(--shadow-medium);
+    overflow: hidden;
+    transition: all var(--transition-normal);
+}
+
+.cookbook-card:hover {
+    box-shadow: var(--shadow-large);
+}
+
+.recipe-card {
+    display: flex;
+    flex-direction: column;
+    padding: var(--card-padding);
+    cursor: pointer;
+}
+
+.recipe-card-image {
+    width: 100%;
+    aspect-ratio: 16/9;
+    object-fit: cover;
+    border-radius: var(--border-radius-image);
+}
+
+.recipe-card-title {
+    font-family: var(--font-family-primary);
+    font-size: var(--font-size-h6);
+    font-weight: var(--font-weight-bold);
+    line-height: var(--line-height-h6);
+    color: var(--color-on-surface);
+    margin: var(--spacing-x-small) 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.recipe-card-metadata {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-small);
+    margin: var(--spacing-x-small) 0;
+}
+
+.category-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: var(--font-size-caption);
+    font-weight: var(--font-weight-medium);
+    line-height: var(--line-height-caption);
+}
+
+.category-badge-breakfast { background-color: var(--color-category-breakfast); color: white; }
+.category-badge-mains { background-color: var(--color-category-mains); color: white; }
+.category-badge-desserts { background-color: var(--color-category-desserts); color: white; }
+.category-badge-sides { background-color: var(--color-category-sides); color: white; }
+.category-badge-sauces { background-color: var(--color-category-sauces); color: white; }
+
+/* Text Fields */
+.cookbook-text-field {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-x-small);
+}
+
+.cookbook-text-field-input {
+    height: 56px;
+    padding: 0 var(--spacing-medium);
+    border: 1px solid var(--color-outline);
+    border-radius: var(--border-radius-text-field);
+    font-family: var(--font-family-primary);
+    font-size: var(--font-size-body1);
+    line-height: var(--line-height-body1);
+    color: var(--color-on-surface);
+    background-color: var(--color-surface);
+    transition: all var(--transition-fast);
+}
+
+.cookbook-text-field-input:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 2px var(--color-primary-light);
+}
+
+.cookbook-text-field-input::placeholder {
+    color: var(--color-on-surface);
+    opacity: 0.6;
+}
+
+.cookbook-text-field-input.error {
+    border-color: var(--color-error);
+}
+
+.cookbook-text-field-label {
+    font-family: var(--font-family-primary);
+    font-size: var(--font-size-body2);
+    color: var(--color-on-surface);
+    opacity: 0.6;
+}
+
+.cookbook-text-field-input:focus + .cookbook-text-field-label {
+    color: var(--color-primary);
+    opacity: 1;
+}
+
+.cookbook-text-field-error {
+    font-family: var(--font-family-primary);
+    font-size: var(--font-size-caption);
+    color: var(--color-error);
+    margin-top: var(--spacing-x-small);
+}
+
+/* Typography */
+.h1, .cookbook-typography-h1 {
+    font-family: var(--font-family-primary);
+    font-size: var(--font-size-h1);
+    font-weight: var(--font-weight-bold);
+    line-height: var(--line-height-h1);
+    letter-spacing: var(--letter-spacing-h1);
+    color: var(--color-on-surface);
+}
+
+.h2, .cookbook-typography-h2 {
+    font-family: var(--font-family-primary);
+    font-size: var(--font-size-h2);
+    font-weight: var(--font-weight-bold);
+    line-height: var(--line-height-h2);
+    letter-spacing: var(--letter-spacing-h2);
+    color: var(--color-on-surface);
+}
+
+.h3, .cookbook-typography-h3 {
+    font-family: var(--font-family-primary);
+    font-size: var(--font-size-h3);
+    font-weight: var(--font-weight-bold);
+    line-height: var(--line-height-h3);
+    color: var(--color-on-surface);
+}
+
+.h4, .cookbook-typography-h4 {
+    font-family: var(--font-family-primary);
+    font-size: var(--font-size-h4);
+    font-weight: var(--font-weight-bold);
+    line-height: var(--line-height-h4);
+    color: var(--color-on-surface);
+}
+
+.h5, .cookbook-typography-h5 {
+    font-family: var(--font-family-primary);
+    font-size: var(--font-size-h5);
+    font-weight: var(--font-weight-bold);
+    line-height: var(--line-height-h5);
+    color: var(--color-on-surface);
+}
+
+.h6, .cookbook-typography-h6 {
+    font-family: var(--font-family-primary);
+    font-size: var(--font-size-h6);
+    font-weight: var(--font-weight-bold);
+    line-height: var(--line-height-h6);
+    color: var(--color-on-surface);
+}
+
+.body1, .cookbook-typography-body1 {
+    font-family: var(--font-family-primary);
+    font-size: var(--font-size-body1);
+    font-weight: var(--font-weight-normal);
+    line-height: var(--line-height-body1);
+    letter-spacing: var(--letter-spacing-body1);
+    color: var(--color-on-surface);
+}
+
+.body2, .cookbook-typography-body2 {
+    font-family: var(--font-family-primary);
+    font-size: var(--font-size-body2);
+    font-weight: var(--font-weight-normal);
+    line-height: var(--line-height-body2);
+    letter-spacing: var(--letter-spacing-body2);
+    color: var(--color-on-surface);
+}
+
+.subtitle1, .cookbook-typography-subtitle1 {
+    font-family: var(--font-family-primary);
+    font-size: var(--font-size-subtitle1);
+    font-weight: var(--font-weight-medium);
+    line-height: var(--line-height-subtitle1);
+    letter-spacing: var(--letter-spacing-subtitle1);
+    color: var(--color-on-surface);
+}
+
+.subtitle2, .cookbook-typography-subtitle2 {
+    font-family: var(--font-family-primary);
+    font-size: var(--font-size-subtitle2);
+    font-weight: var(--font-weight-medium);
+    line-height: var(--line-height-subtitle2);
+    letter-spacing: var(--letter-spacing-subtitle2);
+    color: var(--color-on-surface);
+}
+
+.caption, .cookbook-typography-caption {
+    font-family: var(--font-family-primary);
+    font-size: var(--font-size-caption);
+    font-weight: var(--font-weight-normal);
+    line-height: var(--line-height-caption);
+    letter-spacing: var(--letter-spacing-caption);
+    color: var(--color-on-surface);
+    opacity: 0.6;
+}
+
+.overline, .cookbook-typography-overline {
+    font-family: var(--font-family-primary);
+    font-size: var(--font-size-overline);
+    font-weight: var(--font-weight-bold);
+    line-height: var(--line-height-overline);
+    letter-spacing: var(--letter-spacing-overline);
+    color: var(--color-on-surface);
+    text-transform: uppercase;
+}
+
+/* ============================================ */
+/* LAYOUT COMPONENTS */
+/* ============================================ */
+
+/* Scaffold */
+.cookbook-scaffold {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    background-color: var(--color-background);
+}
+
+.cookbook-scaffold-content {
+    flex: 1;
+    padding: var(--screen-margin);
+}
+
+/* Top App Bar */
+.cookbook-top-app-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 56px;
+    padding: 0 var(--screen-margin);
+    background-color: var(--color-surface);
+    color: var(--color-on-surface);
+    box-shadow: var(--shadow-small);
+}
+
+.cookbook-top-app-bar-title {
+    font-family: var(--font-family-primary);
+    font-size: var(--font-size-h6);
+    font-weight: var(--font-weight-bold);
+    line-height: var(--line-height-h6);
+}
+
+.cookbook-top-app-bar-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-small);
+}
+
+/* Bottom Navigation */
+.cookbook-bottom-navigation {
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    height: 56px;
+    background-color: var(--color-surface);
+    color: var(--color-on-surface);
+    box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.12);
+}
+
+.cookbook-bottom-nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: var(--spacing-small);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.cookbook-bottom-nav-item:hover {
+    background-color: var(--color-surface-variant);
+}
+
+.cookbook-bottom-nav-item.selected {
+    color: var(--color-primary);
+}
+
+.cookbook-bottom-nav-item .icon {
+    font-size: 24px;
+    margin-bottom: 4px;
+}
+
+.cookbook-bottom-nav-item .label {
+    font-family: var(--font-family-primary);
+    font-size: var(--font-size-caption);
+    font-weight: var(--font-weight-medium);
+}
+
+/* Lists */
+.cookbook-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-small);
+}
+
+.cookbook-list-item {
+    display: flex;
+    align-items: center;
+    padding: var(--list-item-padding-vertical) var(--list-item-padding-horizontal);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.cookbook-list-item:hover {
+    background-color: var(--color-surface-variant);
+}
+
+/* Dividers */
+.cookbook-divider {
+    height: 1px;
+    background-color: var(--color-divider);
+    margin: 0 var(--screen-margin);
+}
+
+/* Spacers */
+.cookbook-spacer-xx-small { height: var(--spacing-xx-small); }
+.cookbook-spacer-x-small { height: var(--spacing-x-small); }
+.cookbook-spacer-small { height: var(--spacing-small); }
+.cookbook-spacer-medium { height: var(--spacing-medium); }
+.cookbook-spacer-large { height: var(--spacing-large); }
+.cookbook-spacer-x-large { height: var(--spacing-x-large); }
+.cookbook-spacer-xx-large { height: var(--spacing-xx-large); }
+
+/* ============================================ */
+/* UTILITY CLASSES */
+/* ============================================ */
+
+/* Flex utilities */
+.flex { display: flex; }
+.flex-column { display: flex; flex-direction: column; }
+.flex-row { display: flex; flex-direction: row; }
+.flex-wrap { flex-wrap: wrap; }
+.flex-nowrap { flex-wrap: nowrap; }
+.justify-center { justify-content: center; }
+.justify-start { justify-content: flex-start; }
+.justify-end { justify-content: flex-end; }
+.justify-between { justify-content: space-between; }
+.justify-around { justify-content: space-around; }
+.justify-evenly { justify-content: space-evenly; }
+.align-center { align-items: center; }
+.align-start { align-items: flex-start; }
+.align-end { align-items: flex-end; }
+.align-stretch { align-items: stretch; }
+
+/* Text utilities */
+.text-center { text-align: center; }
+.text-start { text-align: start; }
+.text-end { text-align: end; }
+.text-uppercase { text-transform: uppercase; }
+.text-lowercase { text-transform: lowercase; }
+.text-capitalize { text-transform: capitalize; }
+.text-truncate { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.text-break { word-break: break-word; }
+
+/* Spacing utilities */
+.m-0 { margin: 0; }
+.m-1 { margin: var(--spacing-xx-small); }
+.m-2 { margin: var(--spacing-x-small); }
+.m-3 { margin: var(--spacing-small); }
+.m-4 { margin: var(--spacing-medium); }
+.m-5 { margin: var(--spacing-large); }
+.m-6 { margin: var(--spacing-x-large); }
+
+.mt-1 { margin-top: var(--spacing-xx-small); }
+.mt-2 { margin-top: var(--spacing-x-small); }
+.mt-3 { margin-top: var(--spacing-small); }
+.mt-4 { margin-top: var(--spacing-medium); }
+.mt-5 { margin-top: var(--spacing-large); }
+.mt-6 { margin-top: var(--spacing-x-large); }
+
+.mb-1 { margin-bottom: var(--spacing-xx-small); }
+.mb-2 { margin-bottom: var(--spacing-x-small); }
+.mb-3 { margin-bottom: var(--spacing-small); }
+.mb-4 { margin-bottom: var(--spacing-medium); }
+.mb-5 { margin-bottom: var(--spacing-large); }
+.mb-6 { margin-bottom: var(--spacing-x-large); }
+
+.mr-1 { margin-right: var(--spacing-xx-small); }
+.mr-2 { margin-right: var(--spacing-x-small); }
+.mr-3 { margin-right: var(--spacing-small); }
+.mr-4 { margin-right: var(--spacing-medium); }
+.mr-5 { margin-right: var(--spacing-large); }
+.mr-6 { margin-right: var(--spacing-x-large); }
+
+.mr-1 { margin-left: var(--spacing-xx-small); }
+.mr-2 { margin-left: var(--spacing-x-small); }
+.mr-3 { margin-left: var(--spacing-small); }
+.mr-4 { margin-left: var(--spacing-medium); }
+.mr-5 { margin-left: var(--spacing-large); }
+.mr-6 { margin-left: var(--spacing-x-large); }
+
+.p-1 { padding: var(--spacing-xx-small); }
+.p-2 { padding: var(--spacing-x-small); }
+.p-3 { padding: var(--spacing-small); }
+.p-4 { padding: var(--spacing-medium); }
+.p-5 { padding: var(--spacing-large); }
+.p-6 { padding: var(--spacing-x-large); }
+
+/* Width and Height utilities */
+.w-full { width: 100%; }
+.h-full { height: 100%; }
+.w-auto { width: auto; }
+.h-auto { height: auto; }
+
+/* Display utilities */
+.block { display: block; }
+.inline { display: inline; }
+.inline-block { display: inline-block; }
+.none { display: none; }
+.hidden { visibility: hidden; }
+
+/* Position utilities */
+.relative { position: relative; }
+.absolute { position: absolute; }
+.fixed { position: fixed; }
+.sticky { position: sticky; }
+
+/* Overflow utilities */
+.overflow-hidden { overflow: hidden; }
+.overflow-visible { overflow: visible; }
+.overflow-auto { overflow: auto; }
+.overflow-scroll { overflow: scroll; }
+
+/* Cursor utilities */
+.cursor-pointer { cursor: pointer; }
+.cursor-default { cursor: default; }
+.cursor-text { cursor: text; }
+.cursor-move { cursor: move; }
+.cursor-not-allowed { cursor: not-allowed; }
+
+/* Opacity utilities */
+.opacity-0 { opacity: 0; }
+.opacity-25 { opacity: 0.25; }
+.opacity-50 { opacity: 0.5; }
+.opacity-75 { opacity: 0.75; }
+.opacity-100 { opacity: 1; }
+
+/* ============================================ */
+/* ANIMATIONS */
+/* ============================================ */
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes fadeOut {
+    from { opacity: 1; }
+    to { opacity: 0; }
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(16px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-16px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes scaleIn {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.animate-fade-in { animation: fadeIn var(--transition-normal) ease-out; }
+.animate-fade-out { animation: fadeOut var(--transition-normal) ease-in; }
+.animate-slide-up { animation: slideUp var(--transition-normal) ease-out; }
+.animate-slide-down { animation: slideDown var(--transition-normal) ease-out; }
+.animate-scale-in { animation: scaleIn var(--transition-normal) ease-out; }
+
+/* ============================================ */
+/* RESPONSIVE UTILITIES */
+/* ============================================ */
+
+/* Hide on phone */
+.hidden-phone { display: none; }
+
+/* Hide on tablet */
+.hidden-tablet { display: none; }
+
+/* Hide on desktop */
+.hidden-desktop { display: none; }
+
+@media (max-width: 599px) {
+    .hidden-phone { display: none; }
+    .visible-phone { display: block; }
+    .visible-tablet { display: none; }
+    .visible-desktop { display: none; }
+}
+
+@media (min-width: 600px) and (max-width: 1199px) {
+    .hidden-tablet { display: none; }
+    .visible-phone { display: none; }
+    .visible-tablet { display: block; }
+    .visible-desktop { display: none; }
+}
+
+@media (min-width: 1200px) {
+    .hidden-desktop { display: none; }
+    .visible-phone { display: none; }
+    .visible-tablet { display: none; }
+    .visible-desktop { display: block; }
+}
+
+/* ============================================ */
+/* THEME VARIANTS */
+/* ============================================ */
+
+/* Light theme (default) */
+:root {
+    --color-surface: #FFFFFF;
+    --color-surface-variant: #F5F5F5;
+    --color-background: #F5F5F5;
+    --color-on-surface: #212121;
+    --color-on-background: #212121;
+    --color-divider: rgba(0, 0, 0, 0.12);
+    --color-outline: #757575;
+    --color-outline-variant: #C2C2C2;
+}
+
+/* Dark theme */
+.dark-theme {
+    --color-surface: #121212;
+    --color-surface-variant: #1E1E1E;
+    --color-background: #121212;
+    --color-on-surface: #FFFFFF;
+    --color-on-background: #FFFFFF;
+    --color-divider: rgba(255, 255, 255, 0.12);
+    --color-outline: #9E9E9E;
+    --color-outline-variant: #424242;
+}
+
+/* High contrast theme */
+.high-contrast-theme {
+    --color-primary: #D32F2F;
+    --color-secondary: #388E3C;
+    --color-on-surface: #000000;
+    --color-on-background: #000000;
+    --color-divider: #000000;
+    --color-outline: #000000;
+}
+
+/* ============================================ */
+/* PRINT STYLES */
+/* ============================================ */
+
+@media print {
+    .no-print { display: none; }
+    
+    body {
+        background-color: white;
+        color: black;
+    }
+    
+    .cookbook-card {
+        box-shadow: none;
+        border: 1px solid #ccc;
+        page-break-inside: avoid;
+    }
+    
+    .recipe-card {
+        page-break-inside: avoid;
+    }
+    
+    .cookbook-button {
+        display: none;
+    }
+}
+
+/* ============================================ */
+/* FORMS */
+/* ============================================ */
+
+.cookbook-form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-medium);
+}
+
+.cookbook-form-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-x-small);
+}
+
+.cookbook-form-row {
+    display: flex;
+    gap: var(--spacing-medium);
+}
+
+.cookbook-form-row .cookbook-form-group {
+    flex: 1;
+}
+
+/* ============================================ */
+/* BADGES */
+/* ============================================ */
+
+.cookbook-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-family: var(--font-family-primary);
+    font-size: var(--font-size-caption);
+    font-weight: var(--font-weight-medium);
+    line-height: var(--line-height-caption);
+}
+
+.cookbook-badge-primary {
+    background-color: var(--color-primary-light);
+    color: var(--color-primary);
+}
+
+.cookbook-badge-secondary {
+    background-color: var(--color-secondary-light);
+    color: var(--color-secondary);
+}
+
+.cookbook-badge-success {
+    background-color: rgba(76, 175, 80, 0.2);
+    color: var(--color-success);
+}
+
+.cookbook-badge-warning {
+    background-color: rgba(255, 193, 7, 0.2);
+    color: var(--color-warning);
+}
+
+.cookbook-badge-error {
+    background-color: rgba(244, 67, 54, 0.2);
+    color: var(--color-error);
+}
+
+.cookbook-badge-info {
+    background-color: rgba(33, 150, 243, 0.2);
+    color: var(--color-info);
+}
+
+/* ============================================ */
+/* DIALOGS AND MODALS */
+/* ============================================ */
+
+.cookbook-dialog {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: var(--color-surface);
+    border-radius: var(--border-radius-large);
+    box-shadow: var(--shadow-x-large);
+    padding: var(--spacing-large);
+    max-width: 500px;
+    width: 90%;
+    z-index: var(--z-index-modal);
+}
+
+.cookbook-dialog-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: var(--z-index-modal-backdrop);
+}
+
+.cookbook-dialog-title {
+    font-family: var(--font-family-primary);
+    font-size: var(--font-size-h5);
+    font-weight: var(--font-weight-bold);
+    line-height: var(--line-height-h5);
+    margin-bottom: var(--spacing-medium);
+}
+
+.cookbook-dialog-content {
+    margin-bottom: var(--spacing-large);
+}
+
+.cookbook-dialog-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--spacing-medium);
+}
+
+/* ============================================ */
+/* SNACKBARS AND TOASTS */
+/* ============================================ */
+
+.cookbook-snackbar {
+    position: fixed;
+    bottom: var(--spacing-large);
+    left: var(--screen-margin);
+    right: var(--screen-margin);
+    background-color: var(--color-surface);
+    color: var(--color-on-surface);
+    padding: var(--spacing-medium);
+    border-radius: var(--border-radius-medium);
+    box-shadow: var(--shadow-large);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-medium);
+    z-index: var(--z-index-snackbar);
+}
+
+.cookbook-snackbar-success {
+    border-left: 4px solid var(--color-success);
+}
+
+.cookbook-snackbar-warning {
+    border-left: 4px solid var(--color-warning);
+}
+
+.cookbook-snackbar-error {
+    border-left: 4px solid var(--color-error);
+}
+
+.cookbook-snackbar-info {
+    border-left: 4px solid var(--color-info);
+}
+
+/* ============================================ */
+/* LOADING STATES */
+/* ============================================ */
+
+.cookbook-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 200px;
+}
+
+.cookbook-loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid var(--color-outline);
+    border-top-color: var(--color-primary);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.cookbook-loading-text {
+    margin-top: var(--spacing-medium);
+    font-family: var(--font-family-primary);
+    font-size: var(--font-size-body2);
+    color: var(--color-on-surface);
+    opacity: 0.6;
+}
+
+/* ============================================ */
+/* EMPTY STATES */
+/* ============================================ */
+
+.cookbook-empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: var(--spacing-xx-large);
+    text-align: center;
+}
+
+.cookbook-empty-state-icon {
+    font-size: 64px;
+    color: var(--color-outline);
+    margin-bottom: var(--spacing-medium);
+}
+
+.cookbook-empty-state-title {
+    font-family: var(--font-family-primary);
+    font-size: var(--font-size-h5);
+    font-weight: var(--font-weight-bold);
+    line-height: var(--line-height-h5);
+    color: var(--color-on-surface);
+    margin-bottom: var(--spacing-small);
+}
+
+.cookbook-empty-state-description {
+    font-family: var(--font-family-primary);
+    font-size: var(--font-size-body2);
+    line-height: var(--line-height-body2);
+    color: var(--color-on-surface);
+    opacity: 0.6;
+    max-width: 300px;
+}
+
+/* ============================================ */
+/* SEARCH */
+/* ============================================ */
+
+.cookbook-search-bar {
+    display: flex;
+    align-items: center;
+    height: 56px;
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-outline);
+    border-radius: var(--border-radius-text-field);
+    padding: 0 var(--spacing-medium);
+    transition: all var(--transition-fast);
+}
+
+.cookbook-search-bar:focus-within {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 2px var(--color-primary-light);
+}
+
+.cookbook-search-bar-input {
+    flex: 1;
+    border: none;
+    background: transparent;
+    font-family: var(--font-family-primary);
+    font-size: var(--font-size-body1);
+    line-height: var(--line-height-body1);
+    color: var(--color-on-surface);
+    outline: none;
+}
+
+.cookbook-search-bar-input::placeholder {
+    color: var(--color-on-surface);
+    opacity: 0.6;
+}
+
+.cookbook-search-bar-icon {
+    color: var(--color-outline);
+    margin-right: var(--spacing-small);
+}
+
+.cookbook-search-bar-clear {
+    color: var(--color-outline);
+    cursor: pointer;
+    padding: var(--spacing-x-small);
+}
+
+.cookbook-search-bar-clear:hover {
+    color: var(--color-error);
+}
+
+/* ============================================ */
+/* FILTERS AND CHIPS */
+/* ============================================ */
+
+.cookbook-filter-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-small);
+    padding: var(--spacing-small) 0;
+}
+
+.cookbook-filter-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 0 var(--spacing-medium);
+    height: 32px;
+    border: 1px solid var(--color-outline);
+    border-radius: 16px;
+    background-color: transparent;
+    font-family: var(--font-family-primary);
+    font-size: var(--font-size-body2);
+    color: var(--color-on-surface);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.cookbook-filter-chip:hover {
+    background-color: var(--color-surface-variant);
+}
+
+.cookbook-filter-chip.selected {
+    background-color: var(--color-primary);
+    border-color: var(--color-primary);
+    color: var(--color-on-primary);
+}
+
+.cookbook-filter-chip-removable {
+    padding-right: var(--spacing-x-small);
+}
+
+.cookbook-filter-chip-remove {
+    margin-left: var(--spacing-x-small);
+    cursor: pointer;
+    color: inherit;
+    opacity: 0.7;
+}
+
+.cookbook-filter-chip-remove:hover {
+    opacity: 1;
+}
+
+/* ============================================ */
+/* TOOLBARS */
+/* ============================================ */
+
+.cookbook-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 48px;
+    background-color: var(--color-surface);
+    padding: 0 var(--spacing-medium);
+}
+
+.cookbook-toolbar-title {
+    font-family: var(--font-family-primary);
+    font-size: var(--font-size-subtitle1);
+    font-weight: var(--font-weight-bold);
+    line-height: var(--line-height-subtitle1);
+}
+
+.cookbook-toolbar-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-small);
+}
+
+.cookbook-toolbar-action {
+    padding: var(--spacing-x-small);
+    cursor: pointer;
+    color: var(--color-on-surface);
+    opacity: 0.6;
+    transition: all var(--transition-fast);
+}
+
+.cookbook-toolbar-action:hover {
+    opacity: 1;
+}
+
+.cookbook-toolbar-action.selected {
+    color: var(--color-primary);
+    opacity: 1;
+}
+
+/* ============================================ */
+/* FLOATING ACTION BUTTON */
+/* ============================================ */
+
+.cookbook-fab {
+    position: fixed;
+    bottom: var(--spacing-large);
+    right: var(--spacing-large);
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background-color: var(--color-primary);
+    color: var(--color-on-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: var(--shadow-large);
+    transition: all var(--transition-normal);
+    z-index: var(--z-index-fab);
+}
+
+.cookbook-fab:hover {
+    background-color: var(--color-primary-variant);
+    box-shadow: var(--shadow-x-large);
+    transform: scale(1.05);
+}
+
+.cookbook-fab:active {
+    background-color: var(--color-primary-variant);
+    transform: scale(0.95);
+}
+
+.cookbook-fab-icon {
+    font-size: 24px;
+}
+
+/* ============================================ */
+/* AVATARS */
+/* ============================================ */
+
+.cookbook-avatar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: var(--color-primary-light);
+    color: var(--color-primary);
+    font-family: var(--font-family-primary);
+    font-size: var(--font-size-body1);
+    font-weight: var(--font-weight-bold);
+}
+
+.cookbook-avatar-image {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.cookbook-avatar-small { width: 32px; height: 32px; font-size: var(--font-size-body2); }
+.cookbook-avatar-medium { width: 48px; height: 48px; font-size: var(--font-size-subtitle1); }
+.cookbook-avatar-large { width: 64px; height: 64px; font-size: var(--font-size-h6); }
+
+/* ============================================ */
+/* DIVIDERS */
+/* ============================================ */
+
+.cookbook-divider-vertical {
+    width: 1px;
+    height: 100%;
+    background-color: var(--color-divider);
+}
+
+.cookbook-divider-horizontal {
+    width: 100%;
+    height: 1px;
+    background-color: var(--color-divider);
+}
+
+/* ============================================ */
+/* PROGRESS INDICATORS */
+/* ============================================ */
+
+.cookbook-progress-linear {
+    height: 4px;
+    background-color: var(--color-surface-variant);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.cookbook-progress-linear-bar {
+    height: 100%;
+    background-color: var(--color-primary);
+    border-radius: 2px;
+    transition: width var(--transition-smooth);
+}
+
+.cookbook-progress-circular {
+    width: 40px;
+    height: 40px;
+    position: relative;
+}
+
+.cookbook-progress-circular-svg {
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg);
+}
+
+.cookbook-progress-circular-circle {
+    fill: none;
+    stroke: var(--color-surface-variant);
+    stroke-width: 4;
+}
+
+.cookbook-progress-circular-path {
+    fill: none;
+    stroke: var(--color-primary);
+    stroke-width: 4;
+    stroke-linecap: round;
+    transition: stroke-dashoffset var(--transition-smooth);
+}
+
+/* ============================================ */
+/* SWITCHES */
+/* ============================================ */
+
+.cookbook-switch {
+    position: relative;
+    display: inline-block;
+    width: 52px;
+    height: 24px;
+    cursor: pointer;
+}
+
+.cookbook-switch-input {
+    display: none;
+}
+
+.cookbook-switch-slider {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--color-outline);
+    border-radius: 24px;
+    transition: all var(--transition-fast);
+}
+
+.cookbook-switch-input:checked + .cookbook-switch-slider {
+    background-color: var(--color-primary);
+}
+
+.cookbook-switch-knob {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 20px;
+    height: 20px;
+    background-color: white;
+    border-radius: 50%;
+    transition: all var(--transition-fast);
+}
+
+.cookbook-switch-input:checked + .cookbook-switch-slider .cookbook-switch-knob {
+    left: calc(100% - 22px);
+}
+
+/* ============================================ */
+/* CHECKBOXES */
+/* ============================================ */
+
+.cookbook-checkbox {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-small);
+    cursor: pointer;
+}
+
+.cookbook-checkbox-input {
+    display: none;
+}
+
+.cookbook-checkbox-box {
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--color-outline);
+    border-radius: 4px;
+    background-color: var(--color-surface);
+    transition: all var(--transition-fast);
+}
+
+.cookbook-checkbox-input:checked + .cookbook-checkbox-box {
+    background-color: var(--color-primary);
+    border-color: var(--color-primary);
+}
+
+.cookbook-checkbox-input:checked + .cookbook-checkbox-box::after {
+    content: "✓";
+    position: absolute;
+    color: white;
+    font-size: 14px;
+    line-height: 1;
+}
+
+.cookbook-checkbox-input:focus + .cookbook-checkbox-box {
+    box-shadow: 0 0 0 2px var(--color-primary-light);
+}
+
+.cookbook-checkbox-label {
+    font-family: var(--font-family-primary);
+    font-size: var(--font-size-body1);
+    color: var(--color-on-surface);
+}
+
+/* ============================================ */
+/* RADIO BUTTONS */
+/* ============================================ */
+
+.cookbook-radio {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-small);
+    cursor: pointer;
+}
+
+.cookbook-radio-input {
+    display: none;
+}
+
+.cookbook-radio-circle {
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--color-outline);
+    border-radius: 50%;
+    background-color: var(--color-surface);
+    transition: all var(--transition-fast);
+}
+
+.cookbook-radio-input:checked + .cookbook-radio-circle {
+    border-color: var(--color-primary);
+}
+
+.cookbook-radio-input:checked + .cookbook-radio-circle::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 10px;
+    height: 10px;
+    background-color: var(--color-primary);
+    border-radius: 50%;
+}
+
+.cookbook-radio-input:focus + .cookbook-radio-circle {
+    box-shadow: 0 0 0 2px var(--color-primary-light);
+}
+
+.cookbook-radio-label {
+    font-family: var(--font-family-primary);
+    font-size: var(--font-size-body1);
+    color: var(--color-on-surface);
+}
+
+/* ============================================ */
+/* TABs */
+/* ============================================ */
+
+.cookbook-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--color-divider);
+}
+
+.cookbook-tab {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 48px;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.cookbook-tab-text {
+    font-family: var(--font-family-primary);
+    font-size: var(--font-size-body2);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-on-surface);
+    opacity: 0.6;
+}
+
+.cookbook-tab:hover .cookbook-tab-text {
+    opacity: 1;
+}
+
+.cookbook-tab.selected {
+    border-bottom: 2px solid var(--color-primary);
+}
+
+.cookbook-tab.selected .cookbook-tab-text {
+    color: var(--color-primary);
+    opacity: 1;
+}
+
+/* ============================================ */
+/* TOOLTIPS */
+/* ============================================ */
+
+.cookbook-tooltip {
+    position: relative;
+    display: inline-block;
+}
+
+.cookbook-tooltip-content {
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: var(--color-on-surface);
+    color: var(--color-surface);
+    padding: var(--spacing-x-small) var(--spacing-small);
+    border-radius: var(--border-radius-small);
+    font-family: var(--font-family-primary);
+    font-size: var(--font-size-caption);
+    line-height: var(--line-height-caption);
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transition: all var(--transition-fast);
+    z-index: var(--z-index-tooltip);
+}
+
+.cookbook-tooltip:hover .cookbook-tooltip-content {
+    opacity: 1;
+    visibility: visible;
+}
+
+.cookbook-tooltip-content::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 6px solid transparent;
+    border-top-color: var(--color-on-surface);
+}
+
+/* ============================================ */
+/* RESPONSIVE GRID */
+/* ============================================ */
+
+.cookbook-grid {
+    display: grid;
+    gap: var(--spacing-medium);
+}
+
+.cookbook-grid-1 { grid-template-columns: repeat(1, 1fr); }
+.cookbook-grid-2 { grid-template-columns: repeat(2, 1fr); }
+.cookbook-grid-3 { grid-template-columns: repeat(3, 1fr); }
+.cookbook-grid-4 { grid-template-columns: repeat(4, 1fr); }
+
+@media (max-width: 599px) {
+    .cookbook-grid-2,
+    .cookbook-grid-3,
+    .cookbook-grid-4 {
+        grid-template-columns: repeat(1, 1fr);
+    }
+}
+
+@media (min-width: 600px) and (max-width: 1199px) {
+    .cookbook-grid-3,
+    .cookbook-grid-4 {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* ============================================ */
+/* IMAGE STYLES */
+/* ============================================ */
+
+.cookbook-image {
+    max-width: 100%;
+    height: auto;
+}
+
+.cookbook-image-cover {
+    object-fit: cover;
+}
+
+.cookbook-image-contain {
+    object-fit: contain;
+}
+
+.cookbook-image-rounded {
+    border-radius: var(--border-radius-medium);
+}
+
+.cookbook-image-circle {
+    border-radius: 50%;
+}
+
+.cookbook-image-placeholder {
+    background-color: var(--color-surface-variant);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-outline);
+}
+
+/* ============================================ */
+/* ICON STYLES */
+/* ============================================ */
+
+.cookbook-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    color: var(--color-on-surface);
+}
+
+.cookbook-icon-small { font-size: 16px; }
+.cookbook-icon-medium { font-size: 20px; }
+.cookbook-icon-large { font-size: 32px; }
+
+.cookbook-icon-primary { color: var(--color-primary); }
+.cookbook-icon-secondary { color: var(--color-secondary); }
+.cookbook-icon-success { color: var(--color-success); }
+.cookbook-icon-warning { color: var(--color-warning); }
+.cookbook-icon-error { color: var(--color-error); }
+.cookbook-icon-info { color: var(--color-info); }
+
+/* ============================================ */
+/* UTILITY ANIMATIONS */
+/* ============================================ */
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+}
+
+@keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
+
+.animate-pulse { animation: pulse 2s ease-in-out infinite; }
+.animate-shake { animation: shake 0.5s ease-in-out; }
+.animate-bounce { animation: bounce 1s ease-in-out infinite; }
+
+/* ============================================ */
+/* Z-INDEX UTILITIES */
+/* ============================================ */
+
+.z-background { z-index: var(--z-index-background); }
+.z-default { z-index: var(--z-index-default); }
+.z-dropdown { z-index: var(--z-index-dropdown); }
+.z-sticky { z-index: var(--z-index-sticky); }
+.z-fixed { z-index: var(--z-index-fixed); }
+.z-modal-backdrop { z-index: var(--z-index-modal-backdrop); }
+.z-modal { z-index: var(--z-index-modal); }
+.z-popover { z-index: var(--z-index-popover); }
+.z-tooltip { z-index: var(--z-index-tooltip); }
+
+/* ============================================ */
+/* PRINT STYLES */
+/* ============================================ */
+
+@media print {
+    .no-print {
+        display: none !important;
+    }
+    
+    .cookbook-button,
+    .cookbook-fab,
+    .cookbook-bottom-navigation,
+    .cookbook-top-app-bar {
+        display: none !important;
+    }
+    
+    .cookbook-card {
+        box-shadow: none !important;
+        border: 1px solid #ccc !important;
+        page-break-inside: avoid;
+    }
+    
+    .recipe-card {
+        page-break-inside: avoid;
+    }
+    
+    body {
+        background-color: white !important;
+        color: black !important;
+    }
+    
+    .cookbook-divider {
+        background-color: #ccc !important;
+    }
+}
+
+/* ============================================ */
+/* HIGH CONTRAST MODE */
+/* ============================================ */
+
+@media (prefers-contrast: high) {
+    :root {
+        --color-primary: #D32F2F;
+        --color-secondary: #388E3C;
+        --color-on-surface: #000000;
+        --color-on-background: #000000;
+        --color-divider: #000000;
+        --color-outline: #000000;
+    }
+}
+
+/* ============================================ */
+/* REDUCED MOTION */
+/* ============================================ */
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* ============================================ */
+/* DARK MODE PREFERENCE */
+/* ============================================ */
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --color-surface: #121212;
+        --color-surface-variant: #1E1E1E;
+        --color-background: #121212;
+        --color-on-surface: #FFFFFF;
+        --color-on-background: #FFFFFF;
+        --color-divider: rgba(255, 255, 255, 0.12);
+        --color-outline: #9E9E9E;
+        --color-outline-variant: #424242;
+    }
+}
+
+/* ============================================ */
+/* END OF FILE */
+/* ============================================ */
