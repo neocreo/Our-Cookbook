@@ -44,6 +44,9 @@ object Route {
     // Utility Routes
     const val OCR_SCANNER = "ocr_scanner"
     const val SETTINGS = "settings"
+    const val EXPORT_IMPORT = "export_import"
+    const val EXPORT_IMPORT_FORMAT = "export_import_format"
+    const val EXPORT_IMPORT_HISTORY = "export_import_history"
     
     // Route constants for navigation arguments
     const val ARG_RECIPE_ID = "recipeId"
@@ -66,6 +69,7 @@ object Route {
     
     // Route patterns for navigation with optional arguments
     fun recipeListWithCategory(category: String) = "recipe_list?category=$category"
+    fun exportImportFormat(isExport: Boolean) = "export_import_format?isExport=$isExport"
     fun recipeListWithFavorites() = "recipe_list?favorites=true"
     fun searchWithQuery(query: String) = "search?query=$query"
 }
@@ -118,4 +122,7 @@ object UtilityDestinations {
     const val SEARCH = Route.SEARCH
     const val OCR_SCANNER = Route.OCR_SCANNER
     const val SETTINGS = Route.SETTINGS
+    const val EXPORT_IMPORT = Route.EXPORT_IMPORT
+    const val EXPORT_IMPORT_FORMAT = Route.EXPORT_IMPORT_FORMAT
+    const val EXPORT_IMPORT_HISTORY = Route.EXPORT_IMPORT_HISTORY
 }

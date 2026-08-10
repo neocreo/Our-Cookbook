@@ -11,6 +11,10 @@ import com.ourcookbook.domain.usecase.devicepreferences.CreateDevicePreferences
 import com.ourcookbook.domain.usecase.sync.GetSyncStatus
 import com.ourcookbook.domain.usecase.sync.UpdateSyncInProgress
 import com.ourcookbook.domain.usecase.sync.UpdateLastSyncTimestamp
+import com.ourcookbook.ui.screens.settings.SettingsAction
+import com.ourcookbook.ui.screens.settings.SettingsCategory
+import com.ourcookbook.ui.screens.settings.SettingsEvent
+import com.ourcookbook.ui.screens.settings.SettingsState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow

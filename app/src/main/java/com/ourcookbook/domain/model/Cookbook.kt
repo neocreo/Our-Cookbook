@@ -17,6 +17,7 @@ data class Cookbook(
     val ownerDeviceId: String,
     val isShared: Boolean = false,
     val sharingLink: String? = null,
+    val imageUri: String? = null,
     val createdAt: Instant = Instant.now(),
     val updatedAt: Instant = Instant.now(),
     val recipeIds: List<String> = emptyList()
@@ -65,6 +66,7 @@ data class Cookbook(
             description: String? = null,
             isShared: Boolean = false,
             sharingLink: String? = null,
+            imageUri: String? = null,
             recipeIds: List<String> = emptyList()
         ): Cookbook {
             return Cookbook(
@@ -73,6 +75,7 @@ data class Cookbook(
                 ownerDeviceId = ownerDeviceId,
                 isShared = isShared,
                 sharingLink = sharingLink,
+                imageUri = imageUri,
                 recipeIds = recipeIds
             )
         }

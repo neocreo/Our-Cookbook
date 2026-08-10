@@ -4,12 +4,17 @@ import com.ourcookbook.domain.usecase.AllUseCases
 import com.ourcookbook.domain.usecase.cookbook.AddRecipeToCookbook
 import com.ourcookbook.domain.usecase.cookbook.CreateCookbook
 import com.ourcookbook.domain.usecase.cookbook.DeleteCookbook
+import com.ourcookbook.domain.usecase.cookbook.ExportCookbook
 import com.ourcookbook.domain.usecase.cookbook.GetAllCookbooks
 import com.ourcookbook.domain.usecase.cookbook.GetCookbookById
 import com.ourcookbook.domain.usecase.cookbook.GetCookbooksByOwner
 import com.ourcookbook.domain.usecase.cookbook.GetSharedCookbooks
+import com.ourcookbook.domain.usecase.cookbook.GetSharingInfo
+import com.ourcookbook.domain.usecase.cookbook.GenerateSharingLink
+import com.ourcookbook.domain.usecase.cookbook.ImportCookbook
 import com.ourcookbook.domain.usecase.cookbook.RemoveRecipeFromCookbook
 import com.ourcookbook.domain.usecase.cookbook.SearchCookbooks
+import com.ourcookbook.domain.usecase.cookbook.ShareCookbook
 import com.ourcookbook.domain.usecase.cookbook.UpdateCookbook
 import com.ourcookbook.domain.usecase.device.CreateDevice
 import com.ourcookbook.domain.usecase.device.GetDeviceByDeviceId
@@ -201,11 +206,17 @@ object ViewModelModule {
         getSharedCookbooks: GetSharedCookbooks,
         searchCookbooks: SearchCookbooks,
         addRecipeToCookbook: AddRecipeToCookbook,
-        removeRecipeFromCookbook: RemoveRecipeFromCookbook
+        removeRecipeFromCookbook: RemoveRecipeFromCookbook,
+        exportCookbook: ExportCookbook,
+        importCookbook: ImportCookbook,
+        shareCookbook: ShareCookbook,
+        generateSharingLink: GenerateSharingLink,
+        getSharingInfo: GetSharingInfo
     ): CookbookManagementViewModel = CookbookManagementViewModel(
         createCookbook, updateCookbook, deleteCookbook, getAllCookbooks,
         getCookbooksByOwner, getSharedCookbooks, searchCookbooks,
-        addRecipeToCookbook, removeRecipeFromCookbook
+        addRecipeToCookbook, removeRecipeFromCookbook, exportCookbook, importCookbook,
+        shareCookbook, generateSharingLink, getSharingInfo
     )
 
     // Conflict Resolution ViewModel

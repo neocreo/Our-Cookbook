@@ -4,8 +4,13 @@ import com.ourcookbook.data.datasource.local.ICookbookLocalDataSource
 import com.ourcookbook.domain.model.Cookbook
 import com.ourcookbook.domain.repository.CookbookRepository
 import com.ourcookbook.domain.service.ChecksumService
+import com.ourcookbook.ui.viewmodel.CookbookSharingInfo
+import com.ourcookbook.ui.viewmodel.ExportFormat
+import com.ourcookbook.ui.viewmodel.Permission
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
+import java.io.File
 import javax.inject.Inject
 
 /**
@@ -99,5 +104,90 @@ class CookbookRepositoryImpl @Inject constructor(
             localDataSource.update(updatedEntity)
             true
         } ?: false
+    }
+    
+    // Export/Import Operations
+    override suspend fun exportCookbook(cookbookId: String, format: com.ourcookbook.ui.viewmodel.ExportFormat, destinationFile: java.io.File) {
+        val cookbook = getCookbookById(cookbookId) ?: throw NoSuchElementException("Cookbook not found")
+        // Implementation would export the cookbook to the specified file in the given format
+        // This is a placeholder implementation
+        when (format) {
+            com.ourcookbook.ui.viewmodel.ExportFormat.JSON -> {
+                // Export as JSON
+                destinationFile.writeText("{\"cookbook\": \"${cookbook.name}\"}")
+            }
+            com.ourcookbook.ui.viewmodel.ExportFormat.MARKDOWN -> {
+                // Export as Markdown
+                destinationFile.writeText("# ${cookbook.name}\n\n${cookbook.description ?: ""}")
+            }
+            com.ourcookbook.ui.viewmodel.ExportFormat.PDF -> {
+                // Export as PDF (would require PDF library)
+                throw UnsupportedOperationException("PDF export not implemented")
+            }
+        }
+    }
+    
+    override suspend fun importCookbook(sourceFile: java.io.File, format: com.ourcookbook.ui.viewmodel.ExportFormat): Cookbook {
+        // Implementation would import the cookbook from the specified file in the given format
+        // This is a placeholder implementation
+        when (format) {
+            com.ourcookbook.ui.viewmodel.ExportFormat.JSON -> {
+                // Import from JSON
+                val content = sourceFile.readText()
+                // Parse JSON and create cookbook
+                return Cookbook.create(
+                    name = "Imported Cookbook",
+                    ownerDeviceId = "current_device",
+                    description = "Imported from JSON"
+                )
+            }
+            com.ourcookbook.ui.viewmodel.ExportFormat.MARKDOWN -> {
+                // Import from Markdown
+                val content = sourceFile.readText()
+                // Parse Markdown and create cookbook
+                return Cookbook.create(
+                    name = "Imported Cookbook",
+                    ownerDeviceId = "current_device",
+                    description = "Imported from Markdown"
+                )
+            }
+            com.ourcookbook.ui.viewmodel.ExportFormat.PDF -> {
+                // Import from PDF (would require PDF library)
+                throw UnsupportedOperationException("PDF import not implemented")
+            }
+        }
+    }
+    
+    // Sharing Operations
+    override suspend fun shareCookbook(cookbookId: String, userIds: List<String>, permissions: Set<com.ourcookbook.ui.viewmodel.Permission>) {
+        val cookbook = getCookbookById(cookbookId) ?: throw NoSuchElementException("Cookbook not found")
+        // Implementation would share the cookbook with the specified users and permissions
+        // This is a placeholder implementation
+        // In production, this would update the cookbook's sharing settings in the database
+    }
+    
+    override suspend fun generateSharingLink(cookbookId: String): String {
+        val cookbook = getCookbookById(cookbookId) ?: throw NoSuchElementException("Cookbook not found")
+        // Implementation would generate a sharing link for the cookbook
+        // This is a placeholder implementation
+        return "https://ourcookbook.com/share/$cookbookId"
+    }
+    
+    override fun getSharingInfo(cookbookId: String): kotlinx.coroutines.flow.Flow<com.ourcookbook.ui.viewmodel.CookbookSharingInfo> {
+        // Implementation would return the sharing information for the cookbook
+        // This is a placeholder implementation
+        return kotlinx.coroutines.flow.flow {
+            emit(com.ourcookbook.ui.viewmodel.CookbookSharingInfo(
+                cookbookId = cookbookId,
+                sharingLink = "https://ourcookbook.com/share/$cookbookId",
+                sharedWithUsers = emptyList(),
+                permissions = emptyMap()
+            ))
+        }
+    }
+    
+    override suspend fun revokeSharing(cookbookId: String, userId: String) {
+        // Implementation would revoke sharing for the specified user
+        // This is a placeholder implementation
     }
 }

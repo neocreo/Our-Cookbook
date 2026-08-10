@@ -17,6 +17,8 @@ import com.ourcookbook.ui.screens.cookbook.CookbookDetailScreen
 import com.ourcookbook.ui.screens.cookbook.CookbookEditScreen
 import com.ourcookbook.ui.screens.cookbook.CookbookListScreen
 import com.ourcookbook.ui.screens.cookbook.CookbookManagementScreen
+import com.ourcookbook.ui.screens.exportimport.ExportImportScreen
+import com.ourcookbook.ui.screens.exportimport.FormatSelectionScreen
 import com.ourcookbook.ui.screens.favorites.FavoritesScreen
 import com.ourcookbook.ui.screens.home.HomeScreen
 import com.ourcookbook.ui.screens.ocr.OcrScannerScreen
@@ -622,7 +624,7 @@ fun CookbookNavHost(
             }
         }
         
-        composable(Route.SETTINGS) {
+         composable(Route.SETTINGS) {
             val viewModel: SettingsViewModel = hiltViewModel()
             val state by viewModel.state.collectAsState()
             val actions by viewModel.actions.collectAsState()
@@ -643,9 +645,90 @@ fun CookbookNavHost(
                         navController.navigate(Route.DRIVE_AUTH)
                         viewModel.clearAction()
                     }
+                    is com.ourcookbook.ui.viewmodel.SettingsAction.NavigateToExportImport -> {
+                        navController.navigate(Route.EXPORT_IMPORT)
+                        viewModel.clearAction()
+                    }
                     else -> {}
                 }
             }
+        }
+        
+        // ==================== EXPORT/IMPORT FLOW ====================
+        
+        composable(Route.EXPORT_IMPORT) {
+            val viewModel: ExportImportViewModel = hiltViewModel()
+            val state by viewModel.state.collectAsState()
+            val actions by viewModel.actions.collectAsState()
+            
+            ExportImportScreen(
+                navController = navController,
+                viewModel = viewModel
+            )
+            
+            // Handle navigation actions from ViewModel
+            actions?.let { action ->
+                when (action) {
+                    is ExportImportAction.NavigationAction -> {
+                        when (action.route) {
+                            "back" -> navController.popBackStack()
+                            "export_settings" -> {
+                                navController.navigate(Route.exportImportFormat(true))
+                            }
+                            "import_settings" -> {
+                                navController.navigate(Route.exportImportFormat(false))
+                            }
+                            "operation_history" -> {
+                                navController.navigate(Route.EXPORT_IMPORT_HISTORY)
+                            }
+                        }
+                        viewModel.clearAction()
+                    }
+                    else -> {}
+                }
+            }
+        }
+        
+        composable(
+            route = Route.EXPORT_IMPORT_FORMAT,
+            arguments = listOf(
+                navArgument("isExport") {
+                    type = NavType.BoolType
+                    defaultValue = true
+                }
+            )
+        ) { backStackEntry ->
+            val isExport = backStackEntry.arguments?.getBoolean("isExport") ?: true
+            val viewModel: ExportImportViewModel = hiltViewModel()
+            
+            FormatSelectionScreen(
+                navController = navController,
+                isExport = isExport,
+                currentFormat = if (isExport) viewModel.state.value.exportSettings.format 
+                               else viewModel.state.value.importSettings.format,
+                onFormatSelected = { format ->
+                    if (isExport) {
+                        viewModel.handleEvent(ExportImportEvent.SelectExportFormat(format as ExportFormat))
+                    } else {
+                        viewModel.handleEvent(ExportImportEvent.SelectImportFormat(format as ImportFormat))
+                    }
+                    navController.popBackStack()
+                }
+            )
+        }
+        
+        composable(Route.EXPORT_IMPORT_HISTORY) {
+            val viewModel: ExportImportViewModel = hiltViewModel()
+            val state by viewModel.state.collectAsState()
+            
+            // In a real implementation, we would have a dedicated history screen
+            // For now, we'll just show the dialog
+            LaunchedEffect(Unit) {
+                viewModel.handleEvent(ExportImportEvent.ShowHistoryDialog)
+            }
+            
+            // This would be replaced with a proper history screen
+            Text("Export/Import History Screen")
         }
     }
 }

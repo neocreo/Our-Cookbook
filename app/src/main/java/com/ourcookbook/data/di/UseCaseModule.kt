@@ -11,13 +11,18 @@ import com.ourcookbook.domain.repository.SyncMetadataRepository
 import com.ourcookbook.domain.usecase.cookbook.AddRecipeToCookbook
 import com.ourcookbook.domain.usecase.cookbook.CreateCookbook
 import com.ourcookbook.domain.usecase.cookbook.DeleteCookbook
+import com.ourcookbook.domain.usecase.cookbook.ExportCookbook
 import com.ourcookbook.domain.usecase.cookbook.GetAllCookbooks
 import com.ourcookbook.domain.usecase.cookbook.GetCookbookById
 import com.ourcookbook.domain.usecase.cookbook.GetCookbookCount
 import com.ourcookbook.domain.usecase.cookbook.GetCookbooksByOwner
 import com.ourcookbook.domain.usecase.cookbook.GetSharedCookbooks
+import com.ourcookbook.domain.usecase.cookbook.GetSharingInfo
+import com.ourcookbook.domain.usecase.cookbook.GenerateSharingLink
+import com.ourcookbook.domain.usecase.cookbook.ImportCookbook
 import com.ourcookbook.domain.usecase.cookbook.RemoveRecipeFromCookbook
 import com.ourcookbook.domain.usecase.cookbook.SearchCookbooks
+import com.ourcookbook.domain.usecase.cookbook.ShareCookbook
 import com.ourcookbook.domain.usecase.cookbook.UpdateCookbook
 import com.ourcookbook.domain.usecase.cookbook.ValidateCookbookChecksum
 import com.ourcookbook.domain.usecase.cookbook.UpdateCookbookChecksum
@@ -369,6 +374,28 @@ object UseCaseModule {
     @Singleton
     fun provideUpdateCookbookChecksum(repository: CookbookRepository): UpdateCookbookChecksum = UpdateCookbookChecksum(repository)
 
+    // Export/Import Use Cases
+    @Provides
+    @Singleton
+    fun provideExportCookbook(repository: CookbookRepository): com.ourcookbook.domain.usecase.cookbook.ExportCookbook = com.ourcookbook.domain.usecase.cookbook.ExportCookbook(repository)
+
+    @Provides
+    @Singleton
+    fun provideImportCookbook(repository: CookbookRepository): com.ourcookbook.domain.usecase.cookbook.ImportCookbook = com.ourcookbook.domain.usecase.cookbook.ImportCookbook(repository)
+
+    // Sharing Use Cases
+    @Provides
+    @Singleton
+    fun provideShareCookbook(repository: CookbookRepository): com.ourcookbook.domain.usecase.cookbook.ShareCookbook = com.ourcookbook.domain.usecase.cookbook.ShareCookbook(repository)
+
+    @Provides
+    @Singleton
+    fun provideGenerateSharingLink(repository: CookbookRepository): com.ourcookbook.domain.usecase.cookbook.GenerateSharingLink = com.ourcookbook.domain.usecase.cookbook.GenerateSharingLink(repository)
+
+    @Provides
+    @Singleton
+    fun provideGetSharingInfo(repository: CookbookRepository): com.ourcookbook.domain.usecase.cookbook.GetSharingInfo = com.ourcookbook.domain.usecase.cookbook.GetSharingInfo(repository)
+
     // Device Use Cases
     @Provides
     @Singleton
@@ -612,4 +639,21 @@ object UseCaseModule {
     @Provides
     @Singleton
     fun provideUpdateDevicePreferencesChecksum(repository: DevicePreferencesRepository): UpdateDevicePreferencesChecksum = UpdateDevicePreferencesChecksum(repository)
+    
+    // Export/Import Use Cases
+    @Provides
+    @Singleton
+    fun provideExportUseCases(
+        repository: com.ourcookbook.domain.repository.ExportImportRepository
+    ): com.ourcookbook.domain.usecase.exportimport.ExportUseCases {
+        return com.ourcookbook.domain.usecase.exportimport.ExportUseCases(repository)
+    }
+    
+    @Provides
+    @Singleton
+    fun provideImportUseCases(
+        repository: com.ourcookbook.domain.repository.ExportImportRepository
+    ): com.ourcookbook.domain.usecase.exportimport.ImportUseCases {
+        return com.ourcookbook.domain.usecase.exportimport.ImportUseCases(repository)
+    }
 }

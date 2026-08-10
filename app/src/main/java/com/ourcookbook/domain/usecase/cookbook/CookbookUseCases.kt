@@ -196,3 +196,68 @@ class UpdateCookbookChecksum(
         }
     }
 }
+
+// Export Cookbook Use Case
+class ExportCookbook(
+    private val repository: CookbookRepository
+) {
+    suspend operator fun invoke(cookbookId: String, format: com.ourcookbook.ui.viewmodel.ExportFormat, destinationFile: java.io.File): Result<Unit> {
+        return try {
+            repository.exportCookbook(cookbookId, format, destinationFile)
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+}
+
+// Import Cookbook Use Case
+class ImportCookbook(
+    private val repository: CookbookRepository
+) {
+    suspend operator fun invoke(sourceFile: java.io.File, format: com.ourcookbook.ui.viewmodel.ExportFormat): Result<com.ourcookbook.domain.model.Cookbook> {
+        return try {
+            val cookbook = repository.importCookbook(sourceFile, format)
+            Result.success(cookbook)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+}
+
+// Share Cookbook Use Case
+class ShareCookbook(
+    private val repository: CookbookRepository
+) {
+    suspend operator fun invoke(cookbookId: String, userIds: List<String>, permissions: Set<com.ourcookbook.ui.viewmodel.Permission>): Result<Unit> {
+        return try {
+            repository.shareCookbook(cookbookId, userIds, permissions)
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+}
+
+// Generate Sharing Link Use Case
+class GenerateSharingLink(
+    private val repository: CookbookRepository
+) {
+    suspend operator fun invoke(cookbookId: String): Result<String> {
+        return try {
+            val sharingLink = repository.generateSharingLink(cookbookId)
+            Result.success(sharingLink)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+}
+
+// Get Sharing Info Use Case
+class GetSharingInfo(
+    private val repository: CookbookRepository
+) {
+    operator fun invoke(cookbookId: String): kotlinx.coroutines.flow.Flow<com.ourcookbook.ui.viewmodel.CookbookSharingInfo> {
+        return repository.getSharingInfo(cookbookId)
+    }
+}

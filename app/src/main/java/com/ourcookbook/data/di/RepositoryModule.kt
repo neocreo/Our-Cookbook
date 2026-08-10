@@ -152,4 +152,19 @@ object RepositoryModule {
     ): TombstoneRepository {
         return TombstoneRepositoryImpl(localDataSource, checksumService)
     }
+    
+    // Export/Import Repository
+    @Provides
+    @Singleton
+    fun provideExportImportRepository(
+        exportImportDataSource: IExportImportDataSource,
+        recipeRepository: RecipeRepository,
+        cookbookRepository: CookbookRepository,
+        checksumService: ChecksumService,
+        @ApplicationContext context: android.content.Context
+    ): com.ourcookbook.domain.repository.ExportImportRepository {
+        return com.ourcookbook.data.repository.ExportImportRepositoryImpl(
+            exportImportDataSource, recipeRepository, cookbookRepository, checksumService, context
+        )
+    }
 }

@@ -161,4 +161,13 @@ object LocalDataSourceModule {
     fun provideDatabaseConverters(): DatabaseConverters {
         return DatabaseConverters()
     }
+    
+    // Export/Import Data Source
+    @Provides
+    @Singleton
+    fun provideExportImportDataSource(
+        @ApplicationContext context: android.content.Context
+    ): com.ourcookbook.data.datasource.IExportImportDataSource {
+        return com.ourcookbook.data.datasource.ExportImportDataSourceImpl(context)
+    }
 }
