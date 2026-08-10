@@ -9,6 +9,8 @@ import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.ourcookbook.data.db.dao.*
 import com.ourcookbook.data.db.entity.*
+import com.ourcookbook.data.model.SearchHistoryEntity
+import com.ourcookbook.data.model.SavedSearchEntity
 import net.sqlcipher.database.SupportFactory
 
 /**
@@ -30,9 +32,11 @@ import net.sqlcipher.database.SupportFactory
         SyncMetadataEntity::class,
         DriveFileInfoEntity::class,
         TombstoneEntity::class,
-        RecipeFtsEntity::class
+        RecipeFtsEntity::class,
+        SearchHistoryEntity::class,
+        SavedSearchEntity::class
     ],
-    version = 2,
+    version = 3,
     exportSchema = true
 )
 @TypeConverters(DatabaseConverters::class)

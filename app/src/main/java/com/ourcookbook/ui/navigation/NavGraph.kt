@@ -24,10 +24,15 @@ import com.ourcookbook.ui.screens.recipe.RecipeCreateScreen
 import com.ourcookbook.ui.screens.recipe.RecipeDetailScreen
 import com.ourcookbook.ui.screens.recipe.RecipeEditScreen
 import com.ourcookbook.ui.screens.recipe.RecipeListScreen
+import com.ourcookbook.ui.screens.scan.OcrScanScreen
 import com.ourcookbook.ui.screens.search.SearchScreen
 import com.ourcookbook.ui.screens.settings.SettingsScreen
 import com.ourcookbook.ui.screens.sync.ConflictResolutionScreen
+import com.ourcookbook.ui.screens.sync.DeviceDetailScreen
+import com.ourcookbook.ui.screens.sync.DeviceManagementScreen
+import com.ourcookbook.ui.screens.sync.SyncDetailsScreen
 import com.ourcookbook.ui.screens.sync.SyncStatusScreen
+import com.ourcookbook.ui.screens.scan.OcrScanAction
 import com.ourcookbook.ui.viewmodel.AuthViewModel
 import com.ourcookbook.ui.viewmodel.ConflictResolutionViewModel
 import com.ourcookbook.ui.viewmodel.CookbookManagementViewModel
@@ -37,6 +42,7 @@ import com.ourcookbook.ui.viewmodel.RecipeDetailViewModel
 import com.ourcookbook.ui.viewmodel.RecipeEditViewModel
 import com.ourcookbook.ui.viewmodel.RecipeListViewModel
 import com.ourcookbook.ui.viewmodel.SearchViewModel
+import com.ourcookbook.ui.viewmodel.SyncStatusViewModel
 import com.ourcookbook.ui.viewmodel.SyncViewModel
 
 /**
@@ -393,6 +399,10 @@ fun CookbookNavHost(
                         navController.navigate(Route.recipeDetail(action.recipeId))
                         viewModel.clearAction()
                     }
+                    is com.ourcookbook.ui.viewmodel.SearchAction.NavigateToCreateRecipe -> {
+                        navController.navigate(Route.RECIPE_CREATE)
+                        viewModel.clearAction()
+                    }
                     else -> {}
                 }
             }
@@ -426,7 +436,7 @@ fun CookbookNavHost(
         // ==================== SYNC FLOW ====================
         
         composable(Route.SYNC_STATUS) {
-            val viewModel: SyncViewModel = hiltViewModel()
+            val viewModel: SyncStatusViewModel = hiltViewModel()
             val state by viewModel.state.collectAsState()
             val actions by viewModel.actions.collectAsState()
             
@@ -438,11 +448,98 @@ fun CookbookNavHost(
             // Handle navigation actions from ViewModel
             actions?.let { action ->
                 when (action) {
-                    is com.ourcookbook.ui.viewmodel.SyncAction.ShowConflictResolution -> {
+                    is SyncStatusAction.ShowConflictResolution -> {
                         navController.navigate(Route.conflictResolution(action.conflictId))
                         viewModel.clearAction()
                     }
+                    is SyncStatusAction.ShowDeviceManagement -> {
+                        action.deviceId?.let { deviceId ->
+                            navController.navigate(Route.deviceDetail(deviceId))
+                        } ?: navController.navigate(Route.DEVICE_MANAGEMENT)
+                        viewModel.clearAction()
+                    }
+                    is SyncStatusAction.ShowSyncDetails -> {
+                        navController.navigate(Route.syncDetails(action.syncId))
+                        viewModel.clearAction()
+                    }
+                    SyncStatusAction.NavigateBack -> {
+                        navController.popBackStack()
+                        viewModel.clearAction()
+                    }
                     else -> {}
+                }
+            }
+        }
+        
+        composable(
+            route = Route.SYNC_DETAILS,
+            arguments = listOf(navArgument(Route.ARG_SYNC_ID) { 
+                type = NavType.StringType 
+            })
+        ) { backStackEntry ->
+            val syncId = backStackEntry.arguments?.getString(Route.ARG_SYNC_ID) ?: return@composable
+            val viewModel: SyncStatusViewModel = hiltViewModel()
+            val state by viewModel.state.collectAsState()
+            
+            // Find the sync history item
+            val syncItem = state.syncHistory.find { it.id == syncId }
+            
+            if (syncItem != null) {
+                SyncDetailsScreen(
+                    syncItem = syncItem,
+                    navController = navController,
+                    onRetry = { viewModel.handleEvent(SyncStatusEvent.RetrySync(syncId)) }
+                )
+            } else {
+                // Sync item not found, navigate back
+                LaunchedEffect(Unit) {
+                    navController.popBackStack()
+                }
+            }
+        }
+        
+        composable(Route.DEVICE_MANAGEMENT) {
+            val viewModel: SyncStatusViewModel = hiltViewModel()
+            val state by viewModel.state.collectAsState()
+            
+            DeviceManagementScreen(
+                devices = state.devices,
+                isLoading = state.isLoadingDevices,
+                error = state.devicesError,
+                navController = navController,
+                onDeviceClick = { deviceId ->
+                    navController.navigate(Route.deviceDetail(deviceId))
+                },
+                onForceSync = { deviceId ->
+                    viewModel.handleEvent(SyncStatusEvent.ForceSyncWithDevice(deviceId))
+                },
+                onRefresh = { viewModel.handleEvent(SyncStatusEvent.LoadDevices) }
+            )
+        }
+        
+        composable(
+            route = Route.DEVICE_DETAIL,
+            arguments = listOf(navArgument(Route.ARG_DEVICE_ID) { 
+                type = NavType.StringType 
+            })
+        ) { backStackEntry ->
+            val deviceId = backStackEntry.arguments?.getString(Route.ARG_DEVICE_ID) ?: return@composable
+            val viewModel: SyncStatusViewModel = hiltViewModel()
+            val state by viewModel.state.collectAsState()
+            
+            val device = state.devices.find { it.deviceId == deviceId }
+            
+            if (device != null) {
+                DeviceDetailScreen(
+                    device = device,
+                    navController = navController,
+                    onForceSync = { viewModel.handleEvent(SyncStatusEvent.ForceSyncWithDevice(deviceId)) },
+                    onBackClick = { navController.popBackStack() }
+                )
+            } else {
+                // Device not found, navigate back
+                LaunchedEffect(Unit) {
+                    navController.popBackStack()
                 }
             }
         }
@@ -489,13 +586,13 @@ fun CookbookNavHost(
         }
         
         // ==================== UTILITY FLOW ====================
-        
+
         composable(Route.OCR_SCANNER) {
-            val viewModel: ScanViewModel = hiltViewModel()
+            val viewModel: OcrScanViewModel = hiltViewModel()
             val state by viewModel.state.collectAsState()
             val actions by viewModel.actions.collectAsState()
             
-            OcrScannerScreen(
+            OcrScanScreen(
                 viewModel = viewModel,
                 navController = navController
             )
@@ -503,13 +600,20 @@ fun CookbookNavHost(
             // Handle navigation actions from ViewModel
             actions?.let { action ->
                 when (action) {
-                    is com.ourcookbook.ui.viewmodel.ScanAction.NavigateToRecipeDetail -> {
+                    is OcrScanAction.NavigateToRecipeDetail -> {
                         navController.navigate(Route.recipeDetail(action.recipeId)) {
                             popUpTo(Route.OCR_SCANNER) { inclusive = true }
                         }
                         viewModel.clearAction()
                     }
-                    is com.ourcookbook.ui.viewmodel.ScanAction.NavigateBack -> {
+                    is OcrScanAction.NavigateToRecipeEdit -> {
+                        // For now, navigate to recipe create screen
+                        navController.navigate(Route.RECIPE_CREATE) {
+                            popUpTo(Route.OCR_SCANNER) { inclusive = true }
+                        }
+                        viewModel.clearAction()
+                    }
+                    is OcrScanAction.NavigateBack -> {
                         navController.popBackStack()
                         viewModel.clearAction()
                     }

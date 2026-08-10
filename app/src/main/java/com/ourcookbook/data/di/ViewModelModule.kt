@@ -55,6 +55,9 @@ import com.ourcookbook.domain.usecase.sync.GetConflictById
 import com.ourcookbook.domain.usecase.sync.ResolveSyncConflict
 import com.ourcookbook.domain.usecase.sync.UpdateSyncInProgress
 import com.ourcookbook.domain.usecase.sync.UpdateLastSyncTimestamp
+import com.ourcookbook.domain.usecase.sync.GetAllSyncMetadata
+import com.ourcookbook.domain.usecase.device.GetAllDevices
+import com.ourcookbook.domain.repository.SyncLogRepository
 import com.ourcookbook.ui.service.SyncStatusService
 import com.ourcookbook.ui.viewmodel.AuthViewModel
 import com.ourcookbook.ui.viewmodel.CookbookManagementViewModel
@@ -67,6 +70,7 @@ import com.ourcookbook.ui.viewmodel.RecipeListViewModel
 import com.ourcookbook.ui.viewmodel.ScanViewModel
 import com.ourcookbook.ui.viewmodel.SearchViewModel
 import com.ourcookbook.ui.viewmodel.SettingsViewModel
+import com.ourcookbook.ui.viewmodel.SyncStatusViewModel
 import com.ourcookbook.ui.viewmodel.SyncViewModel
 import dagger.Module
 import dagger.Provides
@@ -150,7 +154,7 @@ object ViewModelModule {
         createRecipeImage: CreateRecipeImage
     ): ScanViewModel = ScanViewModel(createRecipe, createRecipeImage)
 
-    // Sync ViewModel
+     // Sync ViewModel
     @Provides
     fun provideSyncViewModel(
         getSyncStatus: GetSyncStatus,
@@ -164,6 +168,26 @@ object ViewModelModule {
     ): SyncViewModel = SyncViewModel(
         getSyncStatus, getPendingConflictCount, getAllConflicts, getAllSyncMetadata,
         updateSyncInProgress, updateLastSyncTimestamp, syncRecipe, getRecipesNeedingSync
+    )
+
+    // Sync Status ViewModel
+    @Provides
+    fun provideSyncStatusViewModel(
+        getSyncStatus: GetSyncStatus,
+        getPendingConflictCount: GetPendingConflictCount,
+        getAllConflicts: GetAllConflicts,
+        getAllSyncMetadata: GetAllSyncMetadata,
+        updateSyncInProgress: UpdateSyncInProgress,
+        updateLastSyncTimestamp: UpdateLastSyncTimestamp,
+        syncRecipe: SyncRecipe,
+        getRecipesNeedingSync: GetRecipesNeedingSync,
+        resolveSyncConflict: ResolveSyncConflict,
+        getAllDevices: GetAllDevices,
+        syncLogRepository: SyncLogRepository
+    ): SyncStatusViewModel = SyncStatusViewModel(
+        getSyncStatus, getPendingConflictCount, getAllConflicts, getAllSyncMetadata,
+        updateSyncInProgress, updateLastSyncTimestamp, syncRecipe, getRecipesNeedingSync,
+        resolveSyncConflict, getAllDevices, syncLogRepository
     )
 
     // Cookbook Management ViewModel

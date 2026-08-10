@@ -346,20 +346,37 @@ class DatabaseConverters {
          }
      }
 
-     // Additional conversion methods for repository implementations
-     fun fromJsonToIngredients(json: String): List<com.ourcookbook.domain.model.Ingredient> {
-         return json.let { 
-             try {
-                 mapper.readValue<List<com.ourcookbook.domain.model.Ingredient>>(it)
-             } catch (e: Exception) {
-                 emptyList()
-             }
-         }
-     }
+    // Map converters for search filters
+    @TypeConverter
+    fun fromStringMap(value: Map<String, String>?): String? {
+        return value?.let { mapper.writeValueAsString(it) }
+    }
 
-     fun fromIngredientsToJson(ingredients: List<com.ourcookbook.domain.model.Ingredient>): String {
-         return mapper.writeValueAsString(ingredients)
-     }
+    @TypeConverter
+    fun toStringMap(value: String?): Map<String, String>? {
+        return value?.let { 
+            try {
+                mapper.readValue<Map<String, String>>(it)
+            } catch (e: Exception) {
+                null
+            }
+        }
+    }
+
+    // Additional conversion methods for repository implementations
+    fun fromJsonToIngredients(json: String): List<com.ourcookbook.domain.model.Ingredient> {
+        return json.let { 
+            try {
+                mapper.readValue<List<com.ourcookbook.domain.model.Ingredient>>(it)
+            } catch (e: Exception) {
+                emptyList()
+            }
+        }
+    }
+
+    fun fromIngredientsToJson(ingredients: List<com.ourcookbook.domain.model.Ingredient>): String {
+        return mapper.writeValueAsString(ingredients)
+    }
 
      fun fromJsonToInstructions(json: String): List<String> {
          return json.let { 

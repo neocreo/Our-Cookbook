@@ -120,6 +120,9 @@ dependencies {
     implementation 'androidx.credentials:credentials:1.2.0'
     implementation 'androidx.credentials:credentials-play-services-auth:1.2.0'
 
+    // Accompanist Permissions
+    implementation 'com.google.accompanist:accompanist-permissions:0.32.0'
+
     // PDF Generation
     implementation 'com.itextpdf:itext7-core:8.0.2'
 

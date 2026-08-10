@@ -37,6 +37,9 @@ object Route {
     // Sync and Conflict Routes
     const val SYNC_STATUS = "sync_status"
     const val CONFLICT_RESOLUTION = "conflict_resolution/{conflictId}"
+    const val SYNC_DETAILS = "sync_details/{syncId}"
+    const val DEVICE_MANAGEMENT = "device_management"
+    const val DEVICE_DETAIL = "device_detail/{deviceId}"
     
     // Utility Routes
     const val OCR_SCANNER = "ocr_scanner"
@@ -46,6 +49,7 @@ object Route {
     const val ARG_RECIPE_ID = "recipeId"
     const val ARG_COOKBOOK_ID = "cookbookId"
     const val ARG_CONFLICT_ID = "conflictId"
+    const val ARG_SYNC_ID = "syncId"
     const val ARG_SEARCH_QUERY = "searchQuery"
     const val ARG_CATEGORY = "category"
     const val ARG_DEVICE_ID = "deviceId"
@@ -56,6 +60,8 @@ object Route {
     fun cookbookDetail(cookbookId: String) = "cookbook_detail/$cookbookId"
     fun cookbookEdit(cookbookId: String) = "cookbook_edit/$cookbookId"
     fun conflictResolution(conflictId: String) = "conflict_resolution/$conflictId"
+    fun syncDetails(syncId: String) = "sync_details/$syncId"
+    fun deviceDetail(deviceId: String) = "device_detail/$deviceId"
     fun deviceRegistration(deviceId: String? = null) = deviceId?.let { "device_registration/$it" } ?: DEVICE_REGISTRATION
     
     // Route patterns for navigation with optional arguments
@@ -69,6 +75,7 @@ sealed class NavArg(val key: String) {
     object RecipeId : NavArg(Route.ARG_RECIPE_ID)
     object CookbookId : NavArg(Route.ARG_COOKBOOK_ID)
     object ConflictId : NavArg(Route.ARG_CONFLICT_ID)
+    object SyncId : NavArg(Route.ARG_SYNC_ID)
     object SearchQuery : NavArg(Route.ARG_SEARCH_QUERY)
     object Category : NavArg(Route.ARG_CATEGORY)
     object DeviceId : NavArg(Route.ARG_DEVICE_ID)
@@ -102,6 +109,9 @@ object CookbookDestinations {
 object SyncDestinations {
     const val SYNC_STATUS = Route.SYNC_STATUS
     const val CONFLICT_RESOLUTION = Route.CONFLICT_RESOLUTION
+    const val SYNC_DETAILS = Route.SYNC_DETAILS
+    const val DEVICE_MANAGEMENT = Route.DEVICE_MANAGEMENT
+    const val DEVICE_DETAIL = Route.DEVICE_DETAIL
 }
 
 object UtilityDestinations {
