@@ -474,7 +474,7 @@ fun AccountAndDeviceSettingsSection(
             icon = Icons.Default.Person,
             title = "User Profile",
             subtitle = state.userName ?: "Not logged in",
-            onClick = { /* Navigate to profile */ }
+            onClick = { navController.navigate(Route.PROFILE) }
         )
         
         // Device name and ID

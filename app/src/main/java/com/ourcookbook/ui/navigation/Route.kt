@@ -44,6 +44,7 @@ object Route {
     // Utility Routes
     const val OCR_SCANNER = "ocr_scanner"
     const val SETTINGS = "settings"
+    const val PROFILE = "profile"
     const val EXPORT_IMPORT = "export_import"
     const val EXPORT_IMPORT_FORMAT = "export_import_format"
     const val EXPORT_IMPORT_HISTORY = "export_import_history"

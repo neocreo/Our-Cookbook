@@ -29,6 +29,8 @@ import com.ourcookbook.ui.screens.recipe.RecipeListScreen
 import com.ourcookbook.ui.screens.scan.OcrScanScreen
 import com.ourcookbook.ui.screens.search.SearchScreen
 import com.ourcookbook.ui.screens.settings.SettingsScreen
+import com.ourcookbook.ui.screens.profile.UserProfileScreen
+import com.ourcookbook.ui.viewmodel.UserProfileViewModel
 import com.ourcookbook.ui.screens.sync.ConflictResolutionScreen
 import com.ourcookbook.ui.screens.sync.DeviceDetailScreen
 import com.ourcookbook.ui.screens.sync.DeviceManagementScreen
@@ -641,6 +643,13 @@ fun CookbookNavHost(
                         navController.navigate(Route.SYNC_STATUS)
                         viewModel.clearAction()
                     }
+        composable(Route.PROFILE) {
+            val viewModel: UserProfileViewModel = hiltViewModel()
+            UserProfileScreen(
+                viewModel = viewModel,
+                navController = navController
+            )
+        }
                     is com.ourcookbook.ui.viewmodel.SettingsAction.NavigateToDriveAuth -> {
                         navController.navigate(Route.DRIVE_AUTH)
                         viewModel.clearAction()
