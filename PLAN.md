@@ -1510,7 +1510,7 @@ class RecipeSchemaMigrator(private val objectMapper: ObjectMapper) {
 ### Phase 3: Advanced Features
 - [x] Full-Text Search Implementation (Task 2.2.01)
 - [x] Category and Tag Filtering (Task 2.2.02)
-- [ ] Advanced Sorting Options (Task 2.2.03)
+- [x] Advanced Sorting Options (Task 2.2.03) Options (Task 2.2.03)
 - [ ] OCR scanning (camera)
 - [ ] Ingredient-based search
 - [ ] PDF export
