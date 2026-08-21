@@ -33,6 +33,9 @@ object Route {
     const val SEARCH = "search"
     const val FAVORITES = "favorites"
     const val CATEGORIES = "categories"
+    const val CATEGORY_RECIPES = "category_recipes/{category}"
+    const val TAGS = "tags"
+    const val TAG_RECIPES = "tag_recipes/{tag}"
     
     // Sync and Conflict Routes
     const val SYNC_STATUS = "sync_status"
@@ -56,6 +59,7 @@ object Route {
     const val ARG_SYNC_ID = "syncId"
     const val ARG_SEARCH_QUERY = "searchQuery"
     const val ARG_CATEGORY = "category"
+    const val ARG_TAG = "tag"
     const val ARG_DEVICE_ID = "deviceId"
     
     // Utility functions for building routes with arguments
@@ -83,6 +87,7 @@ sealed class NavArg(val key: String) {
     object SyncId : NavArg(Route.ARG_SYNC_ID)
     object SearchQuery : NavArg(Route.ARG_SEARCH_QUERY)
     object Category : NavArg(Route.ARG_CATEGORY)
+    object Tag : NavArg(Route.ARG_TAG)
     object DeviceId : NavArg(Route.ARG_DEVICE_ID)
 }
 

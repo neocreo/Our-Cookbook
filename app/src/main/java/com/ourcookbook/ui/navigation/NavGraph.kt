@@ -29,6 +29,10 @@ import com.ourcookbook.ui.screens.recipe.RecipeListScreen
 import com.ourcookbook.ui.screens.scan.OcrScanScreen
 import com.ourcookbook.ui.screens.search.SearchScreen
 import com.ourcookbook.ui.screens.settings.SettingsScreen
+import com.ourcookbook.ui.screens.categories.CategoriesScreen
+import com.ourcookbook.ui.screens.categories.CategoryRecipesScreen
+import com.ourcookbook.ui.screens.tags.TagsScreen
+import com.ourcookbook.ui.screens.tags.TagRecipesScreen
 import com.ourcookbook.ui.screens.profile.UserProfileScreen
 import com.ourcookbook.ui.viewmodel.UserProfileViewModel
 import com.ourcookbook.ui.screens.sync.ConflictResolutionScreen
@@ -663,6 +667,53 @@ fun CookbookNavHost(
             }
         }
         
+        
+        // ==================== CATEGORIES FLOW ====================
+        
+        composable(Route.CATEGORIES) {
+            val viewModel: CategoriesViewModel = hiltViewModel()
+            CategoriesScreen(
+                viewModel = viewModel,
+                navController = navController
+            )
+        }
+        
+        composable(
+            route = Route.CATEGORY_RECIPES,
+            arguments = listOf(navArgument(Route.ARG_CATEGORY) { type = NavType.StringType })
+        ) { backStackEntry ->
+            val category = backStackEntry.arguments?.getString(Route.ARG_CATEGORY) ?: ""
+            val viewModel: CategoryRecipesViewModel = hiltViewModel()
+            CategoryRecipesScreen(
+                viewModel = viewModel,
+                navController = navController,
+                category = category
+            )
+        }
+        
+        // ==================== TAGS FLOW ====================
+        
+        composable(Route.TAGS) {
+            val viewModel: TagsViewModel = hiltViewModel()
+            TagsScreen(
+                viewModel = viewModel,
+                navController = navController
+            )
+        }
+        
+        composable(
+            route = Route.TAG_RECIPES,
+            arguments = listOf(navArgument(Route.ARG_TAG) { type = NavType.StringType })
+        ) { backStackEntry ->
+            val tag = backStackEntry.arguments?.getString(Route.ARG_TAG) ?: ""
+            val viewModel: TagRecipesViewModel = hiltViewModel()
+            TagRecipesScreen(
+                viewModel = viewModel,
+                navController = navController,
+                tag = tag
+            )
+        }
+
         // ==================== EXPORT/IMPORT FLOW ====================
         
         composable(Route.EXPORT_IMPORT) {
