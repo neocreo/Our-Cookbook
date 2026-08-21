@@ -36,6 +36,7 @@ object Route {
     const val CATEGORY_RECIPES = "category_recipes/{category}"
     const val TAGS = "tags"
     const val TAG_RECIPES = "tag_recipes/{tag}"
+    const val SORT = "sort"
     
     // Sync and Conflict Routes
     const val SYNC_STATUS = "sync_status"
