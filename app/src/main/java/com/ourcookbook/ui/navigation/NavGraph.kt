@@ -53,6 +53,7 @@ import com.ourcookbook.ui.viewmodel.RecipeListViewModel
 import com.ourcookbook.ui.viewmodel.SearchViewModel
 import com.ourcookbook.ui.viewmodel.SyncStatusViewModel
 import com.ourcookbook.ui.viewmodel.SyncViewModel
+import com.ourcookbook.ui.screens.ingredients.IngredientSearchScreen
 
 /**
  * Cookbook Navigation Graph
@@ -417,7 +418,13 @@ fun CookbookNavHost(
             }
         }
         
-        composable(Route.FAVORITES) {
+        composable(Route.INGREDIENT_SEARCH) {
+            IngredientSearchScreen(
+                navController = navController
+            )
+        }
+
+composable(Route.FAVORITES) {
             val viewModel: RecipeListViewModel = hiltViewModel()
             val state by viewModel.state.collectAsState()
             
