@@ -653,7 +653,16 @@ object UseCaseModule {
     @Singleton
     fun provideImportUseCases(
         repository: com.ourcookbook.domain.repository.ExportImportRepository
-    ): com.ourcookbook.domain.usecase.exportimport.ImportUseCases {
-        return com.ourcookbook.domain.usecase.exportimport.ImportUseCases(repository)
+    ): com.ourcookbook.domain.usecase.exportimport.ImportUseCases
+import com.ourcookbook.domain.usecase.search.FullTextSearchUseCases
+        return com.ourcookbook.domain.usecase.exportimport.ImportUseCases
+import com.ourcookbook.domain.usecase.search.FullTextSearchUseCases
+    }
+
+    // FullTextSearch UseCases
+    @Provides
+    @Singleton
+    fun provideFullTextSearchUseCases(repository: FullTextSearchRepository): FullTextSearchUseCases {
+        return FullTextSearchUseCases(repository)
     }
 }

@@ -147,6 +147,16 @@ object RepositoryModule {
     @Provides
     @Singleton
     fun provideTombstoneRepository(
+
+    // FullTextSearch Repository
+    @Provides
+    @Singleton
+    fun provideFullTextSearchRepository(
+        recipeFtsDao: RecipeFtsDao
+    ): FullTextSearchRepository {
+        return FullTextSearchRepositoryImpl(recipeFtsDao)
+    }
+        recipeFtsDao: RecipeFtsDao,
         localDataSource: ITombstoneLocalDataSource,
         checksumService: ChecksumService
     ): TombstoneRepository {

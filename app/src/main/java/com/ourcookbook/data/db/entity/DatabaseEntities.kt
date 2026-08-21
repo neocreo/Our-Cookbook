@@ -374,5 +374,6 @@ data class RecipeFtsEntity(
     val description: String?,
     val ingredients: String,
     val instructions: String,
-    val category: String
+    val category: String,
+    val deviceId: String
 )
