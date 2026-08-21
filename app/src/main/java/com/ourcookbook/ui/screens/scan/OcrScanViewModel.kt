@@ -155,13 +155,48 @@ class OcrScanViewModel @Inject constructor(
     }
 
     /**
-     * Capture image from camera
+     * Capture image from camera - called from UI with the captured bitmap
+     */
+    fun onImageCaptured(bitmap: Bitmap) {
+        viewModelScope.launch {
+            _state.value = OcrScanState.ProcessingImage
+            currentBitmap = bitmap
+            
+            try {
+                // Save the bitmap to a temporary file
+                currentImagePath = saveBitmapToFile(bitmap)
+                
+                // Perform OCR on the image
+                val text = performOCR(bitmap)
+                
+                if (text.isNotBlank()) {
+                    currentExtractedText = text
+                    
+                    // Parse the text into a recipe
+                    val recipe = textParser.parseRecipeFromText(text)
+                    currentRecipe = recipe
+                    currentConfidence = textParser.calculateConfidence(text, recipe)
+                    
+                    _state.value = OcrScanState.TextExtracted(
+                        text = text,
+                        recipe = recipe,
+                        confidence = currentConfidence
+                    )
+                } else {
+                    _state.value = OcrScanState.Error("No text found in the image. Please try again with a clearer photo.")
+                }
+            } catch (e: Exception) {
+                _state.value = OcrScanState.Error("Failed to process image: ${e.message}")
+            }
+        }
+    }
+
+    /**
+     * Capture image from camera (legacy - kept for compatibility)
      */
     private fun captureImage() {
         viewModelScope.launch {
             _state.value = OcrScanState.CapturingImage
-            // The actual image capture will be handled by the UI layer
-            // This just updates the state to show capturing UI
         }
     }
 
@@ -220,11 +255,14 @@ class OcrScanViewModel @Inject constructor(
             _state.value = OcrScanState.ProcessingImage
             
             try {
-                // In a real implementation, we would load the bitmap from the URI here
-                // For now, we'll simulate the process
+                // Load bitmap from URI using context
+                // Note: This requires a Context parameter, which we'll need to add
                 _state.value = OcrScanState.ImageSelected(uri)
                 
-                // Simulate OCR processing
+                // For now, simulate OCR processing
+                // In a real implementation, we would:
+                // 1. Load the bitmap from the URI
+                // 2. Call onImageCaptured(bitmap)
                 simulateOCRProcessing()
             } catch (e: Exception) {
                 _state.value = OcrScanState.Error("Failed to process image: ${e.message}")

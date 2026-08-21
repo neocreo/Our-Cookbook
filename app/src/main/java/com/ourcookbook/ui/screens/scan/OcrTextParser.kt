@@ -325,8 +325,8 @@ class OcrTextParser {
             cleanLine = cleanLine.substring(1).trim()
         }
         
-        // Remove numbering (1., 2), etc.)
-        cleanLine = cleanLine.replaceFirst(Regex("^\d+[.)\s]"), "").trim()
+        // Remove numbering (1., 2), etc
+        cleanLine = cleanLine.replaceFirst(Regex("^\d+.\s"), "").trim()
         
         // Skip if line is now empty
         if (cleanLine.isBlank()) return null
@@ -380,8 +380,8 @@ class OcrTextParser {
             cleanLine = cleanLine.substring(1).trim()
         }
         
-        // Remove numbering (1., 2), etc.)
-        cleanLine = cleanLine.replaceFirst(Regex("^\d+[.)\s]"), "").trim()
+        // Remove numbering (1., 2), etc
+        cleanLine = cleanLine.replaceFirst(Regex("^\d+.\s"), "").trim()
         
         return cleanLine.ifBlank { "" }
     }
@@ -431,7 +431,7 @@ class OcrTextParser {
             if (trimmedLine.isBlank()) continue
             
             // Check if line starts with a number (step number)
-            if (trimmedLine.matches(Regex("^\d+[.)\s].*"))) {
+            if (trimmedLine.matches(Regex("^\d+.\s.*"))) {
                 val instruction = parseInstruction(trimmedLine)
                 if (instruction.isNotBlank()) {
                     instructions.add(instruction)
@@ -498,7 +498,7 @@ class OcrTextParser {
         if (recipe.instructions.isNotEmpty()) {
             score += 0.3f
             // Bonus for having numbered steps
-            val numberedSteps = recipe.instructions.count { it.matches(Regex("^\d+[.)\s].*")) }
+            val numberedSteps = recipe.instructions.count { it.matches(Regex("^\d+.\s.*")) }
             if (numberedSteps > 0) {
                 score += 0.1f * (numberedSteps.toFloat() / recipe.instructions.size)
             }
