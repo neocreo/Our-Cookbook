@@ -1525,9 +1525,9 @@ class RecipeSchemaMigrator(private val objectMapper: ObjectMapper) {
 - [x] Advisory lock files for concurrent edit prevention - Task 2.2.15
 - [x] Sync status indicators and notifications - Task 2.2.16
 - [x] Conflict detection and resolution UI - Task 2.2.17
-- [ ] Sync history and logs
-- [ ] Tombstone processing during pull
-- [ ] Incremental sync with startPageToken
+- [x] Sync history and logs - Task 2.2.18
+- [x] Tombstone processing during pull - Task 2.2.19
+- [x] Incremental sync with startPageToken - Task 2.2.20
 
 ### Phase 4: Polish & Extras
 - [ ] Chromebook optimizations
