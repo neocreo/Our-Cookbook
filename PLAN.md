@@ -1516,7 +1516,7 @@ class RecipeSchemaMigrator(private val objectMapper: ObjectMapper) {
 - [x] PDF export - Task 2.2.06
 - [x] DOCX export - Task 2.2.07
 - [x] File import (multiple formats) - Task 2.2.08
-- [ ] Batch operations
+- [x] Batch operations - Task 2.2.09
 - [ ] Responsive design for tablets
 - [ ] Export/import cookbooks for simple sharing
 - [ ] Cookbook duplicate handling
