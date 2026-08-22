@@ -1518,8 +1518,8 @@ class RecipeSchemaMigrator(private val objectMapper: ObjectMapper) {
 - [x] File import (multiple formats) - Task 2.2.08
 - [x] Batch operations - Task 2.2.09
 - [x] Responsive design for tablets - Task 2.2.10
-- [ ] Export/import cookbooks for simple sharing
-- [ ] Cookbook duplicate handling
+- [x] Export/import cookbooks for simple sharing - Task 2.2.11
+- [x] Cookbook duplicate handling - Task 2.2.12
 - [ ] Push changes to Google Drive (with pre-push checksum verification)
 - [ ] Batched Drive operations for rate limiting
 - [ ] Advisory lock files for concurrent edit prevention
