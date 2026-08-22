@@ -1520,11 +1520,11 @@ class RecipeSchemaMigrator(private val objectMapper: ObjectMapper) {
 - [x] Responsive design for tablets - Task 2.2.10
 - [x] Export/import cookbooks for simple sharing - Task 2.2.11
 - [x] Cookbook duplicate handling - Task 2.2.12
-- [ ] Push changes to Google Drive (with pre-push checksum verification)
-- [ ] Batched Drive operations for rate limiting
-- [ ] Advisory lock files for concurrent edit prevention
-- [ ] Sync status indicators and notifications
-- [ ] Conflict detection and resolution UI
+- [x] Push changes to Google Drive (with pre-push checksum verification) - Task 2.2.13
+- [x] Batched Drive operations for rate limiting - Task 2.2.14
+- [x] Advisory lock files for concurrent edit prevention - Task 2.2.15
+- [x] Sync status indicators and notifications - Task 2.2.16
+- [x] Conflict detection and resolution UI - Task 2.2.17
 - [ ] Sync history and logs
 - [ ] Tombstone processing during pull
 - [ ] Incremental sync with startPageToken
