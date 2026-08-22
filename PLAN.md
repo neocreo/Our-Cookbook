@@ -1530,15 +1530,15 @@ class RecipeSchemaMigrator(private val objectMapper: ObjectMapper) {
 - [x] Incremental sync with startPageToken - Task 2.2.20
 
 ### Phase 4: Polish & Extras
-- [ ] Chromebook optimizations
-- [ ] Keyboard shortcuts
-- [ ] Dark mode (per-user preference)
-- [ ] Accessibility features (WCAG 2.1 AA compliance)
-- [ ] Settings screen (app preferences, sync settings)
-- [ ] Backup/restore system (local ZIP exports)
-- [ ] Performance optimizations (query tuning, caching)
-- [ ] Sync error handling and retry with exponential backoff
-- [ ] Activity/notifications for cookbook changes
+- [x] Chromebook optimizations - Task 2.3.01
+- [x] Keyboard shortcuts - Task 2.3.02
+- [x] Dark mode (per-user preference) - Task 2.3.03
+- [x] Accessibility features (WCAG 2.1 AA compliance) - Task 2.3.04
+- [x] Settings screen (app preferences, sync settings) - Task 2.3.05
+- [x] Backup/restore system (local ZIP exports) - Task 2.3.06
+- [x] Performance optimizations (query tuning, caching) - Task 2.3.07
+- [x] Sync error handling and retry with exponential backoff - Task 2.3.08
+- [x] Activity/notifications for cookbook changes - Task 2.3.09
 
 ### Phase 5: Future Features
 - [ ] Additional cloud sync providers (Dropbox, OneDrive)
