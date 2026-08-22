@@ -1513,9 +1513,9 @@ class RecipeSchemaMigrator(private val objectMapper: ObjectMapper) {
 - [x] Advanced Sorting Options (Task 2.2.03) Options (Task 2.2.03)
 - [x] OCR scanning (camera) - Task 2.2.04
 - [x] Ingredient-based search - Task 2.2.05
-- [ ] PDF export
-- [ ] DOCX export
-- [ ] File import (multiple formats)
+- [x] PDF export - Task 2.2.06
+- [x] DOCX export - Task 2.2.07
+- [x] File import (multiple formats) - Task 2.2.08
 - [ ] Batch operations
 - [ ] Responsive design for tablets
 - [ ] Export/import cookbooks for simple sharing
