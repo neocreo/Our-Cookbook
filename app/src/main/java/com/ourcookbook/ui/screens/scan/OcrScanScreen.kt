@@ -5,13 +5,17 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.net.Uri
+import java.nio.ByteBuffer
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageCapture
+import androidx.camera.core.ImageProxy
 import androidx.camera.core.ImageCaptureException
+import androidx.camera.core.ImageProxy
+import androidx.camera.core.ImageCaptureExceptionException
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.compose.foundation.background
@@ -70,6 +74,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -111,6 +116,7 @@ import com.ourcookbook.ui.theme.CookbookTheme
 import kotlinx.coroutines.launch
 import java.io.File
 import java.util.concurrent.Executor
+import android.graphics.BitmapFactory
 
 /**
  * OCR Scan Screen
@@ -378,14 +384,7 @@ fun CameraPreviewContent(
                         cameraSelector,
                         preview,
                         imageCapture
-                    )
                     
-                    // Set zoom
-                    cameraProvider?.bindToLifecycle(
-                        lifecycleOwner,
-                        cameraSelector,
-                        preview,
-                        imageCapture
                     )
                 }, ContextCompat.getMainExecutor(context))
             },
@@ -464,7 +463,10 @@ fun CameraPreviewContent(
                     contentAlignment = Alignment.Center
                 ) {
                     IconButton(
-                        onClick = onCapture,
+                        onClick = {
+                            // Capture image and pass to ViewModel
+                            capturePhoto(imageCapture, viewModel, context, onCapture)
+                        },
                         modifier = Modifier
                             .size(72.dp)
                             .background(
@@ -1284,4 +1286,47 @@ fun TextExtractedContentPreview() {
             onRetry = {}
         )
     }
+
+/**
+ * Capture photo using CameraX and pass to ViewModel
+ */
+private fun capturePhoto(
+    imageCapture: ImageCapture?,
+    viewModel: OcrScanViewModel,
+    context: Context,
+    onCapture: () -> Unit
+) {
+    onCapture()
+    imageCapture?.takePicture(
+        ContextCompat.getMainExecutor(context),
+        object : ImageCapture.OnImageCapturedCallback() {
+            override fun onCaptureSuccess(imageProxy: ImageProxy) {
+                super.onCaptureSuccess(imageProxy)
+                
+                // Convert ImageProxy to Bitmap
+                val bitmap = imageProxy.toBitmap()
+                
+                // Pass bitmap to ViewModel for OCR processing
+                viewModel.onImageCaptured(bitmap)
+                
+                // Close the image proxy
+                imageProxy.close()
+            }
+            
+            override fun onError(exception: ImageCaptureException) {
+                super.onError(exception)
+                // Handle error
+            }
+        }
+    )
+}
+
+// Extension function to convert ImageProxy to Bitmap
+private fun ImageProxy.toBitmap(): Bitmap {
+    val plane = planes[0]
+    val buffer: ByteBuffer = plane.buffer
+    val bytes = ByteArray(buffer.remaining())
+    buffer.get(bytes)
+    return BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+}
 }

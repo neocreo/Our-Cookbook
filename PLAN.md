@@ -1511,23 +1511,23 @@ class RecipeSchemaMigrator(private val objectMapper: ObjectMapper) {
 - [x] Full-Text Search Implementation (Task 2.2.01)
 - [x] Category and Tag Filtering (Task 2.2.02)
 - [x] Advanced Sorting Options (Task 2.2.03) Options (Task 2.2.03)
-- [ ] OCR scanning (camera)
-- [ ] Ingredient-based search
-- [ ] PDF export
-- [ ] DOCX export
-- [ ] File import (multiple formats)
-- [ ] Batch operations
-- [ ] Responsive design for tablets
-- [ ] Export/import cookbooks for simple sharing
-- [ ] Cookbook duplicate handling
-- [ ] Push changes to Google Drive (with pre-push checksum verification)
-- [ ] Batched Drive operations for rate limiting
-- [ ] Advisory lock files for concurrent edit prevention
-- [ ] Sync status indicators and notifications
-- [ ] Conflict detection and resolution UI
-- [ ] Sync history and logs
-- [ ] Tombstone processing during pull
-- [ ] Incremental sync with startPageToken
+- [x] OCR scanning (camera) - Task 2.2.04
+- [x] Ingredient-based search - Task 2.2.05
+- [x] PDF export - Task 2.2.06
+- [x] DOCX export - Task 2.2.07
+- [x] File import (multiple formats) - Task 2.2.08
+- [x] Batch operations - Task 2.2.09
+- [x] Responsive design for tablets - Task 2.2.10
+- [x] Export/import cookbooks for simple sharing - Task 2.2.11
+- [x] Cookbook duplicate handling - Task 2.2.12
+- [x] Push changes to Google Drive (with pre-push checksum verification) - Task 2.2.13
+- [x] Batched Drive operations for rate limiting - Task 2.2.14
+- [x] Advisory lock files for concurrent edit prevention - Task 2.2.15
+- [x] Sync status indicators and notifications - Task 2.2.16
+- [x] Conflict detection and resolution UI - Task 2.2.17
+- [x] Sync history and logs - Task 2.2.18
+- [x] Tombstone processing during pull - Task 2.2.19
+- [x] Incremental sync with startPageToken - Task 2.2.20
 
 ### Phase 4: Polish & Extras
 - [ ] Chromebook optimizations
