@@ -1,8 +1,9 @@
 plugins {
     id 'com.android.application'
     id 'org.jetbrains.kotlin.android'
+    id 'org.jetbrains.kotlin.kapt'
+    id 'org.jetbrains.kotlin.plugin.compose'
     id 'com.google.dagger.hilt.android'
-    id 'kotlin-kapt'
 }
 
 android {
@@ -45,10 +46,6 @@ android {
         viewBinding false
     }
 
-    composeOptions {
-        kotlinCompilerExtensionVersion '1.5.3'
-    }
-
     packaging {
         resources {
             excludes += '/META-INF/{AL2.0,LGPL2.1}'
@@ -78,9 +75,6 @@ dependencies {
     implementation 'androidx.lifecycle:lifecycle-viewmodel-compose:2.6.2'
     implementation 'androidx.navigation:navigation-compose:2.7.5'
 
-    // Compose Navigation
-    implementation 'androidx.navigation:navigation-compose:2.7.5'
-
     // Room Database
     implementation 'androidx.room:room-runtime:2.6.0'
     implementation 'androidx.room:room-ktx:2.6.0'
@@ -90,14 +84,13 @@ dependencies {
     implementation 'net.zetetic:android-database-sqlcipher:4.5.3'
 
     // Hilt Dependency Injection
-    implementation 'com.google.dagger:hilt-android:2.48'
-    kapt 'com.google.dagger:hilt-compiler:2.48'
-    implementation 'androidx.hilt:hilt-navigation-compose:1.1.0'
-    implementation 'androidx.hilt:hilt-work:1.1.0'
+    implementation 'com.google.dagger:hilt-android:2.52'
+    kapt 'com.google.dagger:hilt-compiler:2.52'
+    implementation 'androidx.hilt:hilt-navigation-compose:1.2.0'
+    implementation 'androidx.hilt:hilt-work:1.2.0'
 
     // WorkManager
     implementation 'androidx.work:work-runtime-ktx:2.9.0'
-    implementation 'androidx.hilt:hilt-work:1.1.0'
 
     // CameraX for OCR
     implementation 'androidx.camera:camera-core:1.3.0'
@@ -106,11 +99,11 @@ dependencies {
     implementation 'androidx.camera:camera-view:1.3.0'
 
     // ML Kit for OCR
-    implementation 'com.google.mlkit:text-recognition:19.0.0'
-    implementation 'com.google.mlkit:vision-common:19.0.0'
+    implementation 'com.google.mlkit:text-recognition:16.0.1'
+    implementation 'com.google.mlkit:vision-common:17.3.0'
 
     // Google Drive API
-    implementation 'com.google.android.gms:play-services-drive:21.0.0'
+    implementation 'com.google.android.gms:play-services-drive:17.0.0'
     implementation 'com.google.android.gms:play-services-auth:20.7.0'
 
     // Google Play Services
