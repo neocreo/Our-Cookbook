@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Backup rules for Android backup service
+    Defines which files should be included in automatic backups
+-->
+<full-backup-content>
+    <!-- Include shared preferences -->
+    <include domain="sharedpref" path="." />
+    
+    <!-- Include database files -->
+    <include domain="database" path="cookbook-db" />
+    <include domain="database" path="cookbook-db-shm" />
+    <include domain="database" path="cookbook-db-wal" />
+    
+    <!-- Include app files directory -->
+    <include domain="file" path="files/" />
+    
+    <!-- Exclude cache and temporary files -->
+    <exclude domain="file" path="cache/" />
+    <exclude domain="file" path="code_cache/" />
+    <exclude domain="file" path="no_backup/" />
+</full-backup-content>

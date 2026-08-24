@@ -33,6 +33,7 @@ object DatabaseModule {
     
     @Provides
     @Singleton
+    @Named("database_passphrase")
     fun provideDatabasePassphrase(): String = DATABASE_PASSPHRASE
     
     @Provides
