@@ -1,10 +1,10 @@
-package com.example.cookbook.data.model
+package com.ourcookbook.cookbook.data.model
 
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
-import com.example.cookbook.domain.model.MeasurementUnit
+import com.ourcookbook.cookbook.domain.model.MeasurementUnit
 
 /**
  * Ingredient Entity for Room Database

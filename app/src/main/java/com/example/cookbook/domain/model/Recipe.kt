@@ -1,4 +1,4 @@
-package com.example.cookbook.domain.model
+package com.ourcookbook.cookbook.domain.model
 
 import java.time.Instant
 

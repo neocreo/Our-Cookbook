@@ -1,4 +1,4 @@
-package com.example.cookbook.ui.navigation
+package com.ourcookbook.cookbook.ui.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -7,21 +7,21 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
-import com.example.cookbook.ui.screens.cookbook.CookbookDetailScreen
-import com.example.cookbook.ui.screens.cookbook.CookbookEditScreen
-import com.example.cookbook.ui.screens.cookbook.CookbookListScreen
-import com.example.cookbook.ui.screens.favorites.FavoritesScreen
-import com.example.cookbook.ui.screens.home.HomeScreen
-import com.example.cookbook.ui.screens.ocr.OcrScannerScreen
-import com.example.cookbook.ui.screens.recipe.RecipeCreateScreen
-import com.example.cookbook.ui.screens.recipe.RecipeDetailScreen
-import com.example.cookbook.ui.screens.recipe.RecipeEditScreen
-import com.example.cookbook.ui.screens.recipe.RecipeListScreen
-import com.example.cookbook.ui.screens.search.SearchScreen
-import com.example.cookbook.ui.screens.settings.SettingsScreen
-import com.example.cookbook.ui.screens.sync.ConflictResolutionScreen
-import com.example.cookbook.ui.screens.sync.SyncStatusScreen
-import com.example.cookbook.ui.screens.auth.DriveAuthScreen
+import com.ourcookbook.cookbook.ui.screens.cookbook.CookbookDetailScreen
+import com.ourcookbook.cookbook.ui.screens.cookbook.CookbookEditScreen
+import com.ourcookbook.cookbook.ui.screens.cookbook.CookbookListScreen
+import com.ourcookbook.cookbook.ui.screens.favorites.FavoritesScreen
+import com.ourcookbook.cookbook.ui.screens.home.HomeScreen
+import com.ourcookbook.cookbook.ui.screens.ocr.OcrScannerScreen
+import com.ourcookbook.cookbook.ui.screens.recipe.RecipeCreateScreen
+import com.ourcookbook.cookbook.ui.screens.recipe.RecipeDetailScreen
+import com.ourcookbook.cookbook.ui.screens.recipe.RecipeEditScreen
+import com.ourcookbook.cookbook.ui.screens.recipe.RecipeListScreen
+import com.ourcookbook.cookbook.ui.screens.search.SearchScreen
+import com.ourcookbook.cookbook.ui.screens.settings.SettingsScreen
+import com.ourcookbook.cookbook.ui.screens.sync.ConflictResolutionScreen
+import com.ourcookbook.cookbook.ui.screens.sync.SyncStatusScreen
+import com.ourcookbook.cookbook.ui.screens.auth.DriveAuthScreen
 
 /**
  * Cookbook Navigation Graph

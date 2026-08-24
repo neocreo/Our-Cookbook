@@ -1,4 +1,4 @@
-package com.example.cookbook
+package com.ourcookbook.cookbook
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -7,7 +7,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
-import com.example.cookbook.ui.navigation.CookbookNavHost
+import com.ourcookbook.cookbook.ui.navigation.CookbookNavHost
 import com.ourcookbook.ui.theme.CookbookTheme
 import dagger.hilt.android.AndroidEntryPoint
 

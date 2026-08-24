@@ -1,4 +1,4 @@
-package com.example.cookbook.ui.navigation
+package com.ourcookbook.cookbook.ui.navigation
 
 /**
  * Navigation Routes for Cookbook Android App
