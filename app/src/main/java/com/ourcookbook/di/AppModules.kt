@@ -51,7 +51,6 @@ object DatabaseModule {
             .build()
     }
     
-    // Provide all DAOs
     @Provides
     @Singleton
     fun provideRecipeDao(database: AppDatabase): RecipeDao = database.recipeDao()
@@ -107,20 +106,10 @@ object DatabaseModule {
 
 /**
  * Repository module for providing repository implementations
- * TODO: Uncomment when RecipeLocalDataSource and RecipeRemoteDataSource are implemented in Task 1.4
  */
-// @Module
-// @InstallIn(SingletonComponent::class)
-// object RepositoryModule {
-//     
-//     @Provides
-//     @Singleton
-//     fun provideRecipeRepository(
-//         localDataSource: RecipeLocalDataSource,
-//         remoteDataSource: RecipeRemoteDataSource,
-//         syncService: SyncService
-//     ): RecipeRepository = RecipeRepositoryImpl(localDataSource, remoteDataSource, syncService)
-// }
+@Module
+@InstallIn(SingletonComponent::class)
+object RepositoryModule {
     
     @Provides
     @Singleton
@@ -236,41 +225,6 @@ object ServiceModule {
     fun provideSecureCredentialManager(
         @ApplicationContext context: Context
     ): SecureCredentialManager = SecureCredentialManager(context)
-}
-
-/**
- * DataSource module for providing data source implementations
- * TODO: Uncomment when RecipeLocalDataSource, RecipeRemoteDataSource, and related classes are implemented in Task 1.4
- */
-// @Module
-// @InstallIn(SingletonComponent::class)
-// object DataSourceModule {
-//     
-//     @Provides
-//     @Singleton
-//     fun provideRecipeLocalDataSource(
-//         recipeDao: RecipeDao,
-//         ingredientDao: IngredientDao,
-//         recipeImageDao: RecipeImageDao,
-//         checksumService: ChecksumService
-//     ): RecipeLocalDataSource = RecipeLocalDataSourceImpl(
-//         recipeDao, ingredientDao, recipeImageDao, checksumService
-//     )
-//     
-//     @Provides
-//     @Singleton
-//     fun provideRecipeRemoteDataSource(
-//         driveService: GoogleDriveService,
-//         syncMetadataRepository: SyncMetadataRepository
-//     ): RecipeRemoteDataSource = RecipeRemoteDataSourceImpl(driveService, syncMetadataRepository)
-//     
-//     @Provides
-//     @Singleton
-//     fun provideGoogleDriveService(
-//         @ApplicationContext context: Context,
-//         credentialManager: SecureCredentialManager
-//     ): GoogleDriveService = GoogleDriveServiceImpl(context, credentialManager)
-// }
 }
 
 /**

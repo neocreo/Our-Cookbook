@@ -1,6 +1,8 @@
 package com.ourcookbook.data.di
 
+import com.ourcookbook.data.datasource.IExportImportDataSource
 import com.ourcookbook.data.datasource.local.*
+import com.ourcookbook.data.db.dao.RecipeFtsDao
 import com.ourcookbook.data.repository.*
 import com.ourcookbook.domain.repository.*
 import com.ourcookbook.domain.service.ChecksumService
@@ -9,6 +11,7 @@ import com.ourcookbook.domain.service.SyncService
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 
@@ -67,10 +70,9 @@ object RepositoryModule {
     @Provides
     @Singleton
     fun provideDevicePreferencesRepository(
-        localDataSource: IDevicePreferencesLocalDataSource,
-        checksumService: ChecksumService
+        settingsRepository: SettingsRepository
     ): DevicePreferencesRepository {
-        return DevicePreferencesRepositoryImpl(localDataSource, checksumService)
+        return DevicePreferencesRepositoryImpl(settingsRepository)
     }
 
     // Cookbook Repository
@@ -147,6 +149,11 @@ object RepositoryModule {
     @Provides
     @Singleton
     fun provideTombstoneRepository(
+        localDataSource: ITombstoneLocalDataSource,
+        checksumService: ChecksumService
+    ): TombstoneRepository {
+        return TombstoneRepositoryImpl(localDataSource, checksumService)
+    }
 
     // FullTextSearch Repository
     @Provides
@@ -155,12 +162,6 @@ object RepositoryModule {
         recipeFtsDao: RecipeFtsDao
     ): FullTextSearchRepository {
         return FullTextSearchRepositoryImpl(recipeFtsDao)
-    }
-        recipeFtsDao: RecipeFtsDao,
-        localDataSource: ITombstoneLocalDataSource,
-        checksumService: ChecksumService
-    ): TombstoneRepository {
-        return TombstoneRepositoryImpl(localDataSource, checksumService)
     }
     
     // Export/Import Repository
@@ -172,8 +173,8 @@ object RepositoryModule {
         cookbookRepository: CookbookRepository,
         checksumService: ChecksumService,
         @ApplicationContext context: android.content.Context
-    ): com.ourcookbook.domain.repository.ExportImportRepository {
-        return com.ourcookbook.data.repository.ExportImportRepositoryImpl(
+    ): ExportImportRepository {
+        return ExportImportRepositoryImpl(
             exportImportDataSource, recipeRepository, cookbookRepository, checksumService, context
         )
     }

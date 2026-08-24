@@ -6,53 +6,53 @@ package com.ourcookbook.data.datasource.local
  */
 
 // Recipe data sources
-export interface IRecipeLocalDataSource
-export class RecipeLocalDataSource
+interface IRecipeLocalDataSource
+class RecipeLocalDataSource
 
 // Ingredient data sources
-export interface IIngredientLocalDataSource
-export class IngredientLocalDataSource
+interface IIngredientLocalDataSource
+class IngredientLocalDataSource
 
 // RecipeImage data sources
-export interface IRecipeImageLocalDataSource
-export class RecipeImageLocalDataSource
+interface IRecipeImageLocalDataSource
+class RecipeImageLocalDataSource
 
 // Device data sources
-export interface IDeviceLocalDataSource
-export class DeviceLocalDataSource
+interface IDeviceLocalDataSource
+class DeviceLocalDataSource
 
 // DevicePreferences data sources
-export interface IDevicePreferencesLocalDataSource
-export class DevicePreferencesLocalDataSource
+interface IDevicePreferencesLocalDataSource
+class DevicePreferencesLocalDataSource
 
 // Cookbook data sources
-export interface ICookbookLocalDataSource
-export class CookbookLocalDataSource
+interface ICookbookLocalDataSource
+class CookbookLocalDataSource
 
 // SharingLink data sources
-export interface ISharingLinkLocalDataSource
-export class SharingLinkLocalDataSource
+interface ISharingLinkLocalDataSource
+class SharingLinkLocalDataSource
 
 // SyncConflict data sources
-export interface ISyncConflictLocalDataSource
-export class SyncConflictLocalDataSource
+interface ISyncConflictLocalDataSource
+class SyncConflictLocalDataSource
 
 // SyncLog data sources
-export interface ISyncLogLocalDataSource
-export class SyncLogLocalDataSource
+interface ISyncLogLocalDataSource
+class SyncLogLocalDataSource
 
 // PendingSync data sources
-export interface IPendingSyncLocalDataSource
-export class PendingSyncLocalDataSource
+interface IPendingSyncLocalDataSource
+class PendingSyncLocalDataSource
 
 // SyncMetadata data sources
-export interface ISyncMetadataLocalDataSource
-export class SyncMetadataLocalDataSource
+interface ISyncMetadataLocalDataSource
+class SyncMetadataLocalDataSource
 
 // DriveFileInfo data sources
-export interface IDriveFileInfoLocalDataSource
-export class DriveFileInfoLocalDataSource
+interface IDriveFileInfoLocalDataSource
+class DriveFileInfoLocalDataSource
 
 // Tombstone data sources
-export interface ITombstoneLocalDataSource
-export class TombstoneLocalDataSource
+interface ITombstoneLocalDataSource
+class TombstoneLocalDataSource

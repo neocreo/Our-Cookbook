@@ -8,6 +8,7 @@ import com.ourcookbook.domain.repository.RecipeImageRepository
 import com.ourcookbook.domain.repository.RecipeRepository
 import com.ourcookbook.domain.repository.SyncConflictRepository
 import com.ourcookbook.domain.repository.SyncMetadataRepository
+import com.ourcookbook.domain.repository.FullTextSearchRepository
 import com.ourcookbook.domain.usecase.cookbook.AddRecipeToCookbook
 import com.ourcookbook.domain.usecase.cookbook.CreateCookbook
 import com.ourcookbook.domain.usecase.cookbook.DeleteCookbook
@@ -122,6 +123,7 @@ import com.ourcookbook.domain.usecase.sync.UpdateSyncInProgress
 import com.ourcookbook.domain.usecase.sync.UpdateSyncMetadata
 import com.ourcookbook.domain.usecase.sync.UpdateSyncMetadataChecksum
 import com.ourcookbook.domain.usecase.sync.ValidateSyncMetadataChecksum
+import com.ourcookbook.domain.usecase.search.FullTextSearchUseCases
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -653,10 +655,8 @@ object UseCaseModule {
     @Singleton
     fun provideImportUseCases(
         repository: com.ourcookbook.domain.repository.ExportImportRepository
-    ): com.ourcookbook.domain.usecase.exportimport.ImportUseCases
-import com.ourcookbook.domain.usecase.search.FullTextSearchUseCases
-        return com.ourcookbook.domain.usecase.exportimport.ImportUseCases
-import com.ourcookbook.domain.usecase.search.FullTextSearchUseCases
+    ): com.ourcookbook.domain.usecase.exportimport.ImportUseCases {
+        return com.ourcookbook.domain.usecase.exportimport.ImportUseCases(repository)
     }
 
     // FullTextSearch UseCases

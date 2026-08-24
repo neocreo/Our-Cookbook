@@ -1,30 +1,12 @@
 package com.ourcookbook.ui.theme
 
+import androidx.compose.runtime.Composable
+
 /**
  * Cookbook Theme System Index
  * 
  * This file serves as an index to all theme-related components in the Cookbook app.
  * Import this file to access the complete theme system.
- * 
- * Theme System Components:
- * - Theme.kt: Main theme composable and color schemes
- * - Typography.kt: Typography system and text styles
- * - Shapes.kt: Shape system and component shapes
- * - Spacing.kt: Spacing system and layout utilities
- * - Elevation.kt: Elevation system and depth utilities
- * - ThemePreview.kt: Preview composables for theme visualization
- * 
- * Usage:
- * ```kotlin
- * import com.ourcookbook.ui.theme.*
- * 
- * @Composable
- * fun MyScreen() {
- *     CookbookTheme {
- *         // Your content here
- *     }
- * }
- * ```
  */
 
 // Re-export all theme components for easy access
@@ -39,7 +21,7 @@ val LightColorScheme: androidx.compose.material3.ColorScheme
 val DarkColorScheme: androidx.compose.material3.ColorScheme 
     get() = com.ourcookbook.ui.theme.DarkColorScheme
 
-object CookbookColors 
+val CookbookColors 
     get() = com.ourcookbook.ui.theme.CookbookColors
 
 // Typography System
@@ -52,7 +34,7 @@ val RobotoFamily: androidx.compose.ui.text.font.FontFamily
 val MonospaceFamily: androidx.compose.ui.text.font.FontFamily 
     get() = com.ourcookbook.ui.theme.MonospaceFamily
 
-object CookbookTextStyles 
+val CookbookTextStyles 
     get() = com.ourcookbook.ui.theme.CookbookTextStyles
 
 val LegacyCookbookTypography: androidx.compose.material3.Typography 
@@ -62,42 +44,42 @@ val LegacyCookbookTypography: androidx.compose.material3.Typography
 val CookbookShapes: androidx.compose.material3.Shapes 
     get() = com.ourcookbook.ui.theme.CookbookShapes
 
-object ShapeTokens 
+val ShapeTokens 
     get() = com.ourcookbook.ui.theme.ShapeTokens
 
-object ComponentShapes 
+val ComponentShapes 
     get() = com.ourcookbook.ui.theme.ComponentShapes
 
 // Spacing System
-object CookbookSpacing 
+val CookbookSpacing 
     get() = com.ourcookbook.ui.theme.CookbookSpacing
 
-object SpacingTokens 
+val SpacingTokens 
     get() = com.ourcookbook.ui.theme.SpacingTokens
 
-object ScreenSpacing 
+val ScreenSpacing 
     get() = com.ourcookbook.ui.theme.ScreenSpacing
 
-object ComponentSpacing 
+val ComponentSpacing 
     get() = com.ourcookbook.ui.theme.ComponentSpacing
 
-object LayoutSpacing 
+val LayoutSpacing 
     get() = com.ourcookbook.ui.theme.LayoutSpacing
 
-object RecipeSpacing 
+val RecipeSpacing 
     get() = com.ourcookbook.ui.theme.RecipeSpacing
 
 // Elevation System
-object CookbookElevation 
+val CookbookElevation 
     get() = com.ourcookbook.ui.theme.CookbookElevation
 
-object ElevationTokens 
+val ElevationTokens 
     get() = com.ourcookbook.ui.theme.ElevationTokens
 
-object ComponentElevation 
+val ComponentElevation 
     get() = com.ourcookbook.ui.theme.ComponentElevation
 
-object ElevationStates 
+val ElevationStates 
     get() = com.ourcookbook.ui.theme.ElevationStates
 
 // Data classes
@@ -124,10 +106,10 @@ data class FabElevation(
 )
 
 // Utility objects
-object ShadowUtils 
+val ShadowUtils 
     get() = com.ourcookbook.ui.theme.ShadowUtils
 
-object OverlayUtils 
+val OverlayUtils 
     get() = com.ourcookbook.ui.theme.OverlayUtils
 
 // Utility functions
