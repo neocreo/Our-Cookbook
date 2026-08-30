@@ -42,6 +42,7 @@ import com.ourcookbook.ui.screens.sync.DeviceManagementScreen
 import com.ourcookbook.ui.screens.sync.SyncDetailsScreen
 import com.ourcookbook.ui.screens.sync.SyncStatusScreen
 import com.ourcookbook.ui.screens.scan.OcrScanAction
+import com.ourcookbook.ui.screens.scan.OcrScanViewModel
 import com.ourcookbook.ui.viewmodel.AuthViewModel
 import com.ourcookbook.ui.viewmodel.ConflictResolutionViewModel
 import com.ourcookbook.ui.viewmodel.CookbookManagementViewModel
@@ -52,6 +53,8 @@ import com.ourcookbook.ui.viewmodel.RecipeEditViewModel
 import com.ourcookbook.ui.viewmodel.RecipeListViewModel
 import com.ourcookbook.ui.viewmodel.SearchViewModel
 import com.ourcookbook.ui.viewmodel.SyncStatusViewModel
+import com.ourcookbook.ui.viewmodel.SyncStatusAction
+import com.ourcookbook.ui.viewmodel.SyncStatusEvent
 import com.ourcookbook.ui.viewmodel.SyncViewModel
 import com.ourcookbook.ui.screens.ingredients.IngredientSearchScreen
 
