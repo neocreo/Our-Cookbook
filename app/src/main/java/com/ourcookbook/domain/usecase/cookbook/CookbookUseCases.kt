@@ -197,34 +197,6 @@ class UpdateCookbookChecksum(
     }
 }
 
-// Export Cookbook Use Case
-class ExportCookbook(
-    private val repository: CookbookRepository
-) {
-    suspend operator fun invoke(cookbookId: String, format: com.ourcookbook.ui.viewmodel.ExportFormat, destinationFile: java.io.File): Result<Unit> {
-        return try {
-            repository.exportCookbook(cookbookId, format, destinationFile)
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-}
-
-// Import Cookbook Use Case
-class ImportCookbook(
-    private val repository: CookbookRepository
-) {
-    suspend operator fun invoke(sourceFile: java.io.File, format: com.ourcookbook.ui.viewmodel.ExportFormat): Result<com.ourcookbook.domain.model.Cookbook> {
-        return try {
-            val cookbook = repository.importCookbook(sourceFile, format)
-            Result.success(cookbook)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-}
-
 // Share Cookbook Use Case
 class ShareCookbook(
     private val repository: CookbookRepository

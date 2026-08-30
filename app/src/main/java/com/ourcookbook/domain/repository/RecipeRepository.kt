@@ -45,4 +45,7 @@ interface RecipeRepository {
     suspend fun getRecentRecipes(limit: Int): List<Recipe>
     suspend fun getTopRatedRecipes(limit: Int): List<Recipe>
     suspend fun getRecipeByChecksum(checksum: String): Recipe?
+
+    suspend fun getRecipesByCookbookId(cookbookId: String): List<Recipe>
+    suspend fun deleteRecipesByCookbookId(cookbookId: String): Boolean
 }

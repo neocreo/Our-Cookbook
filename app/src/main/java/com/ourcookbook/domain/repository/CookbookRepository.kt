@@ -26,6 +26,7 @@ interface CookbookRepository {
     
     // Utility Operations
     suspend fun getCookbookCount(): Int
+    suspend fun getAllCookbooksOnce(): List<Cookbook>
     suspend fun addRecipeToCookbook(cookbookId: String, recipeId: String): Boolean
     suspend fun removeRecipeFromCookbook(cookbookId: String, recipeId: String): Boolean
     
