@@ -1,0 +1,62 @@
+# Built application files
+*.apk
+*.aar
+*.ap_
+*.aab
+
+# Files for the ART/Dalvik VM
+*.dex
+
+# Java class files
+*.class
+
+# Generated files
+bin/
+gen/
+out/
+
+# Gradle files
+.gradle/
+build/
+app/build/
+
+# Local configuration file (sdk path, etc.)
+local.properties
+
+# Android Studio / IntelliJ
+*.iml
+.idea/caches/
+.idea/libraries/
+.idea/shelf/
+.idea/workspace.xml
+.idea/tasks.xml
+.idea/usage.statistics.xml
+.idea/dictionaries/
+.idea/navEditor.xml
+.idea/codeStyles/
+.idea/compiler.xml
+.idea/deploymentTargetSelector.xml
+.idea/deviceManager.xml
+
+# Keystore files
+*.jks
+*.keystore
+
+# Debug files
+.cxx/
+
+# Kotlin
+.kotlin/
+
+# OS-generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+
+# Archives and distributions (not part of source)
+*.zip
+*.tar.gz
+OpenJDK*.tar.gz
+gradle-8.6-bin.zip*
