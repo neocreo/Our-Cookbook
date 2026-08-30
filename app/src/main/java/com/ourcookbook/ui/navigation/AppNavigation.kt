@@ -21,22 +21,6 @@ import com.ourcookbook.ui.screens.sync.ConflictResolutionScreen
 import com.ourcookbook.ui.screens.sync.DeviceRegistrationScreen
 import com.ourcookbook.ui.screens.sync.SyncStatusScreen
 
-object Route {
-    const val HOME = "home"
-    const val RECIPE_LIST = "recipe_list"
-    const val RECIPE_DETAIL = "recipe_detail/{recipeId}"
-    const val RECIPE_EDIT = "recipe_edit/{recipeId}"
-    const val RECIPE_CREATE = "recipe_create"
-    const val COOKBOOK_MANAGEMENT = "cookbook_management"
-    const val SEARCH = "search"
-    const val SETTINGS = "settings"
-    const val SYNC_STATUS = "sync_status"
-    const val CONFLICT_RESOLUTION = "conflict_resolution/{conflictId}"
-    const val OCR_SCANNER = "ocr_scanner"
-    const val AUTH = "auth"
-    const val DEVICE_REGISTRATION = "device_registration"
-}
-
 @Composable
 fun AppNavigation(modifier: Modifier = Modifier) {
     val navController = rememberNavController()

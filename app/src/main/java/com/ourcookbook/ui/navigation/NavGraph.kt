@@ -35,7 +35,7 @@ import com.ourcookbook.ui.screens.tags.TagsScreen
 import com.ourcookbook.ui.screens.tags.TagRecipesScreen
 import com.ourcookbook.ui.screens.sort.SortScreen
 import com.ourcookbook.ui.screens.profile.UserProfileScreen
-import com.ourcookbook.ui.viewmodel.UserProfileViewModel
+import com.ourcookbook.ui.screens.profile.UserProfileViewModel
 import com.ourcookbook.ui.screens.sync.ConflictResolutionScreen
 import com.ourcookbook.ui.screens.sync.DeviceDetailScreen
 import com.ourcookbook.ui.screens.sync.DeviceManagementScreen
