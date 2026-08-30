@@ -166,28 +166,3 @@ fun pillShape() = RoundedCornerShape(50.dp)
  * Create a squared shape (no rounding)
  */
 fun squaredShape() = RoundedCornerShape(0.dp)
-
-// ============================================================================
-// SHAPE EXTENSIONS
-// ============================================================================
-
-/**
- * Extension function to create a shape with scaled corner radius
- */
-fun CornerSize.scale(factor: Float): CornerSize {
-    return CornerSize(this.value * factor)
-}
-
-/**
- * Extension function to create a rounded corner shape from a single dp value
- */
-fun Int.dp.toRoundedCornerShape(): RoundedCornerShape {
-    return RoundedCornerShape(this.dp)
-}
-
-/**
- * Extension function to create a rounded corner shape from a dp value
- */
-fun Float.dp.toRoundedCornerShape(): RoundedCornerShape {
-    return RoundedCornerShape(this.dp)
-}

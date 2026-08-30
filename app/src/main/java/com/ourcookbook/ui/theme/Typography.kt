@@ -2,7 +2,6 @@ package com.ourcookbook.ui.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.LineHeightStyle
@@ -29,22 +28,12 @@ import androidx.compose.ui.unit.sp
  * Primary font family for the Cookbook app
  * Uses Roboto font family with multiple weights
  */
-val RobotoFamily = FontFamily(
-    Font(Font(R.font.roboto_thin), FontWeight.Thin),
-    Font(Font(R.font.roboto_light), FontWeight.Light),
-    Font(Font(R.font.roboto_regular), FontWeight.Normal),
-    Font(Font(R.font.roboto_medium), FontWeight.Medium),
-    Font(Font(R.font.roboto_bold), FontWeight.Bold),
-    Font(Font(R.font.roboto_black), FontWeight.Black)
-)
+val RobotoFamily = FontFamily.Default
 
 /**
  * Secondary font family for monospace text (ingredients, measurements)
  */
-val MonospaceFamily = FontFamily(
-    Font(Font(R.font.roboto_mono_regular), FontWeight.Normal),
-    Font(Font(R.font.roboto_mono_bold), FontWeight.Bold)
-)
+val MonospaceFamily = FontFamily.Monospace
 
 // ============================================================================
 // MAIN TYPOGRAPHY SYSTEM
@@ -57,9 +46,6 @@ val MonospaceFamily = FontFamily(
  * for the Cookbook application.
  */
 val CookbookTypography = Typography(
-    // Default font family for all text
-    defaultFontFamily = RobotoFamily,
-    
     // Display styles - Large, prominent text
     displayLarge = TextStyle(
         fontFamily = RobotoFamily,
@@ -69,7 +55,7 @@ val CookbookTypography = Typography(
         letterSpacing = (-0.25).sp,
         lineHeightStyle = LineHeightStyle(
             alignment = LineHeightStyle.Alignment.Proportional,
-            trim = LineHeightStyle.Trim.FirstLineBottom
+            trim = LineHeightStyle.Trim.LastLineBottom
         )
     ),
     displayMedium = TextStyle(
@@ -80,7 +66,7 @@ val CookbookTypography = Typography(
         letterSpacing = 0.sp,
         lineHeightStyle = LineHeightStyle(
             alignment = LineHeightStyle.Alignment.Proportional,
-            trim = LineHeightStyle.Trim.FirstLineBottom
+            trim = LineHeightStyle.Trim.LastLineBottom
         )
     ),
     displaySmall = TextStyle(
@@ -91,7 +77,7 @@ val CookbookTypography = Typography(
         letterSpacing = 0.sp,
         lineHeightStyle = LineHeightStyle(
             alignment = LineHeightStyle.Alignment.Proportional,
-            trim = LineHeightStyle.Trim.FirstLineBottom
+            trim = LineHeightStyle.Trim.LastLineBottom
         )
     ),
     
@@ -104,7 +90,7 @@ val CookbookTypography = Typography(
         letterSpacing = 0.sp,
         lineHeightStyle = LineHeightStyle(
             alignment = LineHeightStyle.Alignment.Proportional,
-            trim = LineHeightStyle.Trim.FirstLineBottom
+            trim = LineHeightStyle.Trim.LastLineBottom
         )
     ),
     headlineMedium = TextStyle(
@@ -115,7 +101,7 @@ val CookbookTypography = Typography(
         letterSpacing = 0.sp,
         lineHeightStyle = LineHeightStyle(
             alignment = LineHeightStyle.Alignment.Proportional,
-            trim = LineHeightStyle.Trim.FirstLineBottom
+            trim = LineHeightStyle.Trim.LastLineBottom
         )
     ),
     headlineSmall = TextStyle(
@@ -126,7 +112,7 @@ val CookbookTypography = Typography(
         letterSpacing = 0.sp,
         lineHeightStyle = LineHeightStyle(
             alignment = LineHeightStyle.Alignment.Proportional,
-            trim = LineHeightStyle.Trim.FirstLineBottom
+            trim = LineHeightStyle.Trim.LastLineBottom
         )
     ),
     
@@ -139,7 +125,7 @@ val CookbookTypography = Typography(
         letterSpacing = 0.sp,
         lineHeightStyle = LineHeightStyle(
             alignment = LineHeightStyle.Alignment.Proportional,
-            trim = LineHeightStyle.Trim.FirstLineBottom
+            trim = LineHeightStyle.Trim.LastLineBottom
         )
     ),
     titleMedium = TextStyle(
@@ -150,7 +136,7 @@ val CookbookTypography = Typography(
         letterSpacing = 0.15.sp,
         lineHeightStyle = LineHeightStyle(
             alignment = LineHeightStyle.Alignment.Proportional,
-            trim = LineHeightStyle.Trim.FirstLineBottom
+            trim = LineHeightStyle.Trim.LastLineBottom
         )
     ),
     titleSmall = TextStyle(
@@ -161,7 +147,7 @@ val CookbookTypography = Typography(
         letterSpacing = 0.1.sp,
         lineHeightStyle = LineHeightStyle(
             alignment = LineHeightStyle.Alignment.Proportional,
-            trim = LineHeightStyle.Trim.FirstLineBottom
+            trim = LineHeightStyle.Trim.LastLineBottom
         )
     ),
     
@@ -174,7 +160,7 @@ val CookbookTypography = Typography(
         letterSpacing = 0.15.sp,
         lineHeightStyle = LineHeightStyle(
             alignment = LineHeightStyle.Alignment.Proportional,
-            trim = LineHeightStyle.Trim.FirstLineBottom
+            trim = LineHeightStyle.Trim.LastLineBottom
         )
     ),
     bodyMedium = TextStyle(
@@ -185,7 +171,7 @@ val CookbookTypography = Typography(
         letterSpacing = 0.25.sp,
         lineHeightStyle = LineHeightStyle(
             alignment = LineHeightStyle.Alignment.Proportional,
-            trim = LineHeightStyle.Trim.FirstLineBottom
+            trim = LineHeightStyle.Trim.LastLineBottom
         )
     ),
     bodySmall = TextStyle(
@@ -196,7 +182,7 @@ val CookbookTypography = Typography(
         letterSpacing = 0.25.sp,
         lineHeightStyle = LineHeightStyle(
             alignment = LineHeightStyle.Alignment.Proportional,
-            trim = LineHeightStyle.Trim.FirstLineBottom
+            trim = LineHeightStyle.Trim.LastLineBottom
         )
     ),
     
@@ -209,7 +195,7 @@ val CookbookTypography = Typography(
         letterSpacing = 0.1.sp,
         lineHeightStyle = LineHeightStyle(
             alignment = LineHeightStyle.Alignment.Proportional,
-            trim = LineHeightStyle.Trim.FirstLineBottom
+            trim = LineHeightStyle.Trim.LastLineBottom
         )
     ),
     labelMedium = TextStyle(
@@ -220,7 +206,7 @@ val CookbookTypography = Typography(
         letterSpacing = 0.25.sp,
         lineHeightStyle = LineHeightStyle(
             alignment = LineHeightStyle.Alignment.Proportional,
-            trim = LineHeightStyle.Trim.FirstLineBottom
+            trim = LineHeightStyle.Trim.LastLineBottom
         )
     ),
     labelSmall = TextStyle(
@@ -231,7 +217,7 @@ val CookbookTypography = Typography(
         letterSpacing = 0.4.sp,
         lineHeightStyle = LineHeightStyle(
             alignment = LineHeightStyle.Alignment.Proportional,
-            trim = LineHeightStyle.Trim.FirstLineBottom
+            trim = LineHeightStyle.Trim.LastLineBottom
         )
     )
 )
@@ -413,97 +399,3 @@ object CookbookTextStyles {
         letterSpacing = 0.25.sp
     )
 }
-
-// ============================================================================
-// LEGACY COMPATIBILITY
-// ============================================================================
-
-/**
- * Legacy typography system for backward compatibility
- * Maps to the design tokens from project-docs/cookbook-ux-foundation.md
- */
-val LegacyCookbookTypography = Typography(
-    defaultFontFamily = RobotoFamily,
-    
-    // Headings (h1-h6)
-    h1 = TextStyle(
-        fontSize = 28.sp,
-        fontWeight = FontWeight.Bold,
-        lineHeight = 32.sp,
-        letterSpacing = (-0.5).sp
-    ),
-    h2 = TextStyle(
-        fontSize = 24.sp,
-        fontWeight = FontWeight.Bold,
-        lineHeight = 28.sp,
-        letterSpacing = (-0.5).sp
-    ),
-    h3 = TextStyle(
-        fontSize = 20.sp,
-        fontWeight = FontWeight.Bold,
-        lineHeight = 24.sp
-    ),
-    h4 = TextStyle(
-        fontSize = 18.sp,
-        fontWeight = FontWeight.Bold,
-        lineHeight = 22.sp
-    ),
-    h5 = TextStyle(
-        fontSize = 16.sp,
-        fontWeight = FontWeight.Bold,
-        lineHeight = 20.sp
-    ),
-    h6 = TextStyle(
-        fontSize = 14.sp,
-        fontWeight = FontWeight.Bold,
-        lineHeight = 18.sp
-    ),
-    
-    // Body text
-    body1 = TextStyle(
-        fontSize = 16.sp,
-        fontWeight = FontWeight.Normal,
-        lineHeight = 24.sp,
-        letterSpacing = 0.5.sp
-    ),
-    body2 = TextStyle(
-        fontSize = 14.sp,
-        fontWeight = FontWeight.Normal,
-        lineHeight = 20.sp,
-        letterSpacing = 0.25.sp
-    ),
-    
-    // Special text
-    subtitle1 = TextStyle(
-        fontSize = 16.sp,
-        fontWeight = FontWeight.Medium,
-        lineHeight = 24.sp,
-        letterSpacing = 0.15.sp
-    ),
-    subtitle2 = TextStyle(
-        fontSize = 14.sp,
-        fontWeight = FontWeight.Medium,
-        lineHeight = 20.sp,
-        letterSpacing = 0.1.sp
-    ),
-    
-    // Interactive text
-    button = TextStyle(
-        fontSize = 14.sp,
-        fontWeight = FontWeight.Bold,
-        lineHeight = 16.sp,
-        letterSpacing = 1.25.sp
-    ),
-    caption = TextStyle(
-        fontSize = 12.sp,
-        fontWeight = FontWeight.Normal,
-        lineHeight = 16.sp,
-        letterSpacing = 0.4.sp
-    ),
-    overline = TextStyle(
-        fontSize = 12.sp,
-        fontWeight = FontWeight.Bold,
-        lineHeight = 16.sp,
-        letterSpacing = 1.5.sp
-    )
-)
