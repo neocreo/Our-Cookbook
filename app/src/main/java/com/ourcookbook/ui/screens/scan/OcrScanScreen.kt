@@ -14,9 +14,7 @@ import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageProxy
 import androidx.camera.core.ImageCaptureException
-import androidx.camera.core.ImageProxy
-import androidx.camera.core.ImageCaptureExceptionException
-import androidx.camera.core.Preview
+import androidx.camera.core.Preview as CameraPreview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -337,7 +335,7 @@ fun CameraPreviewContent(
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     var cameraProvider by remember { mutableStateOf<ProcessCameraProvider?>(null) }
-    var preview by remember { mutableStateOf<Preview?>(null) }
+    var preview by remember { mutableStateOf<CameraPreview?>(null) }
     var imageCapture by remember { mutableStateOf<ImageCapture?>(null) }
     var cameraSelector by remember { mutableStateOf(CameraSelector.DEFAULT_BACK_CAMERA) }
 
@@ -369,7 +367,7 @@ fun CameraPreviewContent(
                     cameraProvider?.unbindAll()
                     
                     // Create preview
-                    preview = Preview.Builder().build().also {
+                    preview = CameraPreview.Builder().build().also {
                         it.setSurfaceProvider(androidView.surfaceProvider)
                     }
                     
@@ -1286,6 +1284,7 @@ fun TextExtractedContentPreview() {
             onRetry = {}
         )
     }
+}
 
 /**
  * Capture photo using CameraX and pass to ViewModel
@@ -1328,5 +1327,4 @@ private fun ImageProxy.toBitmap(): Bitmap {
     val bytes = ByteArray(buffer.remaining())
     buffer.get(bytes)
     return BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
-}
 }

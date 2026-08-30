@@ -83,19 +83,20 @@ abstract class AppDatabase : RoomDatabase() {
             INSTANCE = null
         }
         
-        // Migration for adding FTS5 table
+        // Migration for adding FTS4 table
         val MIGRATION_1_2 = object : Migration(1, 2) {
             override fun migrate(database: SupportSQLiteDatabase) {
                 database.execSQL("""
-                    CREATE VIRTUAL TABLE IF NOT EXISTS recipes_fts 
-                    USING fts5(
-                        id, 
-                        title, 
-                        description, 
-                        ingredients, 
-                        instructions, 
+                    CREATE VIRTUAL TABLE IF NOT EXISTS recipes_fts
+                    USING fts4(
+                        id,
+                        title,
+                        description,
+                        ingredients,
+                        instructions,
                         category,
-                        tokenize='unicode61 remove_diacritics 2'
+                        deviceId,
+                        tokenize=unicode61
                     )
                 """)
             }

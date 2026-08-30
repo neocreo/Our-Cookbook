@@ -1,5 +1,7 @@
 package com.ourcookbook.ui.components
 
+import androidx.compose.runtime.Composable
+
 /**
  * Component Index for Cookbook UI Components
  * 

@@ -268,3 +268,31 @@ data class DevicePreferences(
         val validLanguages: List<String> = listOf("en", "es", "fr", "de", "it", "pt", "ru", "zh", "ja")
     }
 }
+
+/**
+ * Theme Preference Enum
+ */
+enum class ThemePreference {
+    LIGHT, DARK, SYSTEM
+}
+
+/**
+ * Measurement System Enum
+ */
+enum class MeasurementSystem {
+    IMPERIAL, METRIC, BOTH
+}
+
+/**
+ * Sync Frequency Enum
+ */
+enum class SyncFrequency {
+    AUTOMATIC, MANUAL, HOURLY, DAILY, WEEKLY
+}
+
+/**
+ * Font Size Enum
+ */
+enum class FontSize {
+    SMALL, NORMAL, MEDIUM, LARGE, EXTRA_LARGE
+}

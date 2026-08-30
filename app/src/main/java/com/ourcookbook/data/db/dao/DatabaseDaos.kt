@@ -541,12 +541,12 @@ interface RecipeFtsDao {
     @Query("SELECT * FROM recipes_fts WHERE id = :id")
     suspend fun getById(id: String): RecipeFtsEntity?
     
-    @Query("SELECT * FROM recipes_fts WHERE title MATCH :query OR description MATCH :query OR ingredients MATCH :query OR instructions MATCH :query OR category MATCH :query ORDER BY rank")
-    suspend fun search(query: String): List<RecipeFtsEntity>
-    
-    @Query("SELECT * FROM recipes_fts WHERE category = :category ORDER BY rank")
-    suspend fun searchByCategory(category: String): List<RecipeFtsEntity>
-    
-    @Query("SELECT * FROM recipes_fts WHERE ingredients MATCH :ingredient ORDER BY rank")
-    suspend fun searchByIngredient(ingredient: String): List<RecipeFtsEntity>
+    @Query("SELECT * FROM recipes_fts WHERE title MATCH :query OR description MATCH :query OR ingredients MATCH :query OR instructions MATCH :query OR category MATCH :query")
+    fun search(query: String): Flow<List<RecipeFtsEntity>>
+
+    @Query("SELECT * FROM recipes_fts WHERE category = :category")
+    fun searchByCategory(category: String): Flow<List<RecipeFtsEntity>>
+
+    @Query("SELECT * FROM recipes_fts WHERE ingredients MATCH :ingredient")
+    fun searchByIngredient(ingredient: String): Flow<List<RecipeFtsEntity>>
 }

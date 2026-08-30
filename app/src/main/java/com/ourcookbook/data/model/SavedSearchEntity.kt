@@ -1,10 +1,11 @@
 package com.ourcookbook.data.model
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
 import androidx.room.TypeConverters
-import com.ourcookbook.data.db.Converters
+import com.ourcookbook.data.db.DatabaseConverters
 import java.time.Instant
 
 /**
@@ -18,15 +19,15 @@ import java.time.Instant
         Index(value = ["created_at"], unique = false)
     ]
 )
-@TypeConverters(Converters::class)
+@TypeConverters(DatabaseConverters::class)
 data class SavedSearchEntity(
     @PrimaryKey val id: String,
     val name: String,
     val query: String,
     val filters: Map<String, String> = emptyMap(),
-    val createdAt: Instant = Instant.now(),
-    val updatedAt: Instant = Instant.now(),
-    val deviceId: String = ""
+    @ColumnInfo(name = "created_at") val createdAt: Instant = Instant.now(),
+    @ColumnInfo(name = "updated_at") val updatedAt: Instant = Instant.now(),
+    @ColumnInfo(name = "device_id") val deviceId: String = ""
 ) {
     companion object {
         fun fromDomain(domain: com.ourcookbook.domain.model.SavedSearch): SavedSearchEntity {

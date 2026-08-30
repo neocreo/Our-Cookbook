@@ -1,7 +1,9 @@
 package com.ourcookbook.data.db.entity
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
+import androidx.room.Fts4
 import androidx.room.Index
 import androidx.room.PrimaryKey
 import com.ourcookbook.domain.model.ConflictStatus
@@ -40,22 +42,22 @@ data class RecipeEntity(
     val title: String,
     val description: String? = null,
     val category: String,
-    val ingredientsJson: String, // JSON array of ingredients
-    val instructionsJson: String, // JSON array of instructions
-    val servingSize: Int? = null,
-    val prepTime: Int? = null, // in minutes
-    val cookTime: Int? = null, // in minutes
+    @ColumnInfo(name = "ingredients_json") val ingredientsJson: String, // JSON array of ingredients
+    @ColumnInfo(name = "instructions_json") val instructionsJson: String, // JSON array of instructions
+    @ColumnInfo(name = "serving_size") val servingSize: Int? = null,
+    @ColumnInfo(name = "prep_time") val prepTime: Int? = null, // in minutes
+    @ColumnInfo(name = "cook_time") val cookTime: Int? = null, // in minutes
     val rating: Float? = null,
-    val isFavorite: Boolean = false,
-    val imageUrl: String? = null,
+    @ColumnInfo(name = "is_favorite") val isFavorite: Boolean = false,
+    @ColumnInfo(name = "image_url") val imageUrl: String? = null,
     val notes: String? = null,
     val source: String? = null,
-    val tagsJson: String? = null, // JSON array of tags
-    val createdAt: Instant = Instant.now(),
-    val updatedAt: Instant = Instant.now(),
-    val versionVectorJson: String, // JSON representation of VersionVector
+    @ColumnInfo(name = "tags_json") val tagsJson: String? = null, // JSON array of tags
+    @ColumnInfo(name = "created_at") val createdAt: Instant = Instant.now(),
+    @ColumnInfo(name = "updated_at") val updatedAt: Instant = Instant.now(),
+    @ColumnInfo(name = "version_vector_json") val versionVectorJson: String, // JSON representation of VersionVector
     val checksum: String,
-    val deviceId: String
+    @ColumnInfo(name = "device_id") val deviceId: String
 )
 
 /**
@@ -80,7 +82,7 @@ data class RecipeEntity(
 )
 data class IngredientEntity(
     @PrimaryKey val id: String = UUID.randomUUID().toString(),
-    val recipeId: String,
+    @ColumnInfo(name = "recipe_id") val recipeId: String,
     val name: String,
     val amount: String? = null,
     val unit: String? = null,
@@ -110,11 +112,11 @@ data class IngredientEntity(
 )
 data class RecipeImageEntity(
     @PrimaryKey val id: String = UUID.randomUUID().toString(),
-    val recipeId: String,
-    val imageUrl: String,
-    val imageType: ImageType = ImageType.PHOTO,
+    @ColumnInfo(name = "recipe_id") val recipeId: String,
+    @ColumnInfo(name = "image_url") val imageUrl: String,
+    @ColumnInfo(name = "image_type") val imageType: ImageType = ImageType.PHOTO,
     val order: Int = 0,
-    val createdAt: Instant = Instant.now()
+    @ColumnInfo(name = "created_at") val createdAt: Instant = Instant.now()
 )
 
 /**
@@ -131,10 +133,10 @@ data class RecipeImageEntity(
 data class DeviceEntity(
     @PrimaryKey val id: String = UUID.randomUUID().toString(),
     val name: String,
-    val deviceId: String, // Android device ID
+    @ColumnInfo(name = "device_id") val deviceId: String, // Android device ID
     val capabilities: Set<DeviceCapability> = emptySet(),
-    val createdAt: Instant = Instant.now(),
-    val lastSeenAt: Instant = Instant.now()
+    @ColumnInfo(name = "created_at") val createdAt: Instant = Instant.now(),
+    @ColumnInfo(name = "last_seen_at") val lastSeenAt: Instant = Instant.now()
 )
 
 /**
@@ -157,14 +159,14 @@ data class DeviceEntity(
 )
 data class DevicePreferencesEntity(
     @PrimaryKey val id: String = UUID.randomUUID().toString(),
-    val deviceId: String,
+    @ColumnInfo(name = "device_id") val deviceId: String,
     val theme: ThemePreference = ThemePreference.SYSTEM,
-    val measurementSystem: MeasurementSystem = MeasurementSystem.IMPERIAL,
-    val syncEnabled: Boolean = true,
-    val autoSync: Boolean = true,
-    val syncFrequency: SyncFrequency = SyncFrequency.AUTOMATIC,
+    @ColumnInfo(name = "measurement_system") val measurementSystem: MeasurementSystem = MeasurementSystem.IMPERIAL,
+    @ColumnInfo(name = "sync_enabled") val syncEnabled: Boolean = true,
+    @ColumnInfo(name = "auto_sync") val autoSync: Boolean = true,
+    @ColumnInfo(name = "sync_frequency") val syncFrequency: SyncFrequency = SyncFrequency.AUTOMATIC,
     val language: String = "en",
-    val fontSize: FontSize = FontSize.NORMAL
+    @ColumnInfo(name = "font_size") val fontSize: FontSize = FontSize.NORMAL
 )
 
 /**
@@ -183,12 +185,12 @@ data class CookbookEntity(
     @PrimaryKey val id: String = UUID.randomUUID().toString(),
     val name: String,
     val description: String? = null,
-    val ownerDeviceId: String,
-    val isShared: Boolean = false,
-    val sharingLink: String? = null,
-    val createdAt: Instant = Instant.now(),
-    val updatedAt: Instant = Instant.now(),
-    val recipeIds: List<String> = emptyList()
+    @ColumnInfo(name = "owner_device_id") val ownerDeviceId: String,
+    @ColumnInfo(name = "is_shared") val isShared: Boolean = false,
+    @ColumnInfo(name = "sharing_link") val sharingLink: String? = null,
+    @ColumnInfo(name = "created_at") val createdAt: Instant = Instant.now(),
+    @ColumnInfo(name = "updated_at") val updatedAt: Instant = Instant.now(),
+    @ColumnInfo(name = "recipe_ids") val recipeIds: List<String> = emptyList()
 )
 
 /**
@@ -213,13 +215,13 @@ data class CookbookEntity(
 )
 data class SharingLinkEntity(
     @PrimaryKey val id: String = UUID.randomUUID().toString(),
-    val cookbookId: String,
+    @ColumnInfo(name = "cookbook_id") val cookbookId: String,
     val token: String = UUID.randomUUID().toString(),
     val permissions: Set<SharingPermission> = emptySet(),
-    val expiresAt: Instant? = null,
-    val createdAt: Instant = Instant.now(),
-    val usedAt: Instant? = null,
-    val usedCount: Int = 0
+    @ColumnInfo(name = "expires_at") val expiresAt: Instant? = null,
+    @ColumnInfo(name = "created_at") val createdAt: Instant = Instant.now(),
+    @ColumnInfo(name = "used_at") val usedAt: Instant? = null,
+    @ColumnInfo(name = "used_count") val usedCount: Int = 0
 )
 
 /**
@@ -237,16 +239,16 @@ data class SharingLinkEntity(
 )
 data class SyncConflictEntity(
     @PrimaryKey val id: String = UUID.randomUUID().toString(),
-    val localRecipeId: String,
-    val remoteRecipeId: String,
-    val localChecksum: String,
-    val remoteChecksum: String,
-    val localVersionJson: String, // JSON representation of VersionVector
-    val remoteVersionJson: String, // JSON representation of VersionVector
-    val detectedAt: Instant = Instant.now(),
-    val resolvedAt: Instant? = null,
+    @ColumnInfo(name = "local_recipe_id") val localRecipeId: String,
+    @ColumnInfo(name = "remote_recipe_id") val remoteRecipeId: String,
+    @ColumnInfo(name = "local_checksum") val localChecksum: String,
+    @ColumnInfo(name = "remote_checksum") val remoteChecksum: String,
+    @ColumnInfo(name = "local_version_json") val localVersionJson: String, // JSON representation of VersionVector
+    @ColumnInfo(name = "remote_version_json") val remoteVersionJson: String, // JSON representation of VersionVector
+    @ColumnInfo(name = "detected_at") val detectedAt: Instant = Instant.now(),
+    @ColumnInfo(name = "resolved_at") val resolvedAt: Instant? = null,
     val status: ConflictStatus,
-    val resolutionJson: String? = null // JSON representation of ConflictResolution
+    @ColumnInfo(name = "resolution_json") val resolutionJson: String? = null // JSON representation of ConflictResolution
 )
 
 /**
@@ -265,11 +267,11 @@ data class SyncLogEntity(
     @PrimaryKey val id: String = UUID.randomUUID().toString(),
     val timestamp: Instant = Instant.now(),
     val status: SyncStatus,
-    val deviceId: String,
-    val syncedItems: Int = 0,
+    @ColumnInfo(name = "device_id") val deviceId: String,
+    @ColumnInfo(name = "synced_items") val syncedItems: Int = 0,
     val conflicts: Int = 0,
-    val durationMs: Long = 0,
-    val errorMessage: String? = null
+    @ColumnInfo(name = "duration_ms") val durationMs: Long = 0,
+    @ColumnInfo(name = "error_message") val errorMessage: String? = null
 )
 
 /**
@@ -288,12 +290,12 @@ data class SyncLogEntity(
 data class PendingSyncEntity(
     @PrimaryKey val id: String = UUID.randomUUID().toString(),
     val operation: SyncOperation,
-    val entityType: EntityType,
-    val entityId: String,
+    @ColumnInfo(name = "entity_type") val entityType: EntityType,
+    @ColumnInfo(name = "entity_id") val entityId: String,
     val data: String, // JSON representation of the entity
     val timestamp: Instant = Instant.now(),
-    val retryCount: Int = 0,
-    val lastError: String? = null
+    @ColumnInfo(name = "retry_count") val retryCount: Int = 0,
+    @ColumnInfo(name = "last_error") val lastError: String? = null
 )
 
 /**
@@ -308,12 +310,13 @@ data class PendingSyncEntity(
 )
 data class SyncMetadataEntity(
     @PrimaryKey val id: String = UUID.randomUUID().toString(),
-    val deviceId: String,
-    val lastSyncTimestamp: Instant? = null,
-    val lastSuccessfulSync: Instant? = null,
-    val syncInProgress: Boolean = false,
-    val pendingChanges: Int = 0,
-    val conflictCount: Int = 0
+    @ColumnInfo(name = "device_id") val deviceId: String,
+    @ColumnInfo(name = "last_sync_timestamp") val lastSyncTimestamp: Instant? = null,
+    @ColumnInfo(name = "last_successful_sync") val lastSuccessfulSync: Instant? = null,
+    @ColumnInfo(name = "sync_in_progress") val syncInProgress: Boolean = false,
+    @ColumnInfo(name = "pending_changes") val pendingChanges: Int = 0,
+    @ColumnInfo(name = "conflict_count") val conflictCount: Int = 0,
+    @ColumnInfo(name = "sync_count") val syncCount: Int = 0
 )
 
 /**
@@ -330,14 +333,14 @@ data class SyncMetadataEntity(
 )
 data class DriveFileInfoEntity(
     @PrimaryKey val id: String = UUID.randomUUID().toString(),
-    val driveFileId: String,
-    val fileName: String,
-    val fileType: DriveFileType,
+    @ColumnInfo(name = "drive_file_id") val driveFileId: String,
+    @ColumnInfo(name = "file_name") val fileName: String,
+    @ColumnInfo(name = "file_type") val fileType: DriveFileType,
     val size: Long,
     val checksum: String,
-    val createdAt: Instant,
-    val modifiedAt: Instant,
-    val syncedAt: Instant? = null
+    @ColumnInfo(name = "created_at") val createdAt: Instant,
+    @ColumnInfo(name = "modified_at") val modifiedAt: Instant,
+    @ColumnInfo(name = "synced_at") val syncedAt: Instant? = null
 )
 
 /**
@@ -355,12 +358,12 @@ data class DriveFileInfoEntity(
 )
 data class TombstoneEntity(
     @PrimaryKey val id: String = UUID.randomUUID().toString(),
-    val entityType: EntityType,
-    val entityId: String,
-    val deletedAt: Instant = Instant.now(),
-    val deletedByDeviceId: String,
+    @ColumnInfo(name = "entity_type") val entityType: EntityType,
+    @ColumnInfo(name = "entity_id") val entityId: String,
+    @ColumnInfo(name = "deleted_at") val deletedAt: Instant = Instant.now(),
+    @ColumnInfo(name = "deleted_by_device_id") val deletedByDeviceId: String,
     val checksum: String,
-    val versionVectorJson: String // JSON representation of VersionVector
+    @ColumnInfo(name = "version_vector_json") val versionVectorJson: String // JSON representation of VersionVector
 )
 
 /**
@@ -368,8 +371,9 @@ data class TombstoneEntity(
  * Used for efficient text search across recipes
  */
 @Entity(tableName = "recipes_fts")
+@Fts4
 data class RecipeFtsEntity(
-    @PrimaryKey val id: String,
+    val id: String,
     val title: String,
     val description: String?,
     val ingredients: String,

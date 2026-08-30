@@ -48,17 +48,6 @@ class DatabaseConverters {
         return value?.let { UUID.fromString(it) }
     }
 
-    // List of strings converters (simple CSV format for basic lists)
-    @TypeConverter
-    fun fromStringListSimple(value: List<String>?): String? {
-        return value?.joinToString(",")
-    }
-
-    @TypeConverter
-    fun toStringListSimple(value: String?): List<String>? {
-        return value?.split(",")?.filter { it.isNotBlank() }
-    }
-
     // Set of strings converters
     @TypeConverter
     fun fromStringSet(value: Set<String>?): String? {
