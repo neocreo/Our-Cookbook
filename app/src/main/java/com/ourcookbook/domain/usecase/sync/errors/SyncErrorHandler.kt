@@ -6,6 +6,8 @@ import android.net.NetworkCapabilities
 import com.ourcookbook.domain.model.Cookbook
 import com.ourcookbook.domain.repository.SyncLogRepository
 import com.ourcookbook.domain.repository.SyncMetadataRepository
+import com.ourcookbook.domain.model.SyncLog
+import com.ourcookbook.domain.model.SyncStatus
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
@@ -139,6 +141,238 @@ enum class ErrorCategory {
 /**
  * Sync error with metadata
  */
+/**
+ * Get severity for an error
+ */
+private fun getSeverity(error: SyncError): ErrorSeverity {
+    return when (error) {
+        is SyncError.NetworkUnavailable -> ErrorSeverity.WARNING
+        is SyncError.NetworkTimeout -> ErrorSeverity.WARNING
+        is SyncError.NetworkSlow -> ErrorSeverity.INFO
+        is SyncError.AuthenticationRequired -> ErrorSeverity.ERROR
+        is SyncError.TokenExpired -> ErrorSeverity.ERROR
+        is SyncError.TokenInvalid -> ErrorSeverity.ERROR
+        is SyncError.PermissionDenied -> ErrorSeverity.ERROR
+        is SyncError.DriveApiError -> {
+            when (error.code) {
+                401, 403 -> ErrorSeverity.ERROR
+                404 -> ErrorSeverity.WARNING
+                429 -> ErrorSeverity.WARNING
+                in 500..599 -> ErrorSeverity.CRITICAL
+                else -> ErrorSeverity.ERROR
+            }
+        }
+        is SyncError.RateLimitExceeded -> ErrorSeverity.WARNING
+        is SyncError.QuotaExceeded -> ErrorSeverity.ERROR
+        is SyncError.FileNotFound -> ErrorSeverity.WARNING
+        is SyncError.FileConflict -> ErrorSeverity.ERROR
+        is SyncError.FileCorrupted -> ErrorSeverity.ERROR
+        is SyncError.FileTooLarge -> ErrorSeverity.WARNING
+        is SyncError.DataCorrupted -> ErrorSeverity.ERROR
+        is SyncError.SchemaMismatch -> ErrorSeverity.CRITICAL
+        is SyncError.IncompatibleData -> ErrorSeverity.ERROR
+        is SyncError.DeviceNotRegistered -> ErrorSeverity.ERROR
+        is SyncError.DeviceInactive -> ErrorSeverity.WARNING
+        is SyncError.CookbookNotFound -> ErrorSeverity.WARNING
+        is SyncError.CookbookNotSynced -> ErrorSeverity.INFO
+        is SyncError.CookbookDeleted -> ErrorSeverity.WARNING
+        is SyncError.UnknownError -> ErrorSeverity.ERROR
+        is SyncError.ServerError -> {
+            when (error.code) {
+                in 500..599 -> ErrorSeverity.CRITICAL
+                in 400..499 -> ErrorSeverity.ERROR
+                else -> ErrorSeverity.ERROR
+            }
+        }
+        is SyncError.ServiceUnavailable -> ErrorSeverity.CRITICAL
+        is SyncError.MaintenanceMode -> ErrorSeverity.INFO
+    }
+}
+
+/**
+ * Get category for an error
+ */
+private fun getCategory(error: SyncError): ErrorCategory {
+    return when (error) {
+        is SyncError.NetworkUnavailable -> ErrorCategory.NETWORK
+        is SyncError.NetworkTimeout -> ErrorCategory.NETWORK
+        is SyncError.NetworkSlow -> ErrorCategory.NETWORK
+        is SyncError.AuthenticationRequired -> ErrorCategory.AUTHENTICATION
+        is SyncError.TokenExpired -> ErrorCategory.AUTHENTICATION
+        is SyncError.TokenInvalid -> ErrorCategory.AUTHENTICATION
+        is SyncError.PermissionDenied -> ErrorCategory.PERMISSION
+        is SyncError.DriveApiError -> ErrorCategory.API_LIMIT
+        is SyncError.RateLimitExceeded -> ErrorCategory.API_LIMIT
+        is SyncError.QuotaExceeded -> ErrorCategory.API_LIMIT
+        is SyncError.FileNotFound -> ErrorCategory.FILE
+        is SyncError.FileConflict -> ErrorCategory.FILE
+        is SyncError.FileCorrupted -> ErrorCategory.FILE
+        is SyncError.FileTooLarge -> ErrorCategory.FILE
+        is SyncError.DataCorrupted -> ErrorCategory.DATA
+        is SyncError.SchemaMismatch -> ErrorCategory.DATA
+        is SyncError.IncompatibleData -> ErrorCategory.DATA
+        is SyncError.DeviceNotRegistered -> ErrorCategory.DEVICE
+        is SyncError.DeviceInactive -> ErrorCategory.DEVICE
+        is SyncError.CookbookNotFound -> ErrorCategory.COOKBOOK
+        is SyncError.CookbookNotSynced -> ErrorCategory.COOKBOOK
+        is SyncError.CookbookDeleted -> ErrorCategory.COOKBOOK
+        else -> ErrorCategory.UNKNOWN
+    }
+}
+
+/**
+ * Check if an error is retryable
+ */
+private fun isRetryable(error: SyncError): Boolean {
+    return when (error) {
+        is SyncError.NetworkUnavailable -> true
+        is SyncError.NetworkTimeout -> true
+        is SyncError.NetworkSlow -> true
+        is SyncError.AuthenticationRequired -> false
+        is SyncError.TokenExpired -> true
+        is SyncError.TokenInvalid -> false
+        is SyncError.PermissionDenied -> false
+        is SyncError.DriveApiError -> error.isRetryable
+        is SyncError.RateLimitExceeded -> true
+        is SyncError.QuotaExceeded -> false
+        is SyncError.FileNotFound -> false
+        is SyncError.FileConflict -> false
+        is SyncError.FileCorrupted -> true
+        is SyncError.FileTooLarge -> false
+        is SyncError.DataCorrupted -> true
+        is SyncError.SchemaMismatch -> false
+        is SyncError.IncompatibleData -> false
+        is SyncError.DeviceNotRegistered -> false
+        is SyncError.DeviceInactive -> false
+        is SyncError.CookbookNotFound -> false
+        is SyncError.CookbookNotSynced -> false
+        is SyncError.CookbookDeleted -> false
+        is SyncError.UnknownError -> true
+        is SyncError.ServerError -> error.code in 500..599
+        is SyncError.ServiceUnavailable -> true
+        is SyncError.MaintenanceMode -> false
+    }
+}
+
+/**
+ * Get max retries for an error
+ */
+private fun getMaxRetries(error: SyncError): Int {
+    return when (error) {
+        is SyncError.NetworkUnavailable -> 3
+        is SyncError.NetworkTimeout -> 5
+        is SyncError.NetworkSlow -> 2
+        is SyncError.TokenExpired -> 1
+        is SyncError.DriveApiError -> {
+            when (error.code) {
+                429 -> 5 // Rate limit
+                in 500..599 -> 3 // Server errors
+                else -> 2
+            }
+        }
+        is SyncError.RateLimitExceeded -> 5
+        is SyncError.FileCorrupted -> 3
+        is SyncError.DataCorrupted -> 3
+        is SyncError.ServerError -> if (error.code in 500..599) 3 else 1
+        is SyncError.ServiceUnavailable -> 5
+        else -> 2
+    }
+}
+
+/**
+ * Get next retry delay using exponential backoff
+ */
+private fun getNextRetryDelay(error: SyncError, retryCount: Int): Long {
+    val baseDelay = when (error) {
+        is SyncError.NetworkUnavailable -> 1000L
+        is SyncError.NetworkTimeout -> 2000L
+        is SyncError.NetworkSlow -> 5000L
+        is SyncError.TokenExpired -> 5000L
+        is SyncError.DriveApiError -> {
+            when (error.code) {
+                429 -> (error as SyncError.RateLimitExceeded).retryAfterSeconds?.times(1000) ?: 5000L
+                else -> 2000L
+            }
+        }
+        is SyncError.RateLimitExceeded -> error.retryAfterSeconds?.times(1000) ?: 5000L
+        is SyncError.FileCorrupted -> 3000L
+        is SyncError.DataCorrupted -> 3000L
+        is SyncError.ServerError -> if (error.code in 500..599) 3000L else 2000L
+        is SyncError.ServiceUnavailable -> 5000L
+        else -> 2000L
+    }
+    
+    // Exponential backoff: baseDelay * 2^retryCount
+    // Cap at 30 seconds
+    return min(baseDelay * 2.toDouble().pow(retryCount).toLong(), 30000L)
+}
+
+/**
+ * Get Drive API error message
+ */
+private fun getDriveErrorMessage(error: SyncError.DriveApiError): String {
+    return when (error.code) {
+        400 -> "Bad request. Please check your request and try again."
+        401 -> "Unauthorized. Please sign in again."
+        403 -> "Access denied. Please check your permissions."
+        404 -> "File not found. It may have been deleted."
+        409 -> "Conflict detected. Please resolve conflicts."
+        429 -> "Too many requests. Please wait and try again."
+        500 -> "Server error. Please try again later."
+        503 -> "Service unavailable. Please try again later."
+        else -> "Drive API error (${error.code}): ${error.message}"
+    }
+}
+
+/**
+ * Get quota error message
+ */
+private fun getQuotaErrorMessage(error: SyncError.QuotaExceeded): String {
+    val usedMB = error.currentUsage / (1024 * 1024)
+    val limitMB = error.quotaLimit / (1024 * 1024)
+    
+    return when (error.quotaType) {
+        QuotaType.STORAGE -> "Storage quota exceeded. Used $usedMB MB of $limitMB MB."
+        QuotaType.READ_REQUESTS -> "Read requests quota exceeded."
+        QuotaType.WRITE_REQUESTS -> "Write requests quota exceeded."
+        QuotaType.TOTAL_REQUESTS -> "Total requests quota exceeded."
+        QuotaType.BANDWIDTH -> "Bandwidth quota exceeded."
+    }
+}
+
+/**
+ * Get error message for logging
+ */
+private fun getErrorMessage(error: SyncError): String {
+    return when (error) {
+        is SyncError.NetworkUnavailable -> "Network unavailable: ${error.message}"
+        is SyncError.NetworkTimeout -> "Network timeout: ${error.message}"
+        is SyncError.NetworkSlow -> "Network slow: ${error.speedKbps} Kbps"
+        is SyncError.AuthenticationRequired -> "Authentication required for account: ${error.account}"
+        is SyncError.TokenExpired -> "Token expired: ${error.tokenType}"
+        is SyncError.TokenInvalid -> "Token invalid: ${error.reason}"
+        is SyncError.PermissionDenied -> "Permission denied: ${error.permission}"
+        is SyncError.DriveApiError -> "Drive API error (${error.code}): ${error.message}"
+        is SyncError.RateLimitExceeded -> "Rate limit exceeded: ${error.limitType}"
+        is SyncError.QuotaExceeded -> "Quota exceeded (${error.quotaType}): ${error.currentUsage}/${error.quotaLimit}"
+        is SyncError.FileNotFound -> "File not found: ${error.fileId}"
+        is SyncError.FileConflict -> "File conflict: ${error.fileId} (local: ${error.localChecksum}, remote: ${error.remoteChecksum})"
+        is SyncError.FileCorrupted -> "File corrupted: ${error.fileId}"
+        is SyncError.FileTooLarge -> "File too large: ${error.fileId} (${error.fileSize}/${error.maxSize})"
+        is SyncError.DataCorrupted -> "Data corrupted: ${error.entityType}/${error.entityId}"
+        is SyncError.SchemaMismatch -> "Schema mismatch: expected ${error.expectedVersion}, actual ${error.actualVersion}"
+        is SyncError.IncompatibleData -> "Incompatible data: ${error.reason}"
+        is SyncError.DeviceNotRegistered -> "Device not registered: ${error.deviceId}"
+        is SyncError.DeviceInactive -> "Device inactive: ${error.deviceId}"
+        is SyncError.CookbookNotFound -> "Cookbook not found: ${error.cookbookId}"
+        is SyncError.CookbookNotSynced -> "Cookbook not synced: ${error.cookbookId}"
+        is SyncError.CookbookDeleted -> "Cookbook deleted: ${error.cookbookId}"
+        is SyncError.UnknownError -> "Unknown error: ${error.message}"
+        is SyncError.ServerError -> "Server error (${error.code}): ${error.message}"
+        is SyncError.ServiceUnavailable -> "Service unavailable"
+        is SyncError.MaintenanceMode -> "Maintenance mode"
+    }
+}
 data class SyncErrorWithContext(
     val error: SyncError,
     val cookbookId: String? = null,
@@ -249,7 +483,13 @@ class SyncErrorHandler @Inject constructor(
      */
     private suspend fun logError(error: SyncErrorWithContext) {
         withContext(dispatcher) {
-            syncLogRepository.insert(error.toSyncLogEntry())
+            syncLogRepository.createLog(SyncLog(
+                id = error.errorId,
+                timestamp = error.timestamp,
+                status = SyncStatus.FAILURE,
+                deviceId = error.deviceId ?: "",
+                errorMessage = getErrorMessage(error.error)
+            ))
         }
     }
     
@@ -350,7 +590,14 @@ class SyncErrorHandler @Inject constructor(
                 status = "RESOLVED",
                 resolved = true
             )
-            syncLogRepository.update(resolvedEntry)
+            // SyncLogRepository has no update; re-create the log
+            syncLogRepository.createLog(SyncLog(
+                id = resolvedEntry.id,
+                timestamp = resolvedEntry.timestamp,
+                status = SyncStatus.SUCCESS,
+                deviceId = resolvedEntry.deviceId ?: "",
+                errorMessage = resolvedEntry.details
+            ))
         }
         
         activeErrors.remove(error.errorId)
@@ -365,7 +612,13 @@ class SyncErrorHandler @Inject constructor(
                 status = "UNRESOLVED",
                 details = "${error.toSyncLogEntry().details} - Max retries (${error.maxRetries}) reached"
             )
-            syncLogRepository.update(unresolvedEntry)
+            syncLogRepository.createLog(SyncLog(
+                id = unresolvedEntry.id,
+                timestamp = unresolvedEntry.timestamp,
+                status = SyncStatus.FAILURE,
+                deviceId = unresolvedEntry.deviceId ?: "",
+                errorMessage = unresolvedEntry.details
+            ))
         }
         
         activeErrors.remove(error.errorId)
@@ -407,7 +660,7 @@ class SyncErrorHandler @Inject constructor(
         retryQueue.removeAll { it.errorId == errorId }
         
         withContext(dispatcher) {
-            syncLogRepository.delete(errorId)
+            syncLogRepository.deleteLog(errorId)
         }
     }
     
@@ -419,7 +672,7 @@ class SyncErrorHandler @Inject constructor(
         retryQueue.clear()
         
         withContext(dispatcher) {
-            syncLogRepository.deleteAll()
+            syncLogRepository.deleteLogsBefore(Instant.now())
         }
     }
     
@@ -611,238 +864,6 @@ class SyncErrorHandler @Inject constructor(
         return capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
     }
     
-    /**
-     * Get severity for an error
-     */
-    private fun getSeverity(error: SyncError): ErrorSeverity {
-        return when (error) {
-            is SyncError.NetworkUnavailable -> ErrorSeverity.WARNING
-            is SyncError.NetworkTimeout -> ErrorSeverity.WARNING
-            is SyncError.NetworkSlow -> ErrorSeverity.INFO
-            is SyncError.AuthenticationRequired -> ErrorSeverity.ERROR
-            is SyncError.TokenExpired -> ErrorSeverity.ERROR
-            is SyncError.TokenInvalid -> ErrorSeverity.ERROR
-            is SyncError.PermissionDenied -> ErrorSeverity.ERROR
-            is SyncError.DriveApiError -> {
-                when (error.code) {
-                    401, 403 -> ErrorSeverity.ERROR
-                    404 -> ErrorSeverity.WARNING
-                    429 -> ErrorSeverity.WARNING
-                    in 500..599 -> ErrorSeverity.CRITICAL
-                    else -> ErrorSeverity.ERROR
-                }
-            }
-            is SyncError.RateLimitExceeded -> ErrorSeverity.WARNING
-            is SyncError.QuotaExceeded -> ErrorSeverity.ERROR
-            is SyncError.FileNotFound -> ErrorSeverity.WARNING
-            is SyncError.FileConflict -> ErrorSeverity.ERROR
-            is SyncError.FileCorrupted -> ErrorSeverity.ERROR
-            is SyncError.FileTooLarge -> ErrorSeverity.WARNING
-            is SyncError.DataCorrupted -> ErrorSeverity.ERROR
-            is SyncError.SchemaMismatch -> ErrorSeverity.CRITICAL
-            is SyncError.IncompatibleData -> ErrorSeverity.ERROR
-            is SyncError.DeviceNotRegistered -> ErrorSeverity.ERROR
-            is SyncError.DeviceInactive -> ErrorSeverity.WARNING
-            is SyncError.CookbookNotFound -> ErrorSeverity.WARNING
-            is SyncError.CookbookNotSynced -> ErrorSeverity.INFO
-            is SyncError.CookbookDeleted -> ErrorSeverity.WARNING
-            is SyncError.UnknownError -> ErrorSeverity.ERROR
-            is SyncError.ServerError -> {
-                when (error.code) {
-                    in 500..599 -> ErrorSeverity.CRITICAL
-                    in 400..499 -> ErrorSeverity.ERROR
-                    else -> ErrorSeverity.ERROR
-                }
-            }
-            is SyncError.ServiceUnavailable -> ErrorSeverity.CRITICAL
-            is SyncError.MaintenanceMode -> ErrorSeverity.INFO
-        }
-    }
-    
-    /**
-     * Get category for an error
-     */
-    private fun getCategory(error: SyncError): ErrorCategory {
-        return when (error) {
-            is SyncError.NetworkUnavailable -> ErrorCategory.NETWORK
-            is SyncError.NetworkTimeout -> ErrorCategory.NETWORK
-            is SyncError.NetworkSlow -> ErrorCategory.NETWORK
-            is SyncError.AuthenticationRequired -> ErrorCategory.AUTHENTICATION
-            is SyncError.TokenExpired -> ErrorCategory.AUTHENTICATION
-            is SyncError.TokenInvalid -> ErrorCategory.AUTHENTICATION
-            is SyncError.PermissionDenied -> ErrorCategory.PERMISSION
-            is SyncError.DriveApiError -> ErrorCategory.API_LIMIT
-            is SyncError.RateLimitExceeded -> ErrorCategory.API_LIMIT
-            is SyncError.QuotaExceeded -> ErrorCategory.API_LIMIT
-            is SyncError.FileNotFound -> ErrorCategory.FILE
-            is SyncError.FileConflict -> ErrorCategory.FILE
-            is SyncError.FileCorrupted -> ErrorCategory.FILE
-            is SyncError.FileTooLarge -> ErrorCategory.FILE
-            is SyncError.DataCorrupted -> ErrorCategory.DATA
-            is SyncError.SchemaMismatch -> ErrorCategory.DATA
-            is SyncError.IncompatibleData -> ErrorCategory.DATA
-            is SyncError.DeviceNotRegistered -> ErrorCategory.DEVICE
-            is SyncError.DeviceInactive -> ErrorCategory.DEVICE
-            is SyncError.CookbookNotFound -> ErrorCategory.COOKBOOK
-            is SyncError.CookbookNotSynced -> ErrorCategory.COOKBOOK
-            is SyncError.CookbookDeleted -> ErrorCategory.COOKBOOK
-            else -> ErrorCategory.UNKNOWN
-        }
-    }
-    
-    /**
-     * Check if an error is retryable
-     */
-    private fun isRetryable(error: SyncError): Boolean {
-        return when (error) {
-            is SyncError.NetworkUnavailable -> true
-            is SyncError.NetworkTimeout -> true
-            is SyncError.NetworkSlow -> true
-            is SyncError.AuthenticationRequired -> false
-            is SyncError.TokenExpired -> true
-            is SyncError.TokenInvalid -> false
-            is SyncError.PermissionDenied -> false
-            is SyncError.DriveApiError -> error.isRetryable
-            is SyncError.RateLimitExceeded -> true
-            is SyncError.QuotaExceeded -> false
-            is SyncError.FileNotFound -> false
-            is SyncError.FileConflict -> false
-            is SyncError.FileCorrupted -> true
-            is SyncError.FileTooLarge -> false
-            is SyncError.DataCorrupted -> true
-            is SyncError.SchemaMismatch -> false
-            is SyncError.IncompatibleData -> false
-            is SyncError.DeviceNotRegistered -> false
-            is SyncError.DeviceInactive -> false
-            is SyncError.CookbookNotFound -> false
-            is SyncError.CookbookNotSynced -> false
-            is SyncError.CookbookDeleted -> false
-            is SyncError.UnknownError -> true
-            is SyncError.ServerError -> error.code in 500..599
-            is SyncError.ServiceUnavailable -> true
-            is SyncError.MaintenanceMode -> false
-        }
-    }
-    
-    /**
-     * Get max retries for an error
-     */
-    private fun getMaxRetries(error: SyncError): Int {
-        return when (error) {
-            is SyncError.NetworkUnavailable -> 3
-            is SyncError.NetworkTimeout -> 5
-            is SyncError.NetworkSlow -> 2
-            is SyncError.TokenExpired -> 1
-            is SyncError.DriveApiError -> {
-                when (error.code) {
-                    429 -> 5 // Rate limit
-                    in 500..599 -> 3 // Server errors
-                    else -> 2
-                }
-            }
-            is SyncError.RateLimitExceeded -> 5
-            is SyncError.FileCorrupted -> 3
-            is SyncError.DataCorrupted -> 3
-            is SyncError.ServerError -> if (error.code in 500..599) 3 else 1
-            is SyncError.ServiceUnavailable -> 5
-            else -> 2
-        }
-    }
-    
-    /**
-     * Get next retry delay using exponential backoff
-     */
-    private fun getNextRetryDelay(error: SyncError, retryCount: Int): Long {
-        val baseDelay = when (error) {
-            is SyncError.NetworkUnavailable -> 1000L
-            is SyncError.NetworkTimeout -> 2000L
-            is SyncError.NetworkSlow -> 5000L
-            is SyncError.TokenExpired -> 5000L
-            is SyncError.DriveApiError -> {
-                when (error.code) {
-                    429 -> (error as SyncError.RateLimitExceeded).retryAfterSeconds?.times(1000) ?: 5000L
-                    else -> 2000L
-                }
-            }
-            is SyncError.RateLimitExceeded -> error.retryAfterSeconds?.times(1000) ?: 5000L
-            is SyncError.FileCorrupted -> 3000L
-            is SyncError.DataCorrupted -> 3000L
-            is SyncError.ServerError -> if (error.code in 500..599) 3000L else 2000L
-            is SyncError.ServiceUnavailable -> 5000L
-            else -> 2000L
-        }
-        
-        // Exponential backoff: baseDelay * 2^retryCount
-        // Cap at 30 seconds
-        return min(baseDelay * 2.toDouble().pow(retryCount).toLong(), 30000L)
-    }
-    
-    /**
-     * Get Drive API error message
-     */
-    private fun getDriveErrorMessage(error: SyncError.DriveApiError): String {
-        return when (error.code) {
-            400 -> "Bad request. Please check your request and try again."
-            401 -> "Unauthorized. Please sign in again."
-            403 -> "Access denied. Please check your permissions."
-            404 -> "File not found. It may have been deleted."
-            409 -> "Conflict detected. Please resolve conflicts."
-            429 -> "Too many requests. Please wait and try again."
-            500 -> "Server error. Please try again later."
-            503 -> "Service unavailable. Please try again later."
-            else -> "Drive API error (${error.code}): ${error.message}"
-        }
-    }
-    
-    /**
-     * Get quota error message
-     */
-    private fun getQuotaErrorMessage(error: SyncError.QuotaExceeded): String {
-        val usedMB = error.currentUsage / (1024 * 1024)
-        val limitMB = error.quotaLimit / (1024 * 1024)
-        
-        return when (error.quotaType) {
-            QuotaType.STORAGE -> "Storage quota exceeded. Used $usedMB MB of $limitMB MB."
-            QuotaType.READ_REQUESTS -> "Read requests quota exceeded."
-            QuotaType.WRITE_REQUESTS -> "Write requests quota exceeded."
-            QuotaType.TOTAL_REQUESTS -> "Total requests quota exceeded."
-            QuotaType.BANDWIDTH -> "Bandwidth quota exceeded."
-        }
-    }
-    
-    /**
-     * Get error message for logging
-     */
-    private fun getErrorMessage(error: SyncError): String {
-        return when (error) {
-            is SyncError.NetworkUnavailable -> "Network unavailable: ${error.message}"
-            is SyncError.NetworkTimeout -> "Network timeout: ${error.message}"
-            is SyncError.NetworkSlow -> "Network slow: ${error.speedKbps} Kbps"
-            is SyncError.AuthenticationRequired -> "Authentication required for account: ${error.account}"
-            is SyncError.TokenExpired -> "Token expired: ${error.tokenType}"
-            is SyncError.TokenInvalid -> "Token invalid: ${error.reason}"
-            is SyncError.PermissionDenied -> "Permission denied: ${error.permission}"
-            is SyncError.DriveApiError -> "Drive API error (${error.code}): ${error.message}"
-            is SyncError.RateLimitExceeded -> "Rate limit exceeded: ${error.limitType}"
-            is SyncError.QuotaExceeded -> "Quota exceeded (${error.quotaType}): ${error.currentUsage}/${error.quotaLimit}"
-            is SyncError.FileNotFound -> "File not found: ${error.fileId}"
-            is SyncError.FileConflict -> "File conflict: ${error.fileId} (local: ${error.localChecksum}, remote: ${error.remoteChecksum})"
-            is SyncError.FileCorrupted -> "File corrupted: ${error.fileId}"
-            is SyncError.FileTooLarge -> "File too large: ${error.fileId} (${error.fileSize}/${error.maxSize})"
-            is SyncError.DataCorrupted -> "Data corrupted: ${error.entityType}/${error.entityId}"
-            is SyncError.SchemaMismatch -> "Schema mismatch: expected ${error.expectedVersion}, actual ${error.actualVersion}"
-            is SyncError.IncompatibleData -> "Incompatible data: ${error.reason}"
-            is SyncError.DeviceNotRegistered -> "Device not registered: ${error.deviceId}"
-            is SyncError.DeviceInactive -> "Device inactive: ${error.deviceId}"
-            is SyncError.CookbookNotFound -> "Cookbook not found: ${error.cookbookId}"
-            is SyncError.CookbookNotSynced -> "Cookbook not synced: ${error.cookbookId}"
-            is SyncError.CookbookDeleted -> "Cookbook deleted: ${error.cookbookId}"
-            is SyncError.UnknownError -> "Unknown error: ${error.message}"
-            is SyncError.ServerError -> "Server error (${error.code}): ${error.message}"
-            is SyncError.ServiceUnavailable -> "Service unavailable"
-            is SyncError.MaintenanceMode -> "Maintenance mode"
-        }
-    }
 }
 
 /**
