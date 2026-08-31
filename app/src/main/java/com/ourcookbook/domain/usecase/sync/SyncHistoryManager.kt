@@ -1,7 +1,7 @@
 package com.ourcookbook.domain.usecase.sync
 
 import com.ourcookbook.domain.model.SyncHistoryEntry
-import com.ourcookbook.domain.model.SyncOperation
+import com.ourcookbook.domain.model.SyncOperationRecord
 import com.ourcookbook.domain.repository.SyncHistoryRepository
 import java.time.Instant
 import javax.inject.Inject
@@ -60,7 +60,7 @@ class SyncHistoryManager @Inject constructor(
      * @return The created history entry
      */
     suspend fun recordSyncOperation(
-        operation: SyncOperation
+        operation: SyncOperationRecord
     ): SyncHistoryEntry {
         val entry = SyncHistoryEntry.create(
             id = java.util.UUID.randomUUID().toString(),

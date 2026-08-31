@@ -8,7 +8,6 @@ import com.ourcookbook.data.repository.*
 import com.ourcookbook.data.service.*
 import com.ourcookbook.domain.service.ChecksumService
 import com.ourcookbook.domain.service.ConflictResolver
-import com.ourcookbook.domain.service.SyncService
 import com.ourcookbook.domain.usecase.*
 import com.ourcookbook.ui.viewmodel.*
 import dagger.Module
@@ -118,34 +117,9 @@ object ServiceModule {
     
     @Provides
     @Singleton
-    fun provideSyncService(
-        checksumService: ChecksumService
-    ): SyncService = SyncServiceImpl(checksumService)
-    
-    @Provides
-    @Singleton
     fun provideConflictResolver(
         checksumService: ChecksumService
     ): ConflictResolver = ConflictResolverImpl(checksumService)
-    
-    @Provides
-    @Singleton
-    fun provideSyncStatusService(
-        syncLogRepository: SyncLogRepository,
-        syncMetadataRepository: SyncMetadataRepository
-    ): SyncStatusService = SyncStatusService(syncLogRepository, syncMetadataRepository)
-    
-    @Provides
-    @Singleton
-    fun provideDeviceInfoService(
-        @ApplicationContext context: Context
-    ): DeviceInfoService = DeviceInfoService(context)
-    
-    @Provides
-    @Singleton
-    fun provideSecureCredentialManager(
-        @ApplicationContext context: Context
-    ): SecureCredentialManager = SecureCredentialManager(context)
 }
 
 /**

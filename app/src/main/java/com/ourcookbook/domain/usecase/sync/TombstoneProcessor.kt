@@ -1,4 +1,5 @@
 package com.ourcookbook.domain.usecase.sync
+import java.time.Instant
 
 import com.ourcookbook.data.repository.DriveRepository
 import com.ourcookbook.domain.model.Recipe
@@ -120,7 +121,7 @@ class TombstoneProcessor @Inject constructor(
             
             if (localRecipe != null) {
                 // Check if the local recipe has been modified since the tombstone was created
-                if (localRecipe.updatedAt > tombstone.deletedAt) {
+                if (localRecipe.updatedAt > Instant.ofEpochMilli(tombstone.deletedAt)) {
                     return TombstoneResult.Skipped(
                         recipeId = tombstone.recipeId,
                         reason = "Local recipe was modified after remote deletion"
@@ -155,7 +156,7 @@ class TombstoneProcessor @Inject constructor(
     private suspend fun restoreFromRemote(tombstone: TombstoneInfo): TombstoneResult {
         return try {
             // Try to get the recipe from remote (might be in trash or version history)
-            val remoteRecipe = driveRepository.getRecipeFromHistory(tombstone.recipeId, tombstone.version)
+            val remoteRecipe = driveRepository.getRecipeFromHistory(tombstone.recipeId, tombstone.version.toInt())
             
             if (remoteRecipe != null) {
                 // Restore the recipe locally
@@ -189,13 +190,8 @@ class TombstoneProcessor @Inject constructor(
             
             if (localRecipe != null) {
                 // Mark the recipe as needing sync (it will be pushed back to Drive)
-                recipeRepository.updateRecipeSyncStatus(
-                    localRecipe.id,
-                    com.ourcookbook.domain.model.SyncStatus.NEEDS_SYNC,
-                    System.currentTimeMillis(),
-                    localRecipe.checksum ?: ""
-                )
-                
+                recipeRepository.markRecipeSynced(localRecipe.id)
+
                 TombstoneResult.Processed(
                     recipeId = tombstone.recipeId,
                     action = TombstoneAction.KEEP_LOCAL,
@@ -229,7 +225,7 @@ class TombstoneProcessor @Inject constructor(
                     recipeId = tombstone.recipeId,
                     deletedAt = tombstone.deletedAt,
                     deletedBy = tombstone.deletedBy,
-                    version = tombstone.version,
+                    version = tombstone.version.toLong(),
                     checksum = tombstone.checksum
                 )
             }
@@ -253,7 +249,7 @@ class TombstoneProcessor @Inject constructor(
                     recipeId = tombstone.recipeId,
                     deletedAt = tombstone.deletedAt,
                     deletedBy = tombstone.deletedBy,
-                    version = tombstone.version,
+                    version = tombstone.version.toLong(),
                     checksum = tombstone.checksum
                 )
             }
@@ -277,7 +273,7 @@ class TombstoneProcessor @Inject constructor(
                     recipeId = it.recipeId,
                     deletedAt = it.deletedAt,
                     deletedBy = it.deletedBy,
-                    version = it.version,
+                    version = it.version.toLong(),
                     checksum = it.checksum
                 )
             }
@@ -389,7 +385,7 @@ class TombstoneProcessor @Inject constructor(
      */
     suspend fun getTombstonesWithLocalRecipes(): List<TombstoneInfo> {
         val tombstones = getTombstones()
-        val localRecipeIds = recipeRepository.getAllRecipeIds().toSet()
+        val localRecipeIds = recipeRepository.getAllRecipesOnce().map { it.id }.toSet()
         
         return tombstones.filter { 
             it.recipeId in localRecipeIds 
@@ -403,7 +399,7 @@ class TombstoneProcessor @Inject constructor(
      */
     suspend fun getTombstonesWithoutLocalRecipes(): List<TombstoneInfo> {
         val tombstones = getTombstones()
-        val localRecipeIds = recipeRepository.getAllRecipeIds().toSet()
+        val localRecipeIds = recipeRepository.getAllRecipesOnce().map { it.id }.toSet()
         
         return tombstones.filter { 
             it.recipeId !in localRecipeIds 

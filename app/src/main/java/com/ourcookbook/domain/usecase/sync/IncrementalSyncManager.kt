@@ -70,7 +70,7 @@ class IncrementalSyncManager @Inject constructor(
             
             // Get the next page of changes from Drive
             val pageResult = driveRepository.getChangesPage(
-                startPageToken = startPageToken,
+                startPageToken = startPageToken ?: "",
                 pageSize = settings.pageSize
             )
             
@@ -154,7 +154,7 @@ class IncrementalSyncManager @Inject constructor(
                         }
                     } else {
                         // Skip checksum verification, just update if version is newer
-                        if (remoteRecipe.version > localRecipe.version) {
+                        if (remoteRecipe.versionVector.counter.toLong() > localRecipe.versionVector.counter.toLong()) {
                             recipeRepository.updateRecipe(remoteRecipe)
                             syncedRecipes.add(remoteRecipe)
                         }
@@ -162,13 +162,8 @@ class IncrementalSyncManager @Inject constructor(
                 }
                 
                 // Update sync status
-                recipeRepository.updateRecipeSyncStatus(
-                    remoteRecipe.id,
-                    com.ourcookbook.domain.model.SyncStatus.SYNCED,
-                    System.currentTimeMillis(),
-                    remoteRecipe.checksum ?: ""
-                )
-                
+                recipeRepository.markRecipeSynced(remoteRecipe.id)
+
             } catch (e: Exception) {
                 // Continue with other recipes
             }
@@ -296,7 +291,7 @@ class IncrementalSyncManager @Inject constructor(
     suspend fun getIncrementalSyncStatus(): IncrementalSyncStatus {
         val lastSyncToken = getCurrentSyncToken()
         val startPageToken = getStartPageToken()
-        val hasPendingChanges = recipeRepository.getRecipesNeedingSyncCount() > 0
+        val hasPendingChanges = recipeRepository.getRecipesNeedingSync().size > 0
         
         return IncrementalSyncStatus(
             lastSyncToken = lastSyncToken,
@@ -392,7 +387,7 @@ class IncrementalSyncManager @Inject constructor(
      */
     suspend fun hasChangesToSync(): Boolean {
         return driveRepository.hasChanges() || 
-               recipeRepository.getRecipesNeedingSyncCount() > 0
+               recipeRepository.getRecipesNeedingSync().size > 0
     }
 
     /**

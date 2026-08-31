@@ -143,13 +143,8 @@ class BatchedDriveOperations @Inject constructor(
                             )
                             
                             // Update sync status
-                            recipeRepository.updateRecipeSyncStatus(
-                                recipe.id,
-                                true,
-                                System.currentTimeMillis(),
-                                checksum
-                            )
-                            
+                            recipeRepository.markRecipeSynced(recipe.id)
+
                             success = true
                         } catch (e: Exception) {
                             retries++
@@ -273,16 +268,15 @@ class BatchedDriveOperations @Inject constructor(
                             
                             if (recipe != null) {
                                 // Save the pulled recipe
-                                recipeRepository.createOrUpdateRecipe(recipe)
+                                if (recipeRepository.getRecipeById(recipe.id) == null) {
+                                    recipeRepository.createRecipe(recipe)
+                                } else {
+                                    recipeRepository.updateRecipe(recipe)
+                                }
                                 
                                 // Update sync status
-                                recipeRepository.updateRecipeSyncStatus(
-                                    recipe.id,
-                                    true,
-                                    System.currentTimeMillis(),
-                                    pushToDriveWithChecksum.calculateChecksum(recipe)
-                                )
-                                
+                                recipeRepository.markRecipeSynced(recipe.id)
+
                                 success = true
                             }
                         } catch (e: Exception) {
@@ -317,8 +311,8 @@ class BatchedDriveOperations @Inject constructor(
             return BatchResult.Failure("No recipes need sync")
         }
         
-        // Push new/changed recipes
-        val newOrChanged = recipesToSync.filter { it.syncStatus != "SYNCED" }
+        // Push new/changed recipes (all in recipesToSync need syncing)
+        val newOrChanged = recipesToSync
         val pushResult = this(newOrChanged.map { it.id }, settings, strategy)
         
         if (pushResult is BatchResult.Failure) {
@@ -326,7 +320,7 @@ class BatchedDriveOperations @Inject constructor(
         }
         
         // Pull any recipes that might have been changed remotely
-        val allRecipeIds = recipeRepository.getAllRecipeIds()
+        val allRecipeIds = recipeRepository.getAllRecipesOnce().map { it.id }
         val pullResult = pullBatch(allRecipeIds, settings, strategy)
         
         if (pullResult is BatchResult.Failure) {
@@ -408,9 +402,9 @@ class BatchedDriveOperations @Inject constructor(
         var size = 0
         
         size += recipe.title.length
-        size += recipe.description.length
+        size += recipe.description?.length ?: 0
         size += recipe.category.length
-        size += recipe.source.length
+        size += recipe.source?.length ?: 0
         
         size += recipe.ingredients.sumOf { 
             it.name.length + (it.amount?.length ?: 0) + (it.unit?.length ?: 0) + (it.notes?.length ?: 0)

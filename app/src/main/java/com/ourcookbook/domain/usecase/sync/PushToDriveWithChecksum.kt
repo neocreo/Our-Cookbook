@@ -2,7 +2,7 @@ package com.ourcookbook.domain.usecase.sync
 
 import com.ourcookbook.data.repository.DriveRepository
 import com.ourcookbook.domain.model.Recipe
-import com.ourcookbook.domain.model.SyncOperation
+import com.ourcookbook.domain.model.SyncOperationRecord
 import com.ourcookbook.domain.repository.RecipeRepository
 import java.security.MessageDigest
 import javax.inject.Inject
@@ -119,12 +119,12 @@ class PushToDriveWithChecksum @Inject constructor(
                 }
                 
                 // Check for version conflicts
-                val remoteVersion = driveRepository.getRemoteVersion(recipe.id)
-                if (remoteVersion != null && remoteVersion > recipe.version) {
+                val remoteVersion = driveRepository.getRemoteVersion(recipe.id)?.toLong()
+                if (remoteVersion != null && remoteVersion > recipe.versionVector.counter.toLong()) {
                     results.add(
                         PushResult.Conflict(
                             recipeId = recipe.id,
-                            localVersion = recipe.version,
+                            localVersion = recipe.versionVector.counter.toLong(),
                             remoteVersion = remoteVersion,
                             message = "Version conflict for recipe ${recipe.title}"
                         )
@@ -179,16 +179,11 @@ class PushToDriveWithChecksum @Inject constructor(
             
             // Update local sync status
             recipes.forEach { recipe ->
-                recipeRepository.updateRecipeSyncStatus(
-                    recipe.id,
-                    true,
-                    timestamp,
-                    checksums[recipe.id] ?: ""
-                )
+                recipeRepository.markRecipeSynced(recipe.id)
             }
             
             // Record the operation
-            val operation = SyncOperation.create(
+            val operation = SyncOperationRecord(
                 id = operationId,
                 type = "PUSH",
                 status = "COMPLETED",
@@ -250,12 +245,12 @@ class PushToDriveWithChecksum @Inject constructor(
             |${recipe.cookTime}|
             |${recipe.totalTime}|
             |${recipe.rating}|
-            |${recipe.favorite}|
+            |${recipe.isFavorite}|
             |${recipe.source}|
             |${recipe.tags.joinToString(",")}|
             |${recipe.ingredients.joinToString("|") { "${it.name}|${it.amount}|${it.unit}|${it.notes}" }}|
             |${recipe.instructions.joinToString("|")}|
-            |${recipe.version}|
+            |${recipe.versionVector.counter.toLong()}|
             |${recipe.createdAt}|
             |${recipe.updatedAt}|
         """.trimMargin()
@@ -304,7 +299,7 @@ class PushToDriveWithChecksum @Inject constructor(
             val status = when {
                 remoteChecksum == null -> VerificationStatus.NEW
                 localChecksum == remoteChecksum -> VerificationStatus.MATCH
-                remoteVersion != null && remoteVersion > recipe.version -> VerificationStatus.CONFLICT
+                remoteVersion != null && remoteVersion > recipe.versionVector.counter.toLong() -> VerificationStatus.CONFLICT
                 else -> VerificationStatus.MISMATCH
             }
             
@@ -397,6 +392,6 @@ class PushToDriveWithChecksum @Inject constructor(
      * Get count of pending changes
      */
     suspend fun getPendingChangesCount(): Int {
-        return recipeRepository.getRecipesNeedingSyncCount()
+        return recipeRepository.getRecipesNeedingSync().size
     }
 }
