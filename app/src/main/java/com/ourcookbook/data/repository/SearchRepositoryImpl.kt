@@ -1,6 +1,8 @@
 package com.ourcookbook.data.repository
 
 import com.ourcookbook.domain.model.SearchFilter
+import com.ourcookbook.domain.repository.SavedSearchRepository
+import com.ourcookbook.domain.repository.SearchHistoryRepository
 import com.ourcookbook.domain.repository.SearchRepository
 import kotlinx.coroutines.flow.Flow
 
