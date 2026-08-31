@@ -56,7 +56,11 @@ class DriveFileInfoLocalDataSource @Inject constructor(
     override suspend fun getUnsynced(): List<DriveFileInfoEntity> {
         return driveFileInfoDao.getUnsynced()
     }
-    
+
+    override suspend fun getAll(): List<DriveFileInfoEntity> {
+        return driveFileInfoDao.getAll()
+    }
+
     override suspend fun toDomainModel(entity: DriveFileInfoEntity): DriveFileInfo {
         return DriveFileInfo(
             id = entity.id,
@@ -113,6 +117,7 @@ interface IDriveFileInfoLocalDataSource {
     suspend fun getByType(fileType: DriveFileType): List<DriveFileInfoEntity>
     suspend fun getByChecksum(checksum: String): DriveFileInfoEntity?
     suspend fun getUnsynced(): List<DriveFileInfoEntity>
+    suspend fun getAll(): List<DriveFileInfoEntity>
     
     // Domain model conversion
     suspend fun toDomainModel(entity: DriveFileInfoEntity): DriveFileInfo

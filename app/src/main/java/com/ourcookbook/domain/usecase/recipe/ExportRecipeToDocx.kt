@@ -202,9 +202,9 @@ class ExportRecipeToDocx @Inject constructor() {
             }
             
             // Description
-            if (recipe.description.isNotBlank()) {
+            if (recipe.description?.isNotBlank() == true) {
                 html.appendLine("  <h3>Description</h3>")
-                html.appendLine("  <p>${escapeHtml(recipe.description)}</p>")
+                html.appendLine("  <p>${escapeHtml(recipe.description ?: "")}</p>")
             }
             
             // Ingredients
@@ -228,8 +228,8 @@ class ExportRecipeToDocx @Inject constructor() {
             }
             
             // Source
-            if (recipe.source.isNotBlank()) {
-                html.appendLine("  <p class=\"metadata\">Source: ${escapeHtml(recipe.source)}</p>")
+            if (recipe.source?.isNotBlank() == true) {
+                html.appendLine("  <p class=\"metadata\">Source: ${escapeHtml(recipe.source ?: "")}</p>")
             }
             
             // Tags

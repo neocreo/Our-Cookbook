@@ -2,6 +2,7 @@ package com.ourcookbook.data.service
 
 import com.ourcookbook.domain.model.Recipe
 import java.io.File
+import java.io.FileOutputStream
 import java.io.OutputStream
 
 /**
@@ -144,7 +145,7 @@ class MarkdownExporter {
         markdown.appendLine()
         
         // Description
-        if (settings.includeDescription && recipe.description.isNotBlank()) {
+        if (settings.includeDescription && recipe.description?.isNotBlank() == true) {
             markdown.appendLine(recipe.description)
             markdown.appendLine()
         }
@@ -177,7 +178,7 @@ class MarkdownExporter {
         }
         
         // Source
-        if (recipe.source.isNotBlank()) {
+        if (recipe.source?.isNotBlank() == true) {
             markdown.appendLine("**Source:** ${recipe.source}")
             markdown.appendLine()
         }
@@ -212,7 +213,7 @@ class MarkdownExporter {
         }
         
         // Notes
-        if (recipe.notes.isNotBlank()) {
+        if (recipe.notes?.isNotBlank() == true) {
             markdown.appendLine("### Notes")
             markdown.appendLine()
             markdown.appendLine(recipe.notes)

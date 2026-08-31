@@ -484,6 +484,9 @@ interface DriveFileInfoDao {
     
     @Query("SELECT * FROM drive_file_infos WHERE synced_at IS NULL OR synced_at < modified_at")
     suspend fun getUnsynced(): List<DriveFileInfoEntity>
+
+    @Query("SELECT * FROM drive_file_infos")
+    suspend fun getAll(): List<DriveFileInfoEntity>
 }
 
 /**
@@ -521,6 +524,9 @@ interface TombstoneDao {
     
     @Query("SELECT * FROM tombstones WHERE deleted_at > :since")
     suspend fun getSince(since: Instant): List<TombstoneEntity>
+
+    @Query("SELECT * FROM tombstones")
+    suspend fun getAll(): List<TombstoneEntity>
 }
 
 /**

@@ -73,11 +73,11 @@ class DriveFileInfoRepositoryImpl @Inject constructor(
     }
     
     override suspend fun getFileInfoCount(): Int {
-        return localDataSource.getAllFileInfos().size
+        return localDataSource.getAll().size
     }
     
     override suspend fun getAllFileInfos(): List<DriveFileInfo> {
-        return localDataSource.getAllFileInfos().map { entity ->
+        return localDataSource.getAll().map { entity ->
             localDataSource.toDomainModel(entity)
         }
     }

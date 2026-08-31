@@ -58,7 +58,11 @@ class TombstoneLocalDataSource @Inject constructor(
     override suspend fun getSince(since: Instant): List<TombstoneEntity> {
         return tombstoneDao.getSince(since)
     }
-    
+
+    override suspend fun getAll(): List<TombstoneEntity> {
+        return tombstoneDao.getAll()
+    }
+
     override suspend fun toDomainModel(entity: TombstoneEntity): Tombstone {
         return Tombstone(
             id = entity.id,
@@ -110,6 +114,7 @@ interface ITombstoneLocalDataSource {
     suspend fun getByType(entityType: EntityType): List<TombstoneEntity>
     suspend fun getByDevice(deviceId: String): List<TombstoneEntity>
     suspend fun getSince(since: Instant): List<TombstoneEntity>
+    suspend fun getAll(): List<TombstoneEntity>
     
     // Domain model conversion
     suspend fun toDomainModel(entity: TombstoneEntity): Tombstone

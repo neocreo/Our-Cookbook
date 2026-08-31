@@ -65,7 +65,7 @@ class TombstoneRepositoryImpl @Inject constructor(
     }
     
     override suspend fun getTombstoneCount(): Int {
-        return localDataSource.getAllTombstones().size
+        return localDataSource.getAll().size
     }
     
     override suspend fun deleteTombstonesBefore(before: Instant) {
@@ -73,7 +73,7 @@ class TombstoneRepositoryImpl @Inject constructor(
     }
     
     override suspend fun getAllTombstones(): List<Tombstone> {
-        return localDataSource.getAllTombstones().map { entity ->
+        return localDataSource.getAll().map { entity ->
             localDataSource.toDomainModel(entity)
         }
     }
