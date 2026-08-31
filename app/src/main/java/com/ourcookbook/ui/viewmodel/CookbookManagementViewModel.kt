@@ -177,18 +177,18 @@ sealed class CookbookManagementAction {
 @HiltViewModel
 class CookbookManagementViewModel @Inject constructor(
     private val createCookbook: CreateCookbook,
-    private val updateCookbook: UpdateCookbook,
-    private val deleteCookbook: DeleteCookbook,
+    private val updateCookbookUseCase: UpdateCookbook,
+    private val deleteCookbookUseCase: DeleteCookbook,
     private val getAllCookbooks: GetAllCookbooks,
     private val getCookbooksByOwner: GetCookbooksByOwner,
     private val getSharedCookbooks: GetSharedCookbooks,
-    private val searchCookbooks: SearchCookbooks,
+    private val searchCookbooksUseCase: SearchCookbooks,
     private val addRecipeToCookbook: AddRecipeToCookbook,
     private val removeRecipeFromCookbook: RemoveRecipeFromCookbook,
-    private val exportCookbook: ExportCookbook,
-    private val importCookbook: ImportCookbook,
-    private val shareCookbook: ShareCookbook,
-    private val generateSharingLink: GenerateSharingLink,
+    private val exportCookbookUseCase: ExportCookbook,
+    private val importCookbookUseCase: ImportCookbook,
+    private val shareCookbookUseCase: ShareCookbook,
+    private val generateSharingLinkUseCase: GenerateSharingLink,
     private val getSharingInfo: GetSharingInfo
 ) : ViewModel() {
 
@@ -369,7 +369,7 @@ class CookbookManagementViewModel @Inject constructor(
                     return@launch
                 }
                 
-                val result = updateCookbook(cookbook)
+                val result = updateCookbookUseCase(cookbook)
                 result.onSuccess {
                     // Refresh the list to reflect the changes
                     loadCookbooks()
@@ -411,7 +411,7 @@ class CookbookManagementViewModel @Inject constructor(
                         // Store the cookbook for potential undo
                         recentlyDeletedCookbooks.add(cookbook)
                         
-                        val result = deleteCookbook(cookbookId)
+                        val result = deleteCookbookUseCase(cookbookId)
                         result.onSuccess {
                             // Refresh the list to remove the deleted cookbook
                             loadCookbooks()
@@ -452,7 +452,7 @@ class CookbookManagementViewModel @Inject constructor(
                             
                             if (cookbook != null) {
                                 recentlyDeletedCookbooks.add(cookbook)
-                                deleteCookbook(cookbookId).onSuccess { successCount++ }.onFailure { errorCount++ }
+                                deleteCookbookUseCase(cookbookId).onSuccess { successCount++ }.onFailure { errorCount++ }
                             }
                         }
                     } catch (e: Exception) {
@@ -553,7 +553,7 @@ class CookbookManagementViewModel @Inject constructor(
                     return@launch
                 }
 
-                searchCookbooks(query)
+                searchCookbooksUseCase(query)
                     .catch { e ->
                         _state.value = CookbookManagementState.Error("Search failed: ${e.message}")
                     }
@@ -582,7 +582,7 @@ class CookbookManagementViewModel @Inject constructor(
     private fun shareCookbook(cookbookId: String, userIds: List<String>, permissions: Set<Permission>) {
         viewModelScope.launch {
             try {
-                val result = shareCookbook(cookbookId, userIds, permissions)
+                val result = shareCookbookUseCase(cookbookId, userIds, permissions)
                 result.onSuccess {
                     loadCookbooks()
                     _actions.value = CookbookManagementAction.ShowSharingSuccess(
@@ -600,7 +600,7 @@ class CookbookManagementViewModel @Inject constructor(
     private fun generateSharingLink(cookbookId: String) {
         viewModelScope.launch {
             try {
-                val result = generateSharingLink(cookbookId)
+                val result = generateSharingLinkUseCase(cookbookId)
                 result.onSuccess { sharingLink ->
                     // Generate QR code data (simplified - in production would use QR code library)
                     val qrCodeData = "cookbook:$cookbookId"
@@ -656,21 +656,23 @@ class CookbookManagementViewModel @Inject constructor(
                         _state.value = currentState.copy(isExporting = true, exportProgress = 0)
                         _actions.value = CookbookManagementAction.ShowExportProgress(0)
                         
-                        val result = exportCookbook(cookbookId, format, destinationFile)
-                        result.onSuccess {
-                            _state.value = currentState.copy(isExporting = false, exportProgress = 100)
-                            _actions.value = CookbookManagementAction.ShowExportSuccess(
-                                destinationFile.absolutePath,
-                                format
-                            )
-                        }.onFailure { e ->
-                            _state.value = currentState.copy(isExporting = false)
-                            _actions.value = CookbookManagementAction.ShowError("Export failed: ${e.message}")
+                        when (val result = exportCookbookUseCase(cookbook, emptyList<Recipe>(), destinationFile)) {
+                            is ExportCookbook.ExportResult.Success -> {
+                                _state.value = currentState.copy(isExporting = false, exportProgress = 100)
+                                _actions.value = CookbookManagementAction.ShowExportSuccess(
+                                    destinationFile.absolutePath,
+                                    format
+                                )
+                            }
+                            is ExportCookbook.ExportResult.Failure -> {
+                                _state.value = currentState.copy(isExporting = false)
+                                _actions.value = CookbookManagementAction.ShowError("Export failed: ${result.errorMessage}")
+                            }
                         }
                     }
                 }
             } catch (e: Exception) {
-                _state.value = (currentState as? CookbookManagementState.Success)?.copy(isExporting = false) ?: currentState
+                _state.value = (_state.value as? CookbookManagementState.Success)?.copy(isExporting = false) ?: _state.value
                 _actions.value = CookbookManagementAction.ShowError("Export failed: ${e.message}")
             }
         }
@@ -682,17 +684,24 @@ class CookbookManagementViewModel @Inject constructor(
                 _state.value = CookbookManagementState.Loading
                 _actions.value = CookbookManagementAction.ShowImportProgress(0)
                 
-                val result = importCookbook(sourceFile, format)
-                result.onSuccess { importedCookbook ->
-                    _state.value = CookbookManagementState.Loading
-                    _actions.value = CookbookManagementAction.ShowImportSuccess(
-                        importedCookbook.name,
-                        importedCookbook.recipeCount
-                    )
-                    loadCookbooks()
-                }.onFailure { e ->
-                    _state.value = CookbookManagementState.Loading
-                    _actions.value = CookbookManagementAction.ShowError("Import failed: ${e.message}")
+                val importFormat = when (format) {
+                    ExportFormat.JSON -> com.ourcookbook.domain.model.ImportFormat.JSON
+                    ExportFormat.MARKDOWN -> com.ourcookbook.domain.model.ImportFormat.MARKDOWN
+                    ExportFormat.PDF -> com.ourcookbook.domain.model.ImportFormat.JSON
+                }
+                when (val result = importCookbookUseCase(sourceFile, importFormat)) {
+                    is ImportCookbook.ImportResult.Success -> {
+                        _state.value = CookbookManagementState.Loading
+                        _actions.value = CookbookManagementAction.ShowImportSuccess(
+                            result.cookbook.name,
+                            result.importedCount
+                        )
+                        loadCookbooks()
+                    }
+                    is ImportCookbook.ImportResult.Failure -> {
+                        _state.value = CookbookManagementState.Loading
+                        _actions.value = CookbookManagementAction.ShowError("Import failed: ${result.errorMessage}")
+                    }
                 }
             } catch (e: Exception) {
                 _state.value = CookbookManagementState.Loading
@@ -728,25 +737,6 @@ class CookbookManagementViewModel @Inject constructor(
     fun setDeviceId(deviceId: String) {
         currentDeviceId = deviceId
         loadCookbooks()
-    }
-
-    // Helper methods for UI
-    fun showCreateCookbookDialog(defaultName: String = "") {
-        viewModelScope.launch {
-            _actions.value = CookbookManagementAction.ShowCreateCookbookDialog(defaultName)
-        }
-    }
-
-    fun showEditCookbookDialog(cookbook: Cookbook) {
-        viewModelScope.launch {
-            _actions.value = CookbookManagementAction.ShowEditCookbookDialog(cookbook)
-        }
-    }
-
-    fun showRecipeSelection(cookbookId: String) {
-        viewModelScope.launch {
-            _actions.value = CookbookManagementAction.ShowRecipeSelection(cookbookId)
-        }
     }
 
     fun showShareDialog(cookbook: Cookbook) {
