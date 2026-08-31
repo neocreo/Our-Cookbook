@@ -295,7 +295,7 @@ class PdfExporter {
         }
         
         // Draw description if available
-        if (recipe.description.isNotBlank()) {
+        if (recipe.description?.isNotBlank() == true) {
             canvas.drawText(
                 "Description:",
                 MARGIN,
@@ -306,7 +306,7 @@ class PdfExporter {
             
             drawWrappedText(
                 canvas,
-                recipe.description,
+                recipe.description ?: "",
                 MARGIN,
                 y,
                 settings.pageSize.width - MARGIN * 2,
@@ -368,7 +368,7 @@ class PdfExporter {
         }
         
         // Draw source if available
-        if (recipe.source.isNotBlank()) {
+        if (recipe.source?.isNotBlank() == true) {
             y += LINE_SPACING
             canvas.drawText(
                 "Source: ${recipe.source}",

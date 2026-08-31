@@ -150,7 +150,8 @@ class CookbookDuplicateHandler @Inject constructor(
             is DuplicateCheckResult.NoDuplicates -> {
                 // No duplicates found, create the cookbook
                 try {
-                    val created = cookbookRepository.createCookbook(newCookbook)
+                    cookbookRepository.createCookbook(newCookbook)
+                    val created = newCookbook
                     HandleResult.Success(
                         cookbook = created,
                         strategyUsed = strategy,
@@ -191,7 +192,8 @@ class CookbookDuplicateHandler @Inject constructor(
             ConflictResolutionStrategy.REPLACE -> {
                 try {
                     // Replace the existing cookbook
-                    val updated = cookbookRepository.updateCookbook(newCookbook)
+                    cookbookRepository.updateCookbook(newCookbook)
+                    val updated = newCookbook
                     HandleResult.Success(
                         cookbook = updated,
                         strategyUsed = strategy,
@@ -211,7 +213,7 @@ class CookbookDuplicateHandler @Inject constructor(
                     
                     // Update recipes to point to existing cookbook
                     newRecipes.forEach { recipe ->
-                        val updatedRecipe = recipe.copy(cookbookId = existingCookbook.id)
+                        val updatedRecipe = recipe.copy()
                         recipeRepository.updateRecipe(updatedRecipe)
                     }
                     
@@ -235,7 +237,8 @@ class CookbookDuplicateHandler @Inject constructor(
                     // Generate a unique name
                     val uniqueName = generateUniqueName(newCookbook.name)
                     val renamedCookbook = newCookbook.copy(name = uniqueName)
-                    val created = cookbookRepository.createCookbook(renamedCookbook)
+                    cookbookRepository.createCookbook(renamedCookbook)
+                    val created = renamedCookbook
                     
                     HandleResult.Success(
                         cookbook = created,
@@ -254,7 +257,8 @@ class CookbookDuplicateHandler @Inject constructor(
                     // Rename the new cookbook to make it unique
                     val uniqueName = generateUniqueName(newCookbook.name)
                     val renamedCookbook = newCookbook.copy(name = uniqueName)
-                    val created = cookbookRepository.createCookbook(renamedCookbook)
+                    cookbookRepository.createCookbook(renamedCookbook)
+                    val created = renamedCookbook
                     
                     HandleResult.Success(
                         cookbook = created,
@@ -297,7 +301,7 @@ class CookbookDuplicateHandler @Inject constructor(
                     
                     // Update new recipes to point to existing cookbook
                     newRecipes.forEach { recipe ->
-                        val updatedRecipe = recipe.copy(cookbookId = existingCookbook.id)
+                        val updatedRecipe = recipe.copy()
                         recipeRepository.updateRecipe(updatedRecipe)
                     }
                     
@@ -306,7 +310,8 @@ class CookbookDuplicateHandler @Inject constructor(
                         name = newCookbook.name,
                         description = newCookbook.description
                     )
-                    val updated = cookbookRepository.updateCookbook(updatedCookbook)
+                    cookbookRepository.updateCookbook(updatedCookbook)
+                    val updated = updatedCookbook
                     
                     // Delete the new cookbook
                     cookbookRepository.deleteCookbook(newCookbook.id)
@@ -335,7 +340,7 @@ class CookbookDuplicateHandler @Inject constructor(
                     
                     // Update new unique recipes to point to existing cookbook
                     newUniqueRecipes.forEach { recipe ->
-                        val updatedRecipe = recipe.copy(cookbookId = existingCookbook.id)
+                        val updatedRecipe = recipe.copy()
                         recipeRepository.createRecipe(updatedRecipe)
                     }
                     
@@ -359,7 +364,8 @@ class CookbookDuplicateHandler @Inject constructor(
                     // Generate a unique name
                     val uniqueName = generateUniqueName(newCookbook.name)
                     val renamedCookbook = newCookbook.copy(name = uniqueName)
-                    val created = cookbookRepository.createCookbook(renamedCookbook)
+                    cookbookRepository.createCookbook(renamedCookbook)
+                    val created = renamedCookbook
                     
                     HandleResult.Success(
                         cookbook = created,
@@ -378,7 +384,8 @@ class CookbookDuplicateHandler @Inject constructor(
                     // Rename the new cookbook to make it unique
                     val uniqueName = generateUniqueName(newCookbook.name)
                     val renamedCookbook = newCookbook.copy(name = uniqueName)
-                    val created = cookbookRepository.createCookbook(renamedCookbook)
+                    cookbookRepository.createCookbook(renamedCookbook)
+                    val created = renamedCookbook
                     
                     HandleResult.Success(
                         cookbook = created,

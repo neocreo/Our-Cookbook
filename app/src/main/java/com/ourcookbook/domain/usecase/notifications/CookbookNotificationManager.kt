@@ -389,8 +389,8 @@ class CookbookNotificationManager @Inject constructor(
      */
     suspend fun showSyncInProgress(cookbookId: String, deviceId: String) {
         withContext(dispatcher) {
-            val cookbook = cookbookRepository.getById(cookbookId)
-            val device = deviceRepository.getById(deviceId)
+            val cookbook = cookbookRepository.getCookbookById(cookbookId)
+            val device = deviceRepository.getDeviceById(deviceId)
             
             val notification = CookbookNotification(
                 id = NotificationIds.SYNC_IN_PROGRESS,
@@ -414,7 +414,7 @@ class CookbookNotificationManager @Inject constructor(
      */
     suspend fun showSyncComplete(cookbookId: String, recipeCount: Int) {
         withContext(dispatcher) {
-            val cookbook = cookbookRepository.getById(cookbookId)
+            val cookbook = cookbookRepository.getCookbookById(cookbookId)
             
             val notification = CookbookNotification(
                 id = NotificationIds.SYNC_COMPLETE,
@@ -437,7 +437,7 @@ class CookbookNotificationManager @Inject constructor(
      */
     suspend fun showSyncFailed(cookbookId: String, errorMessage: String) {
         withContext(dispatcher) {
-            val cookbook = cookbookRepository.getById(cookbookId)
+            val cookbook = cookbookRepository.getCookbookById(cookbookId)
             
             val notification = CookbookNotification(
                 id = NotificationIds.SYNC_FAILED,
@@ -474,7 +474,7 @@ class CookbookNotificationManager @Inject constructor(
      */
     suspend fun showNewRecipeNotification(recipe: Recipe, cookbookId: String) {
         withContext(dispatcher) {
-            val cookbook = cookbookRepository.getById(cookbookId)
+            val cookbook = cookbookRepository.getCookbookById(cookbookId)
             
             val notification = CookbookNotification(
                 id = NotificationIds.NEW_RECIPE,
@@ -505,7 +505,7 @@ class CookbookNotificationManager @Inject constructor(
      */
     suspend fun showRecipeUpdatedNotification(recipe: Recipe, cookbookId: String) {
         withContext(dispatcher) {
-            val cookbook = cookbookRepository.getById(cookbookId)
+            val cookbook = cookbookRepository.getCookbookById(cookbookId)
             
             val notification = CookbookNotification(
                 id = NotificationIds.RECIPE_UPDATED,
@@ -604,7 +604,7 @@ class CookbookNotificationManager @Inject constructor(
      */
     suspend fun showConflictDetectedNotification(cookbookId: String, conflictCount: Int) {
         withContext(dispatcher) {
-            val cookbook = cookbookRepository.getById(cookbookId)
+            val cookbook = cookbookRepository.getCookbookById(cookbookId)
             
             val message = if (conflictCount == 1) {
                 "1 conflict detected in '${cookbook?.name ?: "Unknown"}'"
@@ -641,7 +641,7 @@ class CookbookNotificationManager @Inject constructor(
     suspend fun showErrorNotification(errorMessage: String, cookbookId: String? = null) {
         withContext(dispatcher) {
             val message = if (cookbookId != null) {
-                val cookbook = cookbookRepository.getById(cookbookId)
+                val cookbook = cookbookRepository.getCookbookById(cookbookId)
                 "Error in '${cookbook?.name ?: "Unknown"}': $errorMessage"
             } else {
                 errorMessage

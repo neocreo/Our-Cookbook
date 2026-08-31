@@ -243,7 +243,7 @@ class ExportCookbook @Inject constructor(
         markdown.appendLine("# ${cookbook.name}")
         markdown.appendLine()
         
-        if (cookbook.description.isNotBlank()) {
+        if (cookbook.description?.isNotBlank() == true) {
             markdown.appendLine(cookbook.description)
             markdown.appendLine()
         }
@@ -268,7 +268,7 @@ class ExportCookbook @Inject constructor(
             markdown.appendLine("<a name=\"${recipe.id}\"></a>")
             markdown.appendLine()
             
-            if (recipe.description.isNotBlank()) {
+            if (recipe.description?.isNotBlank() == true) {
                 markdown.appendLine(recipe.description)
                 markdown.appendLine()
             }
@@ -327,7 +327,7 @@ class ExportCookbook @Inject constructor(
             }
             
             // Source
-            if (recipe.source.isNotBlank()) {
+            if (recipe.source?.isNotBlank() == true) {
                 markdown.appendLine("**Source:** ${recipe.source}")
                 markdown.appendLine()
             }
@@ -379,7 +379,7 @@ class ExportCookbook @Inject constructor(
         // Header
         html.appendLine("<h1>${cookbook.name}</h1>")
         
-        if (cookbook.description.isNotBlank()) {
+        if (cookbook.description?.isNotBlank() == true) {
             html.appendLine("<p>${cookbook.description}</p>")
         }
         
@@ -403,7 +403,7 @@ class ExportCookbook @Inject constructor(
             html.appendLine("<div class=\"recipe\" id=\"${recipe.id}\">")
             html.appendLine("  <h2>${recipe.title}</h2>")
             
-            if (recipe.description.isNotBlank()) {
+            if (recipe.description?.isNotBlank() == true) {
                 html.appendLine("  <p>${recipe.description}</p>")
             }
             
@@ -459,7 +459,7 @@ class ExportCookbook @Inject constructor(
             }
             
             // Source
-            if (recipe.source.isNotBlank()) {
+            if (recipe.source?.isNotBlank() == true) {
                 html.appendLine("  <p class=\"metadata\">Source: ${recipe.source}</p>")
             }
             
