@@ -195,5 +195,22 @@ class RecipeRepositoryImpl @Inject constructor(
             localDataSource.toDomainModel(entity)
         }
     }
+
+    override suspend fun getRecipesByCookbookId(cookbookId: String): List<Recipe> {
+        return localDataSource.getAllOnce().map { entity -> localDataSource.toDomainModel(entity) }
+            .filter { it.deviceId == cookbookId }
+    }
+
+    override suspend fun deleteRecipesByCookbookId(cookbookId: String): Boolean {
+        // Delete recipes associated with the cookbook
+        return try {
+            getRecipesByCookbookId(cookbookId).forEach { recipe ->
+                localDataSource.delete(recipe.id)
+            }
+            true
+        } catch (e: Exception) {
+            false
+        }
+    }
 }
 

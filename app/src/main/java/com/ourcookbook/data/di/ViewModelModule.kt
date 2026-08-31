@@ -6,6 +6,8 @@ import com.ourcookbook.domain.usecase.cookbook.CreateCookbook
 import com.ourcookbook.domain.usecase.cookbook.DeleteCookbook
 import com.ourcookbook.domain.usecase.cookbook.ExportCookbook
 import com.ourcookbook.domain.usecase.cookbook.GetAllCookbooks
+import com.ourcookbook.domain.usecase.ingredient.UpdateIngredient
+import com.ourcookbook.domain.usecase.sync.GetConflictsByRecipe
 import com.ourcookbook.domain.usecase.cookbook.GetCookbookById
 import com.ourcookbook.domain.usecase.cookbook.GetCookbooksByOwner
 import com.ourcookbook.domain.usecase.cookbook.GetSharedCookbooks
@@ -81,7 +83,8 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.components.ViewModelComponent
-import dagger.hilt.android.components.ViewModelComponent.ViewModelSubcomponent
+import dagger.hilt.android.qualifiers.ApplicationContext
+import android.content.Context
 
 /**
  * Hilt module for providing all ViewModel dependencies
@@ -107,9 +110,9 @@ object ViewModelModule {
         getFavorites: GetFavorites,
         getRecipesByCategory: GetRecipesByCategory,
         searchRecipes: SearchRecipes,
-        toggleFavorite: ToggleFavorite
+        toggleFavorite: ToggleFavorite,
     ): RecipeListViewModel = RecipeListViewModel(
-        getAllRecipes, getFavorites, getRecipesByCategory, searchRecipes, toggleFavorite
+        getAllRecipes, getFavorites, getRecipesByCategory, searchRecipes, toggleFavorite, deleteRecipe
     )
 
     // Recipe Detail ViewModel
@@ -117,8 +120,8 @@ object ViewModelModule {
     fun provideRecipeDetailViewModel(
         getRecipeById: GetRecipeById,
         toggleFavorite: ToggleFavorite,
-        updateRecipe: UpdateRecipe,
-        deleteRecipe: DeleteRecipe
+        deleteRecipe: DeleteRecipe,
+        updateRecipe: UpdateRecipe
     ): RecipeDetailViewModel = RecipeDetailViewModel(
         getRecipeById, toggleFavorite, updateRecipe, deleteRecipe
     )
@@ -146,10 +149,11 @@ object ViewModelModule {
         filterRecipesByTags: FilterRecipesByTags,
         filterRecipesByCookingTime: FilterRecipesByCookingTime,
         filterRecipesByServingSize: FilterRecipesByServingSize,
-        getFavorites: GetFavorites
+        getFavorites: GetFavorites,
+        getAllRecipes: GetAllRecipes
     ): SearchViewModel = SearchViewModel(
-        searchRecipes, getRecipesByCategory, filterRecipesByTags, 
-        filterRecipesByCookingTime, filterRecipesByServingSize, getFavorites
+        searchRecipes, getRecipesByCategory, filterRecipesByTags,
+        filterRecipesByCookingTime, filterRecipesByServingSize, getFavorites, getAllRecipes
     )
 
     // Scan ViewModel
@@ -262,9 +266,10 @@ object ViewModelModule {
         createDevicePreferences: CreateDevicePreferences,
         getSyncStatus: GetSyncStatus,
         updateSyncInProgress: UpdateSyncInProgress,
-        updateLastSyncTimestamp: UpdateLastSyncTimestamp
+        updateLastSyncTimestamp: UpdateLastSyncTimestamp,
+        @ApplicationContext context: Context
     ): SettingsViewModel = SettingsViewModel(
         getDevicePreferencesByDevice, updateDevicePreferences, createDevicePreferences,
-        getSyncStatus, updateSyncInProgress, updateLastSyncTimestamp
+        getSyncStatus, updateSyncInProgress, updateLastSyncTimestamp, context
     )
 }
