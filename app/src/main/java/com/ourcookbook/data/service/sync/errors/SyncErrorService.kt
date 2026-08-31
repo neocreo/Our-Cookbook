@@ -34,9 +34,10 @@ object SyncErrorServiceModule {
     @Singleton
     fun provideSyncErrorHandler(
         @ApplicationContext context: Context,
-        syncLogRepository: SyncLogRepository
+        syncLogRepository: SyncLogRepository,
+        syncMetadataRepository: com.ourcookbook.domain.repository.SyncMetadataRepository
     ): SyncErrorHandler {
-        return SyncErrorHandler(context, syncLogRepository)
+        return SyncErrorHandler(context, syncLogRepository, syncMetadataRepository)
     }
 }
 
@@ -225,25 +226,9 @@ class SyncErrorWorkManager @Inject constructor(
         delayMs: Long,
         retryCount: Int
     ) {
-        val constraints = Constraints.Builder()
-            .setRequiredNetworkType(NetworkType.CONNECTED)
-            .build()
-        
-        val workRequest: WorkRequest = OneTimeWorkRequestBuilder<SyncErrorRetryWorker>()
-            .setConstraints(constraints)
-            .setInitialDelay(delayMs, java.util.concurrent.TimeUnit.MILLISECONDS)
-            .addTag("sync_error_retry")
-            .addTag("sync_error_$errorId")
-            .build()
-        
-        workManager.enqueueUniqueWork(
-            "sync_error_retry_$errorId",
-            ExistingWorkPolicy.REPLACE,
-            workRequest
-        )
+        // TODO: Implement with a proper ListenableWorker subclass
     }
-    
-    /**
+        /**
      * Cancel retry for an error
      */
     fun cancelRetry(errorId: String) {
@@ -266,31 +251,3 @@ class SyncErrorWorkManager @Inject constructor(
     }
 }
 
-/**
- * Worker for retrying sync errors
- */
-// This would be implemented as a Worker class
-// For now, we'll just define the interface
-interface SyncErrorRetryWorker {
-    // Implementation would be in a separate file
-}
-
-/**
- * Extension functions for easy error handling
- */
-
-fun Context.getSyncErrorHandler(): SyncErrorHandler {
-    return SyncErrorHandler(this)
-}
-
-fun Context.getSyncErrorNotificationService(): SyncErrorNotificationService {
-    return SyncErrorNotificationService(this)
-}
-
-fun Context.getSyncErrorRecoveryService(): SyncErrorRecoveryService {
-    return SyncErrorRecoveryService()
-}
-
-fun Context.getSyncErrorReportingService(): SyncErrorReportingService {
-    return SyncErrorReportingService(this)
-}
