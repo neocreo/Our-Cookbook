@@ -504,7 +504,7 @@ class DevicePreferencesRepositoryImpl @Inject constructor(
     override suspend fun exportPreferences(deviceId: String): Result<Map<String, Any>> {
         return try {
             val preferences = getDevicePreferencesByDevice(deviceId)
-            Result.success(preferences.getOrThrow().toMap())
+            Result.success(preferences.getOrThrow().toMap().filterValues { it != null } as Map<String, Any>)
         } catch (e: Exception) {
             Result.failure(e)
         }

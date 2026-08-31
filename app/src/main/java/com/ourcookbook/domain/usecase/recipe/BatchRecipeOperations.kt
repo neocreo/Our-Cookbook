@@ -456,7 +456,7 @@ class BatchRecipeOperations @Inject constructor(
                 try {
                     val recipe = recipeRepository.getRecipeById(recipeId)
                     if (recipe != null) {
-                        val updatedRecipe = recipe.copy(favorite = isFavorite)
+                        val updatedRecipe = recipe.copy(isFavorite = isFavorite)
                         recipeRepository.updateRecipe(updatedRecipe)
                         updatedCount++
                     } else {

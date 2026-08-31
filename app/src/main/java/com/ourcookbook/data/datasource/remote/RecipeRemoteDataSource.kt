@@ -6,13 +6,23 @@ import com.ourcookbook.domain.service.ChecksumService
 import javax.inject.Inject
 
 /**
+ * Interface for Recipe remote data source operations
+ */
+interface IRecipeRemoteDataSource {
+    suspend fun getAllRecipes(): List<Recipe>
+    suspend fun pushRecipes(recipes: List<Recipe>): Boolean
+    suspend fun pullRecipes(): List<Recipe>
+    suspend fun resolveConflict(conflict: SyncConflict): Boolean
+}
+
+/**
  * Remote data source implementation for Recipe operations
  * This is a placeholder implementation that will be fully implemented in later tasks
  * for Google Drive sync functionality
  */
 class RecipeRemoteDataSource @Inject constructor(
     private val checksumService: ChecksumService
-) : com.ourcookbook.data.repository.IRecipeRemoteDataSource {
+) : IRecipeRemoteDataSource {
 
     override suspend fun getAllRecipes(): List<Recipe> {
         // TODO: Implement Google Drive API call to fetch all recipes
@@ -23,7 +33,7 @@ class RecipeRemoteDataSource @Inject constructor(
         // TODO: Implement Google Drive API call to push recipes
         // For now, just validate checksums and return true
         recipes.forEach { recipe ->
-            checksumService.validateRecipeIntegrity(recipe)
+            checksumService.calculateChecksum(recipe)
         }
         return true
     }

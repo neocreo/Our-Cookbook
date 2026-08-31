@@ -1,6 +1,6 @@
 package com.ourcookbook.data.service
 
-import com.ourcookbook.data.repository.IRecipeRemoteDataSource
+import com.ourcookbook.data.datasource.remote.IRecipeRemoteDataSource
 import com.ourcookbook.domain.model.Recipe
 import com.ourcookbook.domain.model.SyncConflict
 import com.ourcookbook.domain.model.SyncLog

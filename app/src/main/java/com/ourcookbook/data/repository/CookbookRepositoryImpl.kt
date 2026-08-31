@@ -8,6 +8,7 @@ import com.ourcookbook.ui.viewmodel.CookbookSharingInfo
 import com.ourcookbook.ui.viewmodel.ExportFormat
 import com.ourcookbook.ui.viewmodel.Permission
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import java.io.File
@@ -75,7 +76,11 @@ class CookbookRepositoryImpl @Inject constructor(
     }
     
     override suspend fun getCookbookCount(): Int {
-        return localDataSource.getAll().map { entity -> localDataSource.toDomainModel(entity) }.let { it.size }
+        return localDataSource.getAll().first().size
+    }
+
+    override suspend fun getAllCookbooksOnce(): List<Cookbook> {
+        return localDataSource.getAll().first().map { entity -> localDataSource.toDomainModel(entity) }
     }
     
     override suspend fun addRecipeToCookbook(cookbookId: String, recipeId: String): Boolean {

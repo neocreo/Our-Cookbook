@@ -176,7 +176,7 @@ class ExportUseCases @Inject constructor(
         if (locationInfo == null) return false
         
         try {
-            val stat = File(locationInfo.path).statFs
+            val stat = android.os.StatFs(locationInfo.path)
             val availableBytes = stat.availableBytes
             return availableBytes > estimatedSize
         } catch (e: Exception) {

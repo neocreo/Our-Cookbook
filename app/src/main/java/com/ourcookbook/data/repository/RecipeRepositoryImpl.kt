@@ -197,12 +197,3 @@ class RecipeRepositoryImpl @Inject constructor(
     }
 }
 
-/**
- * Interface for Recipe remote data source operations
- */
-interface IRecipeRemoteDataSource {
-    suspend fun getAllRecipes(): List<Recipe>
-    suspend fun pushRecipes(recipes: List<Recipe>): Boolean
-    suspend fun pullRecipes(): List<Recipe>
-    suspend fun resolveConflict(conflict: SyncConflict): Boolean
-}

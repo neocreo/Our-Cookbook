@@ -1,7 +1,7 @@
 package com.ourcookbook.data.di
 
 import com.ourcookbook.data.datasource.remote.RecipeRemoteDataSource
-import com.ourcookbook.data.repository.IRecipeRemoteDataSource
+import com.ourcookbook.data.datasource.remote.IRecipeRemoteDataSource
 import com.ourcookbook.domain.service.ChecksumService
 import dagger.Module
 import dagger.Provides
