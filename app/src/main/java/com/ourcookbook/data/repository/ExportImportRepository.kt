@@ -149,8 +149,8 @@ class ExportImportRepositoryImpl @Inject constructor(
         format: ExportFormat,
         settings: ExportSettings
     ): ExportFileInfo = withContext(Dispatchers.IO) {
-        val allRecipes = recipeRepository.getAllRecipes()
-        val allCookbooks = cookbookRepository.getAllCookbooks()
+        val allRecipes = recipeRepository.getAllRecipesOnce()
+        val allCookbooks = cookbookRepository.getAllCookbooksOnce()
         
         val fileName = exportImportDataSource.generateExportFileName(
             settings.fileNamePattern, format
@@ -242,7 +242,7 @@ class ExportImportRepositoryImpl @Inject constructor(
         filePath: String,
         format: ImportFormat,
         settings: ImportSettings
-    ): Pair<Cookbook, List<Recipe>, ImportFileInfo> = withContext(Dispatchers.IO) {
+    ): Triple<Cookbook, List<Recipe>, ImportFileInfo> = withContext(Dispatchers.IO) {
         val file = File(filePath)
         if (!file.exists()) {
             throw IllegalArgumentException("File not found: $filePath")
@@ -296,7 +296,7 @@ class ExportImportRepositoryImpl @Inject constructor(
                 val (recipes, fileInfo) = importFromFile(filePath, format, settings)
                 
                 // Check for conflicts
-                val existingRecipes = recipeRepository.getAllRecipes()
+                val existingRecipes = recipeRepository.getAllRecipesOnce()
                 val conflicts = exportImportDataSource.detectConflicts(existingRecipes, recipes)
                 
                 if (conflicts.isNotEmpty()) {
@@ -312,7 +312,7 @@ class ExportImportRepositoryImpl @Inject constructor(
                         ConflictResolutionStrategy.OVERWRITE -> {
                             // Overwrite existing recipes
                             recipes.forEach { recipe ->
-                                recipeRepository.upsertRecipe(recipe)
+                                upsertRecipe(recipe)
                             }
                             importedRecipes.addAll(recipes)
                         }
@@ -332,7 +332,7 @@ class ExportImportRepositoryImpl @Inject constructor(
                 } else {
                     // No conflicts, import all recipes
                     recipes.forEach { recipe ->
-                        recipeRepository.upsertRecipe(recipe)
+                        upsertRecipe(recipe)
                     }
                     importedRecipes.addAll(recipes)
                 }
@@ -360,7 +360,7 @@ class ExportImportRepositoryImpl @Inject constructor(
     override suspend fun detectConflicts(
         recipesToImport: List<Recipe>
     ): List<ImportConflict> = withContext(Dispatchers.IO) {
-        val existingRecipes = recipeRepository.getAllRecipes()
+        val existingRecipes = recipeRepository.getAllRecipesOnce()
         exportImportDataSource.detectConflicts(existingRecipes, recipesToImport)
     }
     
@@ -369,25 +369,24 @@ class ExportImportRepositoryImpl @Inject constructor(
         resolution: ConflictResolution
     ): Recipe? = withContext(Dispatchers.IO) {
         when (resolution) {
-            ConflictResolution.KEEP_EXISTING -> {
-                // Keep existing recipe, return null (no new recipe to import)
-                null
-            }
-            ConflictResolution.REPLACE_WITH_NEW -> {
-                // Replace existing with new recipe
-                recipeRepository.upsertRecipe(conflict.newRecipe)
+            ConflictResolution.KeepLocal -> null
+            ConflictResolution.KeepRemote -> {
+                upsertRecipe(conflict.newRecipe)
                 conflict.newRecipe
             }
-            ConflictResolution.MERGE -> {
-                // Try to merge recipes
+            is ConflictResolution.Merge -> {
                 val mergedRecipe = mergeRecipes(conflict.existingRecipe, conflict.newRecipe)
-                recipeRepository.upsertRecipe(mergedRecipe)
+                upsertRecipe(mergedRecipe)
                 mergedRecipe
             }
-            ConflictResolution.SKIP -> {
-                // Skip this conflict
-                null
-            }
+        }
+    }
+
+    private suspend fun upsertRecipe(recipe: Recipe) {
+        if (recipeRepository.getRecipeById(recipe.id) == null) {
+            recipeRepository.createRecipe(recipe)
+        } else {
+            recipeRepository.updateRecipe(recipe)
         }
     }
     
@@ -500,139 +499,10 @@ class ExportImportRepositoryImpl @Inject constructor(
     }
     
     override suspend fun generateChecksum(filePath: String): String = withContext(Dispatchers.IO) {
-        checksumService.generateChecksum(filePath)
+        checksumService.calculateChecksum(filePath)
     }
     
     override suspend fun generateChecksum(content: ByteArray): String = withContext(Dispatchers.IO) {
-        checksumService.generateChecksum(content)
+        checksumService.calculateChecksum(content)
     }
-}
-
-/**
- * Repository Interface for Export/Import Operations
- */
-interface ExportImportRepository {
-    
-    // ==================== EXPORT OPERATIONS ====================
-    
-    suspend fun exportRecipe(
-        recipeId: String,
-        format: ExportFormat,
-        settings: ExportSettings = ExportSettings()
-    ): ExportFileInfo
-    
-    suspend fun exportRecipes(
-        recipeIds: List<String>,
-        format: ExportFormat,
-        settings: ExportSettings = ExportSettings()
-    ): ExportFileInfo
-    
-    suspend fun exportCookbook(
-        cookbookId: String,
-        format: ExportFormat,
-        settings: ExportSettings = ExportSettings()
-    ): ExportFileInfo
-    
-    suspend fun exportAllRecipes(
-        format: ExportFormat,
-        settings: ExportSettings = ExportSettings()
-    ): ExportFileInfo
-    
-    suspend fun batchExport(
-        items: List<String>,
-        format: ExportFormat,
-        settings: ExportSettings = ExportSettings(),
-        onProgress: (Int, Int) -> Unit
-    ): BatchOperationResult
-    
-    // ==================== IMPORT OPERATIONS ====================
-    
-    suspend fun importFromFile(
-        filePath: String,
-        format: ImportFormat,
-        settings: ImportSettings = ImportSettings()
-    ): Pair<List<Recipe>, ImportFileInfo>
-    
-    suspend fun importCookbookFromFile(
-        filePath: String,
-        format: ImportFormat,
-        settings: ImportSettings = ImportSettings()
-    ): Pair<Cookbook, List<Recipe>, ImportFileInfo>
-    
-    suspend fun previewImport(
-        filePath: String,
-        format: ImportFormat
-    ): ExportImportPreview
-    
-    suspend fun validateImportFile(
-        filePath: String,
-        format: ImportFormat
-    ): ImportFileInfo
-    
-    suspend fun detectFileFormat(filePath: String): ImportFormat?
-    
-    suspend fun detectFileFormat(uri: Uri): ImportFormat?
-    
-    suspend fun batchImport(
-        filePaths: List<String>,
-        format: ImportFormat,
-        settings: ImportSettings = ImportSettings(),
-        onProgress: (Int, Int) -> Unit,
-        onConflict: (ImportConflict) -> ConflictResolution
-    ): BatchOperationResult
-    
-    // ==================== CONFLICT DETECTION ====================
-    
-    suspend fun detectConflicts(
-        recipesToImport: List<Recipe>
-    ): List<ImportConflict>
-    
-    suspend fun resolveConflict(
-        conflict: ImportConflict,
-        resolution: ConflictResolution
-    ): Recipe?
-    
-    // ==================== OPERATION HISTORY ====================
-    
-    suspend fun saveOperationToHistory(operation: ExportImportOperation)
-    
-    suspend fun loadOperationHistory(limit: Int = 50): List<ExportImportOperation>
-    
-    suspend fun clearOperationHistory()
-    
-    suspend fun deleteOperationFromHistory(operationId: String)
-    
-    // ==================== FILE OPERATIONS ====================
-    
-    fun getExportLocations(): List<com.ourcookbook.data.datasource.ExportLocation>
-    
-    fun isExportLocationAvailable(location: String): Boolean
-    
-    fun listFilesInDirectory(directory: String, extensions: List<String> = emptyList()): List<File>
-    
-    fun fileExists(filePath: String): Boolean
-    
-    fun getFileSize(filePath: String): Long
-    
-    fun deleteFile(filePath: String): Boolean
-    
-    // ==================== CLOUD INTEGRATION ====================
-    
-    suspend fun exportToDrive(
-        filePath: String,
-        folderId: String? = null,
-        fileName: String? = null
-    ): ExportFileInfo?
-    
-    suspend fun importFromDrive(fileId: String): Pair<ByteArray, String>?
-    
-    suspend fun listDriveFiles(): List<ExportFileInfo>
-    
-    suspend fun deleteDriveFile(fileId: String): Boolean
-    
-    // ==================== UTILITY METHODS ====================
-    
-    suspend fun generateChecksum(filePath: String): String
-    
-    suspend fun generateChecksum(content: ByteArray): String
 }

@@ -40,7 +40,7 @@ class ImportUseCases @Inject constructor(
         filePath: String,
         format: ImportFormat,
         settings: ImportSettings = ImportSettings()
-    ): Result<Pair<Cookbook, List<Recipe>, ImportFileInfo>> {
+    ): Result<Triple<Cookbook, List<Recipe>, ImportFileInfo>> {
         return try {
             val result = repository.importCookbookFromFile(filePath, format, settings)
             Result.success(result)
@@ -101,7 +101,7 @@ class ImportUseCases @Inject constructor(
         format: ImportFormat,
         settings: ImportSettings = ImportSettings(),
         onProgress: (Int, Int) -> Unit = { _, _ -> },
-        onConflict: (ImportConflict) -> ConflictResolution = { ConflictResolution.SKIP }
+        onConflict: (ImportConflict) -> ConflictResolution = { ConflictResolution.KeepLocal }
     ): Result<BatchOperationResult> {
         return try {
             val result = repository.batchImport(

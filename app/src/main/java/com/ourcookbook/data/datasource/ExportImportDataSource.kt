@@ -107,7 +107,7 @@ interface IExportImportDataSource {
         inputStream: InputStream,
         format: ImportFormat,
         settings: ImportSettings = ImportSettings()
-    ): Pair<Cookbook, List<Recipe>, ImportFileInfo>
+    ): Triple<Cookbook, List<Recipe>, ImportFileInfo>
     
     /**
      * Preview import content without actually importing
@@ -350,7 +350,7 @@ class ExportImportDataSourceImpl(
         inputStream: InputStream,
         format: ImportFormat,
         settings: ImportSettings
-    ): Pair<Cookbook, List<Recipe>, ImportFileInfo> {
+    ): Triple<Cookbook, List<Recipe>, ImportFileInfo> {
         TODO("Implement cookbook import for format: $format")
     }
     
