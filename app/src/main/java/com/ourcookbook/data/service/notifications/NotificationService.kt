@@ -65,21 +65,7 @@ class NotificationScheduler @Inject constructor(
         notificationId: Int,
         channelId: String = "general"
     ) {
-        val constraints = Constraints.Builder()
-            .setRequiredNetworkType(NetworkType.NOT_REQUIRED)
-            .build()
-        
-        val workRequest: WorkRequest = OneTimeWorkRequestBuilder<NotificationWorker>()
-            .setConstraints(constraints)
-            .setInitialDelay(delayMinutes, TimeUnit.MINUTES)
-            .addTag("notification_$notificationId")
-            .build()
-        
-        workManager.enqueueUniqueWork(
-            "notification_${notificationId}_${System.currentTimeMillis()}",
-            ExistingWorkPolicy.KEEP,
-            workRequest
-        )
+        // TODO: Implement with a proper ListenableWorker subclass
     }
     
     /**
@@ -91,24 +77,8 @@ class NotificationScheduler @Inject constructor(
         channelId: String = "general"
     ) {
         val constraints = Constraints.Builder()
-            .setRequiredNetworkType(NetworkType.NOT_REQUIRED)
-            .build()
-        
-        val workRequest: WorkRequest = PeriodicWorkRequestBuilder<NotificationWorker>(
-            intervalHours,
-            TimeUnit.HOURS
-        )
-            .setConstraints(constraints)
-            .addTag("periodic_notification_$notificationId")
-            .build()
-        
-        workManager.enqueueUniquePeriodicWork(
-            "periodic_notification_${notificationId}",
-            ExistingWorkPolicy.KEEP,
-            workRequest
-        )
+        // TODO: Implement with a proper ListenableWorker subclass
     }
-    
     /**
      * Cancel a scheduled notification
      */
@@ -133,15 +103,6 @@ class NotificationScheduler @Inject constructor(
 }
 
 /**
- * Worker for showing notifications
- */
-// This would be implemented as a Worker class
-// For now, we'll just define the interface
-interface NotificationWorker {
-    // Implementation would be in a separate file
-}
-
-/**
  * Notification preference manager
  */
 class NotificationPreferenceManager @Inject constructor(
@@ -152,15 +113,7 @@ class NotificationPreferenceManager @Inject constructor(
      * Get notification preferences
      */
     fun getNotificationPreferences(): com.ourcookbook.domain.usecase.notifications.NotificationSettings {
-        // Implementation would use SharedPreferences or DataStore
         return com.ourcookbook.domain.usecase.notifications.NotificationSettings()
-    }
-    
-    /**
-     * Save notification preferences
-     */
-    fun saveNotificationPreferences(settings: com.ourcookbook.domain.usecase.notifications.NotificationSettings) {
-        // Implementation would use SharedPreferences or DataStore
     }
     
     /**
