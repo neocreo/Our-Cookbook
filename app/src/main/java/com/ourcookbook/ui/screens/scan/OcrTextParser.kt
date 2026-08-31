@@ -25,7 +25,7 @@ class OcrTextParser {
         var title = ""
         var description: String? = null
         var category = "Mains"
-        val ingredients = mutableListOf<Ingredient>()
+        val ingredients = mutableListOf<ParsedIngredient>()
         val instructions = mutableListOf<String>()
         var servingSize: Int? = null
         var prepTime: Int? = null
@@ -263,7 +263,7 @@ class OcrTextParser {
      * Extracts a number from a string
      */
     private fun extractNumber(text: String): Int? {
-        val match = Regex("(\d+)").find(text)
+        val match = Regex("(\\d+)").find(text)
         return match?.groupValues?.get(1)?.toIntOrNull()
     }
     
@@ -275,8 +275,8 @@ class OcrTextParser {
         val lowerText = text.lowercase()
         
         // Handle "X hours Y minutes" format
-        val hourMatch = Regex("(\d+)\s*hours?").find(lowerText)
-        val minuteMatch = Regex("(\d+)\s*minutes?").find(lowerText)
+        val hourMatch = Regex("(\\d+)\\s*hours?").find(lowerText)
+        val minuteMatch = Regex("(\\d+)\\s*minutes?").find(lowerText)
         
         if (hourMatch != null && minuteMatch != null) {
             val hours = hourMatch.groupValues[1].toIntOrNull() ?: 0
@@ -296,7 +296,7 @@ class OcrTextParser {
         }
         
         // Handle "Xh Ym" format
-        val timePattern = Pattern.compile("(\d+)h\s*(\d+)m")
+        val timePattern = Pattern.compile("(\\d+)h\\s*(\\d+)m")
         val matcher = timePattern.matcher(lowerText)
         if (matcher.find()) {
             val hours = matcher.group(1).toIntOrNull() ?: 0
@@ -326,13 +326,13 @@ class OcrTextParser {
         }
         
         // Remove numbering (1., 2), etc
-        cleanLine = cleanLine.replaceFirst(Regex("^\d+.\s"), "").trim()
+        cleanLine = cleanLine.replaceFirst(Regex("^\\d+.\\s"), "").trim()
         
         // Skip if line is now empty
         if (cleanLine.isBlank()) return null
         
         // Try to extract amount and unit
-        val amountUnitPattern = Regex("^(\d+\s*\d*\/\d+|\d+\.\d+|\d+)\s*([a-z]+)?", RegexOption.IGNORE_CASE)
+        val amountUnitPattern = Regex("^(\\d+\\s*\\d*\\/\\d+|\\d+\\.\\d+|\\d+)\\s*([a-z]+)?", RegexOption.IGNORE_CASE)
         val match = amountUnitPattern.find(cleanLine)
         
         if (match != null) {
@@ -342,7 +342,7 @@ class OcrTextParser {
             
             // Extract notes if present (in parentheses)
             val notes = extractNotes(remaining)
-            val name = remaining.replace(Regex("\s*\(.*\)"), "").trim()
+            val name = remaining.replace(Regex("\\s*\\(.*\\)"), "").trim()
             
             return ParsedIngredient(
                 name = name.ifBlank { remaining },
@@ -365,7 +365,7 @@ class OcrTextParser {
      * Extracts notes from ingredient text (text in parentheses)
      */
     private fun extractNotes(text: String): String? {
-        val match = Regex("\s*\((.*)\)").find(text)
+        val match = Regex("\\s*\\((.*)\\)").find(text)
         return match?.groupValues?.get(1)?.trim()
     }
     
@@ -381,7 +381,7 @@ class OcrTextParser {
         }
         
         // Remove numbering (1., 2), etc
-        cleanLine = cleanLine.replaceFirst(Regex("^\d+.\s"), "").trim()
+        cleanLine = cleanLine.replaceFirst(Regex("^\\d+.\\s"), "").trim()
         
         return cleanLine.ifBlank { "" }
     }
@@ -395,9 +395,9 @@ class OcrTextParser {
         
         // Look for lines that look like ingredients (start with -, •, or have common ingredient patterns)
         val ingredientPatterns = listOf(
-            Regex("^\s*[-•·]\s*"),
-            Regex("^\d+\s+[a-z]+", RegexOption.IGNORE_CASE),
-            Regex("^\d+\s*\d*\/\d+\s+[a-z]+", RegexOption.IGNORE_CASE)
+            Regex("^\\s*[-•·]\\s*"),
+            Regex("^\\d+\\s+[a-z]+", RegexOption.IGNORE_CASE),
+            Regex("^\\d+\\s*\\d*\\/\\d+\\s+[a-z]+", RegexOption.IGNORE_CASE)
         )
         
         for (line in lines) {
@@ -431,7 +431,7 @@ class OcrTextParser {
             if (trimmedLine.isBlank()) continue
             
             // Check if line starts with a number (step number)
-            if (trimmedLine.matches(Regex("^\d+.\s.*"))) {
+            if (trimmedLine.matches(Regex("^\\d+.\\s.*"))) {
                 val instruction = parseInstruction(trimmedLine)
                 if (instruction.isNotBlank()) {
                     instructions.add(instruction)
@@ -469,7 +469,7 @@ class OcrTextParser {
             .replace("\r\n", "\n")  // Normalize line endings
             .replace("\r", "\n")
             .replace(Regex("\n{3,}"), "\n\n")  // Reduce multiple newlines
-            .replace(Regex("\s{2,}"), " ")  // Reduce multiple spaces
+            .replace(Regex("\\s{2,}"), " ")  // Reduce multiple spaces
             .trim()
     }
     
@@ -498,7 +498,7 @@ class OcrTextParser {
         if (recipe.instructions.isNotEmpty()) {
             score += 0.3f
             // Bonus for having numbered steps
-            val numberedSteps = recipe.instructions.count { it.matches(Regex("^\d+.\s.*")) }
+            val numberedSteps = recipe.instructions.count { it.matches(Regex("^\\d+.\\s.*")) }
             if (numberedSteps > 0) {
                 score += 0.1f * (numberedSteps.toFloat() / recipe.instructions.size)
             }

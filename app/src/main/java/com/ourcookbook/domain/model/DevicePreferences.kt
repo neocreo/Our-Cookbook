@@ -29,6 +29,7 @@ data class DevicePreferences(
     // Privacy and security settings
     val appLockEnabled: Boolean = false,
     val appLockType: String = "PIN",
+    val autoLockTimeout: Int = 300,
     val dataEncryptionEnabled: Boolean = true,
     val biometricAuthEnabled: Boolean = false,
     
@@ -157,6 +158,7 @@ data class DevicePreferences(
             "syncErrorCount" to syncErrorCount,
             "appLockEnabled" to appLockEnabled,
             "appLockType" to appLockType,
+            "autoLockTimeout" to autoLockTimeout,
             "dataEncryptionEnabled" to dataEncryptionEnabled,
             "biometricAuthEnabled" to biometricAuthEnabled,
             "screenReaderCompatibility" to screenReaderCompatibility,
@@ -219,6 +221,7 @@ data class DevicePreferences(
                 syncErrorCount = map["syncErrorCount"] as? Int ?: 0,
                 appLockEnabled = map["appLockEnabled"] as? Boolean ?: false,
                 appLockType = map["appLockType"] as? String ?: "PIN",
+                autoLockTimeout = (map["autoLockTimeout"] as? Number)?.toInt() ?: 300,
                 dataEncryptionEnabled = map["dataEncryptionEnabled"] as? Boolean ?: true,
                 biometricAuthEnabled = map["biometricAuthEnabled"] as? Boolean ?: false,
                 screenReaderCompatibility = map["screenReaderCompatibility"] as? Boolean ?: true,

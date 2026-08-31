@@ -261,7 +261,7 @@ interface DevicePreferencesRepository {
     /**
      * Export preferences for backup
      */
-    suspend fun exportPreferences(deviceId: String): Result<Map<String, Any>>
+    suspend fun exportPreferences(deviceId: String): Result<Map<String, Any?>>
     
     /**
      * Import preferences from backup

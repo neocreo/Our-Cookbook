@@ -78,6 +78,8 @@ data class Recipe(
             servingSize: Int? = null,
             prepTime: Int? = null,
             cookTime: Int? = null,
+            source: String? = null,
+            tags: List<String> = emptyList(),
             deviceId: String = ""
         ): Recipe {
             return Recipe(
@@ -89,6 +91,8 @@ data class Recipe(
                 servingSize = servingSize,
                 prepTime = prepTime,
                 cookTime = cookTime,
+                source = source,
+                tags = tags,
                 deviceId = deviceId
             )
         }

@@ -3,6 +3,10 @@ package com.ourcookbook.data.datasource.local
 import com.ourcookbook.data.db.dao.DevicePreferencesDao
 import com.ourcookbook.data.db.entity.DevicePreferencesEntity
 import com.ourcookbook.domain.model.DevicePreferences
+import com.ourcookbook.domain.model.FontSize
+import com.ourcookbook.domain.model.MeasurementSystem
+import com.ourcookbook.domain.model.SyncFrequency
+import com.ourcookbook.domain.model.ThemePreference
 import com.ourcookbook.domain.service.ChecksumService
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
@@ -51,13 +55,11 @@ class DevicePreferencesLocalDataSource @Inject constructor(
         return DevicePreferences(
             id = entity.id,
             deviceId = entity.deviceId,
-            theme = entity.theme,
-            measurementSystem = entity.measurementSystem,
-            syncEnabled = entity.syncEnabled,
-            autoSync = entity.autoSync,
-            syncFrequency = entity.syncFrequency,
+            theme = entity.theme.name,
+            syncFrequency = entity.syncFrequency.name,
+            autoSyncEnabled = entity.autoSync,
             language = entity.language,
-            fontSize = entity.fontSize
+            fontSize = entity.fontSize.name
         )
     }
     
@@ -65,13 +67,13 @@ class DevicePreferencesLocalDataSource @Inject constructor(
         return DevicePreferencesEntity(
             id = domainModel.id,
             deviceId = domainModel.deviceId,
-            theme = domainModel.theme,
-            measurementSystem = domainModel.measurementSystem,
-            syncEnabled = domainModel.syncEnabled,
-            autoSync = domainModel.autoSync,
-            syncFrequency = domainModel.syncFrequency,
+            theme = runCatching { ThemePreference.valueOf(domainModel.theme) }.getOrDefault(ThemePreference.SYSTEM),
+            measurementSystem = MeasurementSystem.IMPERIAL,
+            syncEnabled = domainModel.autoSyncEnabled,
+            autoSync = domainModel.autoSyncEnabled,
+            syncFrequency = runCatching { SyncFrequency.valueOf(domainModel.syncFrequency) }.getOrDefault(SyncFrequency.AUTOMATIC),
             language = domainModel.language,
-            fontSize = domainModel.fontSize
+            fontSize = runCatching { FontSize.valueOf(domainModel.fontSize) }.getOrDefault(FontSize.MEDIUM)
         )
     }
     

@@ -8,11 +8,13 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
+import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.ourcookbook.domain.model.DevicePreferences
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import java.util.UUID
 import javax.inject.Inject
@@ -209,6 +211,142 @@ class SettingsRepository @Inject constructor(
     suspend fun getTheme(): String {
         val preferences = context.dataStore.data.first()
         return preferences[THEME_KEY] ?: DEFAULT_THEME
+    }
+
+    /**
+     * Get current font size
+     */
+    suspend fun getFontSize(): String {
+        val preferences = context.dataStore.data.first()
+        return preferences[FONT_SIZE_KEY] ?: DEFAULT_FONT_SIZE
+    }
+
+    /**
+     * Get current text scaling
+     */
+    suspend fun getTextScaling(): Float {
+        val preferences = context.dataStore.data.first()
+        return preferences[TEXT_SCALING_KEY] ?: DEFAULT_TEXT_SCALING
+    }
+
+    /**
+     * Get current color blindness mode
+     */
+    suspend fun getColorBlindnessMode(): String {
+        val preferences = context.dataStore.data.first()
+        return preferences[COLOR_BLINDNESS_MODE_KEY] ?: DEFAULT_COLOR_BLINDNESS_MODE
+    }
+
+    /**
+     * Get current sync frequency
+     */
+    suspend fun getSyncFrequency(): String {
+        val preferences = context.dataStore.data.first()
+        return preferences[SYNC_FREQUENCY_KEY] ?: DEFAULT_SYNC_FREQUENCY
+    }
+
+    /**
+     * Get offline mode setting
+     */
+    suspend fun getOfflineMode(): Boolean {
+        val preferences = context.dataStore.data.first()
+        return preferences[OFFLINE_MODE_KEY] ?: DEFAULT_OFFLINE_MODE
+    }
+
+    /**
+     * Get notifications enabled setting
+     */
+    suspend fun getNotificationsEnabled(): Boolean {
+        val preferences = context.dataStore.data.first()
+        return preferences[NOTIFICATIONS_ENABLED_KEY] ?: DEFAULT_NOTIFICATIONS_ENABLED
+    }
+
+    /**
+     * Get current language setting
+     */
+    suspend fun getLanguage(): String {
+        val preferences = context.dataStore.data.first()
+        return preferences[LANGUAGE_KEY] ?: DEFAULT_LANGUAGE
+    }
+
+    /**
+     * Get app lock enabled setting
+     */
+    suspend fun getAppLockEnabled(): Boolean {
+        val preferences = context.dataStore.data.first()
+        return preferences[APP_LOCK_ENABLED_KEY] ?: DEFAULT_APP_LOCK_ENABLED
+    }
+
+    /**
+     * Get app lock type
+     */
+    suspend fun getAppLockType(): String {
+        val preferences = context.dataStore.data.first()
+        return preferences[APP_LOCK_TYPE_KEY] ?: DEFAULT_APP_LOCK_TYPE
+    }
+
+    /**
+     * Get auto lock timeout
+     */
+    suspend fun getAutoLockTimeout(): Int {
+        val preferences = context.dataStore.data.first()
+        return preferences[AUTO_LOCK_TIMEOUT_KEY] ?: DEFAULT_AUTO_LOCK_TIMEOUT
+    }
+
+    /**
+     * Get data encryption enabled setting
+     */
+    suspend fun getDataEncryptionEnabled(): Boolean {
+        val preferences = context.dataStore.data.first()
+        return preferences[DATA_ENCRYPTION_ENABLED_KEY] ?: DEFAULT_DATA_ENCRYPTION_ENABLED
+    }
+
+    /**
+     * Get screen reader compatibility setting
+     */
+    suspend fun getScreenReaderCompatibility(): Boolean {
+        val preferences = context.dataStore.data.first()
+        return preferences[SCREEN_READER_COMPATIBILITY_KEY] ?: true
+    }
+
+    /**
+     * Get high contrast mode setting
+     */
+    suspend fun getHighContrastMode(): Boolean {
+        val preferences = context.dataStore.data.first()
+        return preferences[HIGH_CONTRAST_MODE_KEY] ?: false
+    }
+
+    /**
+     * Get reduce motion setting
+     */
+    suspend fun getReduceMotion(): Boolean {
+        val preferences = context.dataStore.data.first()
+        return preferences[REDUCE_MOTION_KEY] ?: false
+    }
+
+    /**
+     * Get debug mode enabled setting
+     */
+    suspend fun getDebugModeEnabled(): Boolean {
+        val preferences = context.dataStore.data.first()
+        return preferences[DEBUG_MODE_ENABLED_KEY] ?: DEFAULT_DEBUG_MODE_ENABLED
+    }
+
+    /**
+     * Get log level
+     */
+    suspend fun getLogLevel(): String {
+        val preferences = context.dataStore.data.first()
+        return preferences[LOG_LEVEL_KEY] ?: DEFAULT_LOG_LEVEL
+    }
+
+    /**
+     * Get default cookbook ID
+     */
+    suspend fun getDefaultCookbookId(): String? {
+        val preferences = context.dataStore.data.first()
+        return preferences[DEFAULT_COOKBOOK_ID_KEY]
     }
     
     // ========================================================================
@@ -795,14 +933,8 @@ class SettingsRepository @Inject constructor(
         val preferences = context.dataStore.data.first()
         val settingsMap = mutableMapOf<String, Any>()
         
-        preferences.asMap().forEach { (key, value) ->
-            when (key) {
-                is Preferences.Key<String> -> settingsMap[key.name] = preferences[key] ?: ""
-                is Preferences.Key<Boolean> -> settingsMap[key.name] = preferences[key] ?: false
-                is Preferences.Key<Int> -> settingsMap[key.name] = preferences[key] ?: 0
-                is Preferences.Key<Float> -> settingsMap[key.name] = preferences[key] ?: 0.0f
-                is Preferences.Key<Long> -> settingsMap[key.name] = preferences[key] ?: 0L
-            }
+        preferences.asMap().forEach { entry ->
+            if (entry.value != null) settingsMap[entry.key.name] = entry.value
         }
         
         return settingsMap
@@ -831,14 +963,8 @@ class SettingsRepository @Inject constructor(
     val allSettingsFlow: Flow<Map<String, Any>> = context.dataStore.data
         .map { preferences ->
             val settingsMap = mutableMapOf<String, Any>()
-            preferences.asMap().forEach { (key, value) ->
-                when (key) {
-                    is Preferences.Key<String> -> settingsMap[key.name] = value ?: ""
-                    is Preferences.Key<Boolean> -> settingsMap[key.name] = value ?: false
-                    is Preferences.Key<Int> -> settingsMap[key.name] = value ?: 0
-                    is Preferences.Key<Float> -> settingsMap[key.name] = value ?: 0.0f
-                    is Preferences.Key<Long> -> settingsMap[key.name] = value ?: 0L
-                }
+            preferences.asMap().forEach { entry ->
+                if (entry.value != null) settingsMap[entry.key.name] = entry.value
             }
             settingsMap
         }
