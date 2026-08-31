@@ -3,7 +3,6 @@ package com.ourcookbook.domain.usecase.chromebook
 import android.content.Context
 import android.content.res.Configuration
 import android.os.Build
-import android.view.KeyEvent
 import android.view.WindowManager
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEvent
@@ -16,6 +15,7 @@ import androidx.compose.ui.input.key.type
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import com.ourcookbook.domain.model.Device
+import com.ourcookbook.domain.model.DeviceCapability
 import com.ourcookbook.domain.repository.DeviceRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -146,12 +146,12 @@ class ChromebookOptimizations(
                 // Check for mouse/trackpad
                 val deviceIds = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                     @Suppress("DEPRECATION")
-                    android.hardware.input.InputDevice.getDeviceIds()
+                    android.view.InputDevice.getDeviceIds()
                 } else {
                     intArrayOf()
                 }
                 deviceIds.any { id ->
-                    val device = android.hardware.input.InputDevice.getDevice(id)
+                    val device = android.view.InputDevice.getDevice(id)
                     device?.sources?.and(android.view.InputDevice.SOURCE_MOUSE) != 0 ||
                     device?.sources?.and(android.view.InputDevice.SOURCE_TRACKBALL) != 0 ||
                     device?.sources?.and(android.view.InputDevice.SOURCE_TOUCHPAD) != 0
@@ -198,12 +198,12 @@ class ChromebookOptimizations(
             val inputManager = context.getSystemService(Context.INPUT_SERVICE)
             val deviceIds = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 @Suppress("DEPRECATION")
-                android.hardware.input.InputDevice.getDeviceIds()
+                android.view.InputDevice.getDeviceIds()
             } else {
                 intArrayOf()
             }
             deviceIds.any { id ->
-                val device = android.hardware.input.InputDevice.getDevice(id)
+                val device = android.view.InputDevice.getDevice(id)
                 device?.sources?.and(android.view.InputDevice.SOURCE_STYLUS) != 0
             }
         } catch (e: Exception) {
@@ -224,20 +224,15 @@ class ChromebookOptimizations(
      * Update device information for Chromebook
      */
     suspend fun updateDeviceForChromebook(deviceId: String) {
-        val device = deviceRepository.getById(deviceId)
-        if (device != null) {
-            val updatedDevice = device.copy(
-                deviceType = getDeviceType(),
-                screenWidth = getScreenWidthDp(),
-                screenHeight = getScreenHeightDp(),
-                hasKeyboard = hasHardwareKeyboard(),
-                hasMouse = hasMouseSupport(),
-                hasStylus = hasStylusSupport(),
-                isChromebook = isChromebook(),
-                updatedAt = Instant.now()
-            )
-            deviceRepository.update(updatedDevice)
-        }
+        val device = deviceRepository.getDeviceById(deviceId) ?: return
+        val capabilities = device.capabilities.toMutableSet()
+        if (hasHardwareKeyboard()) capabilities.add(DeviceCapability.KEYBOARD)
+        if (getScreenWidthDp() >= MEDIUM_SCREEN_WIDTH) capabilities.add(DeviceCapability.LARGE_SCREEN)
+        val updatedDevice = device.copy(
+            capabilities = capabilities,
+            lastSeenAt = Instant.now()
+        )
+        deviceRepository.updateDevice(updatedDevice)
     }
     
     /**
@@ -278,12 +273,12 @@ class ChromebookOptimizations(
             ),
             // Cookbook shortcuts
             KeyboardShortcut(
-                keyCombination = KeyCombination.Ctrl + Key.Shift + Key.N,
+                keyCombination = KeyCombination.Ctrl + Modifier.Shift + Key.N,
                 action = "New Cookbook",
                 description = "Create a new cookbook"
             ),
             KeyboardShortcut(
-                keyCombination = KeyCombination.Ctrl + Key.Shift + Key.S,
+                keyCombination = KeyCombination.Ctrl + Modifier.Shift + Key.S,
                 action = "Sync",
                 description = "Sync all cookbooks"
             ),
@@ -361,9 +356,9 @@ class ChromebookOptimizations(
         val metaPressed = keyEvent.isMetaPressed
         val key = keyEvent.key
         
-        val expectedCtrl = combination.modifiers.contains(KeyCombination.Modifier.Ctrl)
-        val expectedShift = combination.modifiers.contains(KeyCombination.Modifier.Shift)
-        val expectedMeta = combination.modifiers.contains(KeyCombination.Modifier.Meta)
+        val expectedCtrl = combination.modifiers.contains(Modifier.Ctrl)
+        val expectedShift = combination.modifiers.contains(Modifier.Shift)
+        val expectedMeta = combination.modifiers.contains(Modifier.Meta)
         val expectedKey = combination.key
         
         return ctrlPressed == expectedCtrl &&
@@ -418,25 +413,25 @@ data class KeyCombination(
     val key: Key,
     val modifiers: Set<Modifier> = emptySet()
 ) {
+    operator fun plus(key: Key): KeyCombination {
+        return KeyCombination(key, this.modifiers)
+    }
+
+    operator fun plus(modifier: Modifier): KeyCombination {
+        return KeyCombination(this.key, this.modifiers + modifier)
+    }
+
+    operator fun plus(combination: KeyCombination): KeyCombination {
+        return KeyCombination(
+            combination.key,
+            this.modifiers + combination.modifiers
+        )
+    }
+
     companion object {
         val Ctrl = KeyCombination(Key.DirectionLeft, setOf(Modifier.Ctrl))
         val Shift = KeyCombination(Key.DirectionLeft, setOf(Modifier.Shift))
         val Meta = KeyCombination(Key.DirectionLeft, setOf(Modifier.Meta))
-        
-        operator fun plus(key: Key): KeyCombination {
-            return KeyCombination(key, setOf(Modifier.Ctrl))
-        }
-        
-        operator fun plus(modifier: Modifier): KeyCombination {
-            return KeyCombination(Key.DirectionLeft, setOf(modifier))
-        }
-        
-        operator fun plus(combination: KeyCombination): KeyCombination {
-            return KeyCombination(
-                combination.key,
-                this.modifiers + combination.modifiers
-            )
-        }
     }
 }
 

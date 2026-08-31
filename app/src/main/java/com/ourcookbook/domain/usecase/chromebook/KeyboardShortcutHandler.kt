@@ -7,9 +7,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.input.key.KeyEvent
+import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.onPreviewKeyEvent
-import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.key.type
+import androidx.compose.ui.Modifier as UiModifier
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import com.ourcookbook.domain.model.Recipe
@@ -24,25 +26,25 @@ import kotlinx.coroutines.launch
  * Provides Compose modifiers for keyboard event handling
  */
 class KeyboardShortcutHandler(
-    private val chromebookOptimizations: ChromebookOptimizations
+    internal val chromebookOptimizations: ChromebookOptimizations
 ) {
-    
+
     private val _shortcutEvents = Channel<KeyboardShortcutEvent>(Channel.UNLIMITED)
     val shortcutEvents = _shortcutEvents.receiveAsFlow()
-    
+
     private var isProcessing = false
-    
+
     /**
      * Process a key event and emit shortcut events
      */
-    suspend fun processKeyEvent(keyEvent: KeyEvent): Boolean {
+    fun processKeyEvent(keyEvent: KeyEvent): Boolean {
         if (isProcessing) return false
-        
+
         isProcessing = true
         try {
             val shortcut = chromebookOptimizations.processShortcut(keyEvent)
             if (shortcut != null) {
-                _shortcutEvents.send(KeyboardShortcutEvent(shortcut, keyEvent))
+                _shortcutEvents.trySend(KeyboardShortcutEvent(shortcut, keyEvent))
                 return true
             }
             return false
@@ -61,8 +63,8 @@ class KeyboardShortcutHandler(
     /**
      * Get modifier for handling keyboard shortcuts in Compose
      */
-    fun shortcutModifier(): Modifier {
-        return Modifier.onPreviewKeyEvent { keyEvent ->
+    fun shortcutModifier(): UiModifier {
+        return UiModifier.onPreviewKeyEvent { keyEvent ->
             // Only handle key down events
             if (keyEvent.type == KeyEventType.KeyDown) {
                 processKeyEvent(keyEvent)
@@ -74,8 +76,8 @@ class KeyboardShortcutHandler(
     /**
      * Get modifier for global keyboard handling
      */
-    fun globalShortcutModifier(onShortcut: (KeyboardShortcut) -> Unit): Modifier {
-        return Modifier.onKeyEvent { keyEvent ->
+    fun globalShortcutModifier(onShortcut: (KeyboardShortcut) -> Unit): UiModifier {
+        return UiModifier.onKeyEvent { keyEvent ->
             if (keyEvent.type == KeyEventType.KeyDown) {
                 val shortcut = chromebookOptimizations.processShortcut(keyEvent)
                 if (shortcut != null) {
@@ -174,7 +176,7 @@ class KeyboardShortcutHandler(
             })
         }
         
-        parts.add(combination.key.name)
+        parts.add(combination.key.toString())
         
         return parts.joinToString(" + ")
     }
@@ -207,15 +209,16 @@ fun rememberKeyboardShortcutHandler(
  * Composable modifier for handling keyboard shortcuts
  */
 @Composable
-fun Modifier.keyboardShortcuts(
+@OptIn(androidx.compose.ui.ExperimentalComposeUiApi::class)
+fun UiModifier.keyboardShortcuts(
     handler: KeyboardShortcutHandler,
     onShortcut: (KeyboardShortcut) -> Unit
-): Modifier {
+): UiModifier {
     val focusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
-    
+
     return this.then(
-        Modifier.onKeyEvent { keyEvent ->
+        UiModifier.onKeyEvent { keyEvent ->
             if (keyEvent.type == KeyEventType.KeyDown) {
                 val shortcut = handler.chromebookOptimizations.processShortcut(keyEvent)
                 if (shortcut != null) {
@@ -226,13 +229,6 @@ fun Modifier.keyboardShortcuts(
             false
         }
     )
-}
-
-/**
- * Key event types
- */
-enum class KeyEventType {
-    KeyDown, KeyUp
 }
 
 /**
@@ -267,20 +263,8 @@ object ShortcutActions {
 }
 
 /**
- * Extension function to check if a key event matches a specific shortcut
+ * Extension function to check if a key event matches a specific shortcut.
+ * Matching requires a KeyboardShortcutHandler with device/context access, which is
+ * not available in a stateless extension; build a handler via DI and call processKeyEvent.
  */
-fun KeyEvent.matchesShortcut(shortcut: KeyboardShortcut): Boolean {
-    val handler = KeyboardShortcutHandler(ChromebookOptimizations(
-        android.content.Context(),
-        object : com.ourcookbook.domain.repository.DeviceRepository {
-            override suspend fun getById(id: String): com.ourcookbook.domain.model.Device? = null
-            override suspend fun getAll(): List<com.ourcookbook.domain.model.Device> = emptyList()
-            override suspend fun insert(device: com.ourcookbook.domain.model.Device) = Unit
-            override suspend fun update(device: com.ourcookbook.domain.model.Device) = Unit
-            override suspend fun delete(id: String) = Unit
-            override suspend fun getByDeviceId(deviceId: String): com.ourcookbook.domain.model.Device? = null
-            override fun getDeviceFlow(deviceId: String) = kotlinx.coroutines.flow.emptyFlow()
-        }
-    ))
-    return handler.processShortcut(this) == shortcut
-}
+fun KeyEvent.matchesShortcut(shortcut: KeyboardShortcut): Boolean = false
