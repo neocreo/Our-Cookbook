@@ -98,7 +98,7 @@ class ImportCookbook @Inject constructor(
         }
         
         // Fall back to importing as individual recipes
-        val (importedRecipes, importError) = importRecipeFromJson.importFromFile(file)
+        val (importedRecipes, importError) = importRecipeFromJson.previewImport(file)
         
         if (importError != null || importedRecipes.isEmpty()) {
             return ImportResult.Failure(
@@ -109,6 +109,7 @@ class ImportCookbook @Inject constructor(
         // Create a new cookbook for the imported recipes
         val cookbookName = settings.cookbookName ?: file.nameWithoutExtension
         val newCookbook = Cookbook.create(
+            ownerDeviceId = "",
             name = cookbookName,
             description = "Imported from ${file.name}"
         )
@@ -151,6 +152,7 @@ class ImportCookbook @Inject constructor(
         // Create a new cookbook for the imported recipes
         val cookbookName = settings.cookbookName ?: file.nameWithoutExtension
         val newCookbook = Cookbook.create(
+            ownerDeviceId = "",
             name = cookbookName,
             description = "Imported from ${file.name}"
         )
@@ -187,9 +189,10 @@ class ImportCookbook @Inject constructor(
             // Try to parse as cookbook export format
             // This would be enhanced with proper JSON parsing in production
             val cookbookName = file.nameWithoutExtension
-            val recipes = importRecipeFromJson.importFromFile(file).first
+            val recipes = importRecipeFromJson.previewImport(file).first
             
             val cookbook = Cookbook.create(
+                ownerDeviceId = "",
                 name = cookbookName,
                 description = "Imported cookbook"
             )
@@ -211,8 +214,8 @@ class ImportCookbook @Inject constructor(
         // Save the cookbook
         val savedCookbook = if (settings.createNewCookbook) {
             cookbookRepository.createCookbook(cookbook)
+            cookbook
         } else {
-            // Find existing cookbook or use the provided one
             cookbook
         }
         
@@ -268,7 +271,7 @@ class ImportCookbook @Inject constructor(
             if (isDuplicateId) {
                 if (settings.overwriteExisting) {
                     // Update existing recipe
-                    val updatedRecipe = recipe.copy(cookbookId = cookbook.id)
+                    val updatedRecipe = recipe.copy()
                     recipeRepository.updateRecipe(updatedRecipe)
                     importedCount++
                     importedRecipes.add(updatedRecipe)
@@ -277,8 +280,7 @@ class ImportCookbook @Inject constructor(
                 } else {
                     // Generate new ID for the duplicate
                     val newRecipe = recipe.copy(
-                        id = java.util.UUID.randomUUID().toString(),
-                        cookbookId = cookbook.id
+                        id = java.util.UUID.randomUUID().toString()
                     )
                     recipeRepository.createRecipe(newRecipe)
                     importedCount++
@@ -288,8 +290,7 @@ class ImportCookbook @Inject constructor(
             } else if (isDuplicateTitle && !settings.overwriteExisting && !settings.skipDuplicates) {
                 // Title duplicate but different ID - generate new ID
                 val newRecipe = recipe.copy(
-                    id = java.util.UUID.randomUUID().toString(),
-                    cookbookId = cookbook.id
+                    id = java.util.UUID.randomUUID().toString()
                 )
                 recipeRepository.createRecipe(newRecipe)
                 importedCount++
@@ -297,7 +298,7 @@ class ImportCookbook @Inject constructor(
                 conflictCount++
             } else {
                 // No conflict - create new recipe
-                val newRecipe = recipe.copy(cookbookId = cookbook.id)
+                val newRecipe = recipe.copy()
                 recipeRepository.createRecipe(newRecipe)
                 importedCount++
                 importedRecipes.add(newRecipe)
@@ -380,7 +381,7 @@ class ImportCookbook @Inject constructor(
         return try {
             when (format) {
                 ImportFormat.JSON -> {
-                    val (recipes, error) = importRecipeFromJson.importFromFile(file)
+                    val (recipes, error) = importRecipeFromJson.previewImport(file)
                     if (error != null) {
                         Triple(null, emptyList(), error)
                     } else {
