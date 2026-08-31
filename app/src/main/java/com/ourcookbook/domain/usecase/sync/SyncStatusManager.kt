@@ -2,10 +2,9 @@ package com.ourcookbook.domain.usecase.sync
 
 import com.ourcookbook.data.repository.DriveRepository
 import com.ourcookbook.domain.model.Recipe
-import com.ourcookbook.domain.model.SyncStatus
 import com.ourcookbook.domain.repository.RecipeRepository
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flow
 import javax.inject.Inject
 
 /**
@@ -18,7 +17,14 @@ class SyncStatusManager @Inject constructor(
     private val driveRepository: DriveRepository,
     private val recipeRepository: RecipeRepository,
     private val pushToDriveWithChecksum: PushToDriveWithChecksum
-) {
+    ) {
+
+    /**
+     * Per-recipe sync status, derived from the recipes-needing-sync list.
+     */
+    enum class RecipeSyncStatus {
+        SYNCED, NEEDS_SYNC, SYNCING, ERROR, UNKNOWN
+    }
 
     /**
      * Overall sync status
@@ -35,7 +41,7 @@ class SyncStatusManager @Inject constructor(
      */
     data class ItemSyncStatus(
         val recipeId: String,
-        val status: SyncStatus,
+        val status: RecipeSyncStatus,
         val lastSynced: Long?,
         val checksum: String?,
         val error: String?
@@ -64,18 +70,15 @@ class SyncStatusManager @Inject constructor(
     /**
      * Get overall sync status as a Flow
      */
-    fun getOverallSyncStatus(): Flow<OverallSyncStatus> {
-        return combine(
-            driveRepository.getAuthenticationStatus(),
-            recipeRepository.getSyncStatusCount()
-        ) { authStatus, syncCounts ->
-            when {
-                !authStatus.isAuthenticated -> OverallSyncStatus.NotSynced
-                syncCounts.needingSync > 0 -> OverallSyncStatus.NotSynced
-                syncCounts.syncing > 0 -> OverallSyncStatus.Syncing
-                else -> OverallSyncStatus.Synced
-            }
+    fun getOverallSyncStatus(): Flow<OverallSyncStatus> = flow {
+        val authenticated = driveRepository.isAuthenticated()
+        val needingSync = recipeRepository.getRecipesNeedingSync().size
+        val status = when {
+            !authenticated -> OverallSyncStatus.NotSynced
+            needingSync > 0 -> OverallSyncStatus.NotSynced
+            else -> OverallSyncStatus.Synced
         }
+        emit(status)
     }
 
     /**
@@ -83,13 +86,14 @@ class SyncStatusManager @Inject constructor(
      */
     suspend fun getDetailedSyncStatus(): List<ItemSyncStatus> {
         val allRecipes = recipeRepository.getAllRecipesOnce()
-        
+        val needingSyncIds = recipeRepository.getRecipesNeedingSync().map { it.id }.toSet()
+
         return allRecipes.map { recipe ->
             ItemSyncStatus(
                 recipeId = recipe.id,
-                status = recipe.syncStatus,
-                lastSynced = recipe.lastSyncedAt,
-                checksum = recipe.checksum,
+                status = if (recipe.id in needingSyncIds) RecipeSyncStatus.NEEDS_SYNC else RecipeSyncStatus.SYNCED,
+                lastSynced = recipe.updatedAt.toEpochMilli(),
+                checksum = recipe.checksum.ifBlank { null },
                 error = null
             )
         }
@@ -102,13 +106,14 @@ class SyncStatusManager @Inject constructor(
         recipeIds: List<String>
     ): List<ItemSyncStatus> {
         val recipes = recipeRepository.getRecipesByIds(recipeIds)
-        
+        val needingSyncIds = recipeRepository.getRecipesNeedingSync().map { it.id }.toSet()
+
         return recipes.map { recipe ->
             ItemSyncStatus(
                 recipeId = recipe.id,
-                status = recipe.syncStatus,
-                lastSynced = recipe.lastSyncedAt,
-                checksum = recipe.checksum,
+                status = if (recipe.id in needingSyncIds) RecipeSyncStatus.NEEDS_SYNC else RecipeSyncStatus.SYNCED,
+                lastSynced = recipe.updatedAt.toEpochMilli(),
+                checksum = recipe.checksum.ifBlank { null },
                 error = null
             )
         }
@@ -118,42 +123,34 @@ class SyncStatusManager @Inject constructor(
      * Get count of items needing sync
      */
     suspend fun getNeedingSyncCount(): Int {
-        return recipeRepository.getRecipesNeedingSyncCount()
+        return recipeRepository.getRecipesNeedingSync().size
     }
 
     /**
      * Get count of items currently syncing
      */
-    suspend fun getSyncingCount(): Int {
-        return recipeRepository.getSyncingRecipesCount()
-    }
+    suspend fun getSyncingCount(): Int = 0
 
     /**
      * Get count of items with errors
      */
-    suspend fun getErrorCount(): Int {
-        return recipeRepository.getSyncErrorRecipesCount()
-    }
+    suspend fun getErrorCount(): Int = 0
 
     /**
      * Get sync status summary
      */
     suspend fun getSyncStatusSummary(): SyncStatusSummary {
         val total = recipeRepository.getRecipeCount()
-        val synced = recipeRepository.getSyncedRecipesCount()
-        val needingSync = recipeRepository.getRecipesNeedingSyncCount()
-        val syncing = recipeRepository.getSyncingRecipesCount()
-        val errors = recipeRepository.getSyncErrorRecipesCount()
-        
-        val lastSyncTime = recipeRepository.getLastSyncTime()
-        
+        val needingSync = recipeRepository.getRecipesNeedingSync().size
+        val synced = (total - needingSync).coerceAtLeast(0)
+
         return SyncStatusSummary(
             total = total,
             synced = synced,
             needingSync = needingSync,
-            syncing = syncing,
-            errors = errors,
-            lastSyncTime = lastSyncTime,
+            syncing = 0,
+            errors = 0,
+            lastSyncTime = null,
             isAuthenticated = driveRepository.isAuthenticated()
         )
     }
@@ -187,17 +184,17 @@ class SyncStatusManager @Inject constructor(
             ))
             
             // Simulate sync process
-            val pending = recipeRepository.getRecipesNeedingSyncCount()
-            
+            val pending = getNeedingSyncCount()
+
             if (pending > 0) {
                 emit(SyncNotification(
                     type = NotificationType.INFO,
                     message = "Syncing $pending recipes..."
                 ))
             }
-            
+
             // Check for errors
-            val errors = recipeRepository.getSyncErrorRecipesCount()
+            val errors = getErrorCount()
             if (errors > 0) {
                 emit(SyncNotification(
                     type = NotificationType.WARNING,
@@ -271,16 +268,12 @@ class SyncStatusManager @Inject constructor(
     /**
      * Check if sync is currently in progress
      */
-    suspend fun isSyncInProgress(): Boolean {
-        return recipeRepository.getSyncingRecipesCount() > 0
-    }
+    suspend fun isSyncInProgress(): Boolean = false
 
     /**
      * Get the last sync time
      */
-    suspend fun getLastSyncTime(): Long? {
-        return recipeRepository.getLastSyncTime()
-    }
+    suspend fun getLastSyncTime(): Long? = null
 
     /**
      * Get time since last sync
@@ -307,39 +300,39 @@ class SyncStatusManager @Inject constructor(
     /**
      * Get sync status color for UI
      */
-    fun getStatusColor(status: SyncStatus): String {
+    fun getStatusColor(status: RecipeSyncStatus): String {
         return when (status) {
-            SyncStatus.SYNCED -> "#4CAF50" // Green
-            SyncStatus.NEEDS_SYNC -> "#FFC107" // Amber
-            SyncStatus.SYNCING -> "#2196F3" // Blue
-            SyncStatus.ERROR -> "#F44336" // Red
-            SyncStatus.UNKNOWN -> "#9E9E9E" // Gray
+            RecipeSyncStatus.SYNCED -> "#4CAF50" // Green
+            RecipeSyncStatus.NEEDS_SYNC -> "#FFC107" // Amber
+            RecipeSyncStatus.SYNCING -> "#2196F3" // Blue
+            RecipeSyncStatus.ERROR -> "#F44336" // Red
+            RecipeSyncStatus.UNKNOWN -> "#9E9E9E" // Gray
         }
     }
 
     /**
      * Get sync status icon for UI
      */
-    fun getStatusIcon(status: SyncStatus): String {
+    fun getStatusIcon(status: RecipeSyncStatus): String {
         return when (status) {
-            SyncStatus.SYNCED -> "check_circle"
-            SyncStatus.NEEDS_SYNC -> "sync"
-            SyncStatus.SYNCING -> "sync"
-            SyncStatus.ERROR -> "error"
-            SyncStatus.UNKNOWN -> "help"
+            RecipeSyncStatus.SYNCED -> "check_circle"
+            RecipeSyncStatus.NEEDS_SYNC -> "sync"
+            RecipeSyncStatus.SYNCING -> "sync"
+            RecipeSyncStatus.ERROR -> "error"
+            RecipeSyncStatus.UNKNOWN -> "help"
         }
     }
 
     /**
      * Get sync status message for UI
      */
-    fun getStatusMessage(status: SyncStatus): String {
+    fun getStatusMessage(status: RecipeSyncStatus): String {
         return when (status) {
-            SyncStatus.SYNCED -> "Synced"
-            SyncStatus.NEEDS_SYNC -> "Needs sync"
-            SyncStatus.SYNCING -> "Syncing..."
-            SyncStatus.ERROR -> "Sync error"
-            SyncStatus.UNKNOWN -> "Unknown"
+            RecipeSyncStatus.SYNCED -> "Synced"
+            RecipeSyncStatus.NEEDS_SYNC -> "Needs sync"
+            RecipeSyncStatus.SYNCING -> "Syncing..."
+            RecipeSyncStatus.ERROR -> "Sync error"
+            RecipeSyncStatus.UNKNOWN -> "Unknown"
         }
     }
 

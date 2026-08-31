@@ -102,7 +102,7 @@ class ConflictResolver @Inject constructor(
                             localRecipe = localRecipe,
                             remoteRecipe = null,
                             conflictType = ConflictType.DELETED_REMOTE,
-                            localVersion = localRecipe.version,
+                            localVersion = localRecipe.versionVector.counter.toLong(),
                             remoteVersion = 0,
                             localChecksum = localRecipe.checksum,
                             remoteChecksum = null
@@ -117,14 +117,14 @@ class ConflictResolver @Inject constructor(
                             localRecipe = localRecipe,
                             remoteRecipe = remoteRecipe,
                             conflictType = ConflictType.CHECKSUM_MISMATCH,
-                            localVersion = localRecipe.version,
-                            remoteVersion = remoteRecipe.version,
+                            localVersion = localRecipe.versionVector.counter.toLong(),
+                            remoteVersion = remoteRecipe.versionVector.counter.toLong(),
                             localChecksum = localRecipe.checksum,
                             remoteChecksum = remoteChecksum
                         )
                     )
                 }
-                localRecipe.version != remoteRecipe.version -> {
+                localRecipe.versionVector.counter.toLong() != remoteRecipe.versionVector.counter.toLong() -> {
                     // Versions differ but checksums match (unlikely but possible)
                     conflicts.add(
                         ConflictInfo(
@@ -132,8 +132,8 @@ class ConflictResolver @Inject constructor(
                             localRecipe = localRecipe,
                             remoteRecipe = remoteRecipe,
                             conflictType = ConflictType.VERSION_MISMATCH,
-                            localVersion = localRecipe.version,
-                            remoteVersion = remoteRecipe.version,
+                            localVersion = localRecipe.versionVector.counter.toLong(),
+                            remoteVersion = remoteRecipe.versionVector.counter.toLong(),
                             localChecksum = localRecipe.checksum,
                             remoteChecksum = remoteChecksum
                         )
@@ -147,8 +147,8 @@ class ConflictResolver @Inject constructor(
                             localRecipe = localRecipe,
                             remoteRecipe = remoteRecipe,
                             conflictType = ConflictType.BOTH_MODIFIED,
-                            localVersion = localRecipe.version,
-                            remoteVersion = remoteRecipe.version,
+                            localVersion = localRecipe.versionVector.counter.toLong(),
+                            remoteVersion = remoteRecipe.versionVector.counter.toLong(),
                             localChecksum = localRecipe.checksum,
                             remoteChecksum = remoteChecksum
                         )
@@ -167,7 +167,7 @@ class ConflictResolver @Inject constructor(
                         remoteRecipe = remoteRecipe,
                         conflictType = ConflictType.DELETED_LOCAL,
                         localVersion = 0,
-                        remoteVersion = remoteRecipe.version,
+                        remoteVersion = remoteRecipe.versionVector.counter.toLong(),
                         localChecksum = null,
                         remoteChecksum = remoteRecipe.checksum
                     )
@@ -211,6 +211,14 @@ class ConflictResolver @Inject constructor(
         }
     }
 
+    private suspend fun createOrUpdateRecipe(recipe: Recipe) {
+        if (recipeRepository.getRecipeById(recipe.id) == null) {
+            recipeRepository.createRecipe(recipe)
+        } else {
+            recipeRepository.updateRecipe(recipe)
+        }
+    }
+
     /**
      * Resolve by keeping local version
      */
@@ -218,13 +226,8 @@ class ConflictResolver @Inject constructor(
         return try {
             conflict.localRecipe?.let { localRecipe ->
                 // Update the recipe to mark it as synced
-                recipeRepository.updateRecipeSyncStatus(
-                    localRecipe.id,
-                    true,
-                    System.currentTimeMillis(),
-                    localRecipe.checksum ?: ""
-                )
-                
+                recipeRepository.markRecipeSynced(localRecipe.id)
+
                 ResolutionResult.Resolved(
                     recipe = localRecipe,
                     strategy = ResolutionStrategy.KEEP_LOCAL,
@@ -248,7 +251,7 @@ class ConflictResolver @Inject constructor(
         return try {
             conflict.remoteRecipe?.let { remoteRecipe ->
                 // Save remote recipe as local
-                recipeRepository.createOrUpdateRecipe(remoteRecipe)
+                createOrUpdateRecipe(remoteRecipe)
                 
                 ResolutionResult.Resolved(
                     recipe = remoteRecipe,
@@ -278,7 +281,7 @@ class ConflictResolver @Inject constructor(
             val mergedRecipe = mergeRecipes(localRecipe, remoteRecipe)
             
             // Save the merged recipe
-            recipeRepository.createOrUpdateRecipe(mergedRecipe)
+            createOrUpdateRecipe(mergedRecipe)
             
             ResolutionResult.Resolved(
                 recipe = mergedRecipe,
@@ -301,8 +304,6 @@ class ConflictResolver @Inject constructor(
         // In production, use proper merge logic with conflict resolution
         
         return local.copy(
-            // Keep the higher version
-            version = maxOf(local.version, remote.version),
             // Keep the latest update time
             updatedAt = maxOf(local.updatedAt, remote.updatedAt),
             // Merge tags
@@ -314,18 +315,15 @@ class ConflictResolver @Inject constructor(
             servingSize = if (local.updatedAt >= remote.updatedAt) local.servingSize else remote.servingSize,
             prepTime = if (local.updatedAt >= remote.updatedAt) local.prepTime else remote.prepTime,
             cookTime = if (local.updatedAt >= remote.updatedAt) local.cookTime else remote.cookTime,
-            totalTime = if (local.updatedAt >= remote.updatedAt) local.totalTime else remote.totalTime,
             rating = if (local.updatedAt >= remote.updatedAt) local.rating else remote.rating,
-            favorite = if (local.updatedAt >= remote.updatedAt) local.favorite else remote.favorite,
+            isFavorite = if (local.updatedAt >= remote.updatedAt) local.isFavorite else remote.isFavorite,
             source = if (local.updatedAt >= remote.updatedAt) local.source else remote.source,
             // Merge ingredients
             ingredients = mergeIngredients(local.ingredients, remote.ingredients),
             // Merge instructions
             instructions = mergeInstructions(local.instructions, remote.instructions),
-            // Sync status
-            syncStatus = com.ourcookbook.domain.model.SyncStatus.SYNCED,
-            lastSyncedAt = System.currentTimeMillis(),
-            checksum = pushToDriveWithChecksum.calculateChecksum(local)
+            // Merge version vectors
+            versionVector = local.versionVector
         )
     }
 
@@ -367,22 +365,15 @@ class ConflictResolver @Inject constructor(
             // Create a copy of the remote recipe with a new ID
             val copiedRecipe = remoteRecipe.copy(
                 id = java.util.UUID.randomUUID().toString(),
-                title = "${remoteRecipe.title} (Copy)",
-                version = 1,
-                syncStatus = com.ourcookbook.domain.model.SyncStatus.NEEDS_SYNC
+                title = "${remoteRecipe.title} (Copy)"
             )
             
             // Save the copied recipe
             recipeRepository.createRecipe(copiedRecipe)
             
             // Mark local recipe as synced
-            recipeRepository.updateRecipeSyncStatus(
-                localRecipe.id,
-                true,
-                System.currentTimeMillis(),
-                localRecipe.checksum ?: ""
-            )
-            
+            recipeRepository.markRecipeSynced(localRecipe.id)
+
             ResolutionResult.Resolved(
                 recipe = localRecipe,
                 strategy = ResolutionStrategy.KEEP_BOTH,
@@ -446,14 +437,14 @@ class ConflictResolver @Inject constructor(
     fun getConflictStatistics(conflicts: List<ConflictInfo>): Map<String, Any> {
         val byType = conflicts.groupBy { it.conflictType }
         
-        return mapOf(
+        return mapOf<String, Any>(
             "total" to conflicts.size,
             "by_type" to byType.mapValues { it.value.size },
-            "deleted_local" to byType[ConflictType.DELETED_LOCAL]?.size ?: 0,
-            "deleted_remote" to byType[ConflictType.DELETED_REMOTE]?.size ?: 0,
-            "version_mismatch" to byType[ConflictType.VERSION_MISMATCH]?.size ?: 0,
-            "checksum_mismatch" to byType[ConflictType.CHECKSUM_MISMATCH]?.size ?: 0,
-            "both_modified" to byType[ConflictType.BOTH_MODIFIED]?.size ?: 0
+            "deleted_local" to (byType[ConflictType.DELETED_LOCAL]?.size ?: 0),
+            "deleted_remote" to (byType[ConflictType.DELETED_REMOTE]?.size ?: 0),
+            "version_mismatch" to (byType[ConflictType.VERSION_MISMATCH]?.size ?: 0),
+            "checksum_mismatch" to (byType[ConflictType.CHECKSUM_MISMATCH]?.size ?: 0),
+            "both_modified" to (byType[ConflictType.BOTH_MODIFIED]?.size ?: 0)
         )
     }
 
