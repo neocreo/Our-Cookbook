@@ -604,14 +604,6 @@ object UseCaseModule {
     // Device Preferences Use Cases
     @Provides
     @Singleton
-    fun provideCreateDevicePreferences(repository: DevicePreferencesRepository): CreateDevicePreferences = CreateDevicePreferences(repository)
-
-    @Provides
-    @Singleton
-    fun provideUpdateDevicePreferences(repository: DevicePreferencesRepository): UpdateDevicePreferences = UpdateDevicePreferences(repository)
-
-    @Provides
-    @Singleton
     fun provideDeleteDevicePreferences(repository: DevicePreferencesRepository): DeleteDevicePreferences = DeleteDevicePreferences(repository)
 
     @Provides
@@ -621,10 +613,6 @@ object UseCaseModule {
     @Provides
     @Singleton
     fun provideGetDevicePreferencesById(repository: DevicePreferencesRepository): GetDevicePreferencesById = GetDevicePreferencesById(repository)
-
-    @Provides
-    @Singleton
-    fun provideGetDevicePreferencesByDevice(repository: DevicePreferencesRepository): GetDevicePreferencesByDevice = GetDevicePreferencesByDevice(repository)
 
     @Provides
     @Singleton
