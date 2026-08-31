@@ -23,10 +23,15 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.concurrent.atomic.AtomicBoolean
@@ -56,7 +61,7 @@ class DatabaseQueryOptimizer(
     private val database: RoomDatabase
 ) {
     
-    private val queryCache = LruCache<String, Any>(maxSize = 100)
+    private val queryCache = LruCache<String, Any>(100)
     private val lastQueryTime = mutableMapOf<String, Long>()
     
     /**
@@ -139,7 +144,7 @@ class ImageCache(
     private val dispatcher: CoroutineDispatcher = Dispatchers.IO
 ) {
     
-    private val memoryCache = LruCache<String, ImageBitmap>(maxSize)
+    private val memoryCache = LruCache<String, ImageBitmap>(100)
     private val diskCacheDir by lazy { 
         // Would be initialized with actual cache directory
         null
@@ -191,12 +196,10 @@ class ImageCache(
         recipes: List<Recipe>,
         loadFunction: suspend (String) -> ImageBitmap?
     ) {
-        val imageUris = recipes.flatMap { recipe ->
-            recipe.images.map { it.uri }
-        }.distinct()
+        val imageUris = recipes.mapNotNull { recipe -> recipe.imageUrl }.distinct()
         
         imageUris.forEach { uri ->
-            if (!memoryCache.containsKey(uri)) {
+            if (memoryCache.get(uri) == null) {
                 loadFunction(uri)?.let { image ->
                     memoryCache.put(uri, image)
                 }
@@ -230,6 +233,7 @@ class ImageCache(
 /**
  * Composable modifier for lazy image loading with placeholder
  */
+@Composable
 fun Modifier.lazyImageLoading(
     imageUri: String,
     imageCache: ImageCache,
@@ -257,16 +261,13 @@ fun Modifier.lazyImageLoading(
     
     return this.then(
         Modifier.drawWithCache {
-            when (imageState) {
+            when (val s = imageState) {
                 is ImageState.Loaded -> {
-                    drawImage(imageState.image)
+                    onDrawWithContent {
+                        drawImage(s.image)
+                    }
                 }
-                ImageState.Loading -> {
-                    loading()
-                }
-                is ImageState.Error -> {
-                    error()
-                }
+                else -> onDrawWithContent { }
             }
         }
     )
@@ -324,7 +325,7 @@ class SearchQueryManager(
             // Check if query has changed
             val currentQuery = query // Would track current query
             if (currentQuery.isNotBlank()) {
-                val results = repository.searchRecipes(currentQuery)
+                val results = repository.searchRecipes(currentQuery).first()
                 _searchResults.value = results
             } else {
                 _searchResults.value = emptyList()
@@ -384,7 +385,7 @@ class PaginationManager<T>(
     val error: StateFlow<String?> = _error.asStateFlow()
     
     private var currentOffset = 0
-    private const val defaultLimit = 20
+    private val defaultLimit = 20
     
     /**
      * Load more items
@@ -545,7 +546,7 @@ class MemoryMonitor(
     private val criticalThreshold: Float = 0.95f
 ) {
     
-    private val _memoryState = MutableStateFlow(MemoryState.Normal)
+    private val _memoryState = MutableStateFlow<MemoryState>(MemoryState.Normal)
     val memoryState: StateFlow<MemoryState> = _memoryState.asStateFlow()
     
     private var isMonitoring = false
