@@ -17,6 +17,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Keyboard
 import androidx.compose.material.icons.filled.Mouse
@@ -29,6 +30,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Slider
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -75,7 +77,7 @@ import androidx.lifecycle.ViewModel
 import com.ourcookbook.domain.usecase.chromebook.ChromebookConfig
 import com.ourcookbook.domain.usecase.chromebook.ChromebookOptimizations
 import com.ourcookbook.domain.usecase.chromebook.KeyboardShortcut
-import com.ourcookbook.ui.components.AppTopAppBar
+import com.ourcookbook.ui.components.CookbookTopAppBar
 import com.ourcookbook.ui.theme.CookbookTheme
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
@@ -112,7 +114,7 @@ fun ChromebookSettingsScreen(
     
     Scaffold(
         topBar = {
-            AppTopAppBar(
+            CookbookTopAppBar(
                 title = "Chromebook Settings",
                 navigationIcon = Icons.Default.ArrowBack,
                 onNavigationClick = onBackClick
@@ -431,7 +433,7 @@ private fun SettingSwitch(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .selectable(false)
+            .selectable(false) { }
             .padding(vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
@@ -471,7 +473,7 @@ private fun SettingItem(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .selectable(false)
+            .selectable(false) { }
             .padding(vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
@@ -703,9 +705,9 @@ private fun WindowSettingsDialog(
         confirmButton = {
             Button(
                 onClick = {
-                    onSave(mapOf(
-                        "windowWidth" to windowWidth.toIntOrNull(),
-                        "windowHeight" to windowHeight.toIntOrNull(),
+                    onSave(mapOf<String, Any>(
+                        "windowWidth" to (windowWidth.toIntOrNull() ?: 0),
+                        "windowHeight" to (windowHeight.toIntOrNull() ?: 0),
                         "rememberWindowSize" to rememberWindowSize,
                         "alwaysOnTop" to alwaysOnTop
                     ))
@@ -817,7 +819,7 @@ private fun formatShortcutKey(combination: com.ourcookbook.domain.usecase.chrome
         })
     }
     
-    parts.add(combination.key.name)
+    parts.add(combination.key.toString())
     
     return parts.joinToString(" + ")
 }
@@ -835,17 +837,15 @@ class ChromebookSettingsViewModel @Inject constructor(
     private val chromebookOptimizations: ChromebookOptimizations
 ) : ViewModel() {
     
-    private val _chromebookConfig = MutableStateFlow<ChromebookConfig?>(null)
-    val chromebookConfig: Flow<ChromebookConfig> = _chromebookConfig
-        .mapNotNull { it }
+    private val _chromebookConfig = MutableStateFlow(buildConfig())
+    val chromebookConfig: StateFlow<ChromebookConfig> = _chromebookConfig.asStateFlow()
 
     init {
         loadConfig()
     }
 
-    private fun loadConfig() {
-        // Build the config directly from the injected ChromebookOptimizations (context-only reads)
-        _chromebookConfig.value = ChromebookConfig(
+    private fun buildConfig(): ChromebookConfig {
+        return ChromebookConfig(
             deviceType = chromebookOptimizations.getDeviceType(),
             screenWidthDp = chromebookOptimizations.getScreenWidthDp(),
             screenHeightDp = chromebookOptimizations.getScreenHeightDp(),
@@ -860,19 +860,23 @@ class ChromebookSettingsViewModel @Inject constructor(
             keyboardShortcuts = chromebookOptimizations.getKeyboardShortcuts()
         )
     }
-    
-    fun getAllShortcuts(): List<KeyboardShortcut> {
-        return _chromebookConfig.value?.keyboardShortcuts ?: emptyList()
+
+    private fun loadConfig() {
+        _chromebookConfig.value = buildConfig()
     }
-    
+
+    fun getAllShortcuts(): List<KeyboardShortcut> {
+        return _chromebookConfig.value.keyboardShortcuts
+    }
+
     fun setMultiPaneEnabled(enabled: Boolean) {
-        _chromebookConfig.value = _chromebookConfig.value?.copy(
+        _chromebookConfig.value = _chromebookConfig.value.copy(
             useMultiPane = enabled
         )
     }
-    
+
     fun setExpandedLayoutEnabled(enabled: Boolean) {
-        _chromebookConfig.value = _chromebookConfig.value?.copy(
+        _chromebookConfig.value = _chromebookConfig.value.copy(
             useExpandedLayout = enabled
         )
     }
