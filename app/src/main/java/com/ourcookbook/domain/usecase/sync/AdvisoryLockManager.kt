@@ -84,7 +84,7 @@ class AdvisoryLockManager @Inject constructor(
     ): LockResult {
         return try {
             // Check if already locked
-            val existingLock = advisoryLockRepository.getLock(resourceId, lockScope)
+            val existingLock = advisoryLockRepository.getLock(resourceId, lockScope.name)
             
             if (existingLock != null) {
                 // Check if lock is expired
@@ -312,7 +312,7 @@ class AdvisoryLockManager @Inject constructor(
         resourceId: String,
         lockScope: LockScope = LockScope.RECIPE
     ): Boolean {
-        val lock = advisoryLockRepository.getLock(resourceId, lockScope)
+        val lock = advisoryLockRepository.getLock(resourceId, lockScope.name)
         return lock != null && !isLockExpired(lock)
     }
 
@@ -327,7 +327,7 @@ class AdvisoryLockManager @Inject constructor(
         resourceId: String,
         lockScope: LockScope = LockScope.RECIPE
     ): AdvisoryLock? {
-        val lock = advisoryLockRepository.getLock(resourceId, lockScope)
+        val lock = advisoryLockRepository.getLock(resourceId, lockScope.name)
         return if (lock != null && !isLockExpired(lock)) lock else null
     }
 

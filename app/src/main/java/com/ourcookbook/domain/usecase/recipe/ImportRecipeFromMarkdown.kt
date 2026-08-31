@@ -201,7 +201,6 @@ class ImportRecipeFromMarkdown @Inject constructor(
             servingSize = servings,
             prepTime = prepTime,
             cookTime = cookTime,
-            totalTime = totalTime,
             source = source,
             tags = tags,
             deviceId = ""
@@ -213,7 +212,7 @@ class ImportRecipeFromMarkdown @Inject constructor(
      */
     private fun extractNumber(text: String): Int? {
         return text.find { it.isDigit() }?.let { firstDigit ->
-            val numberText = text.substring(firstDigit.position).takeWhile { it.isDigit() }
+            val numberText = text.substring(text.indexOf(firstDigit)).takeWhile { it.isDigit() }
             numberText.toIntOrNull()
         }
     }

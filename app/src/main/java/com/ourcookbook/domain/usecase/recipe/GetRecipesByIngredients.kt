@@ -40,7 +40,7 @@ class GetRecipesByIngredients @Inject constructor(
             }
 
             // Get all recipes
-            val allRecipes = recipeRepository.getAllRecipes()
+            val allRecipes = recipeRepository.getAllRecipesOnce()
             
             if (allRecipes.isEmpty()) {
                 return Result.success(emptyList())
