@@ -376,15 +376,6 @@ object UseCaseModule {
     @Singleton
     fun provideUpdateCookbookChecksum(repository: CookbookRepository): UpdateCookbookChecksum = UpdateCookbookChecksum(repository)
 
-    // Export/Import Use Cases
-    @Provides
-    @Singleton
-    fun provideExportCookbook(repository: CookbookRepository): com.ourcookbook.domain.usecase.cookbook.ExportCookbook = com.ourcookbook.domain.usecase.cookbook.ExportCookbook(repository)
-
-    @Provides
-    @Singleton
-    fun provideImportCookbook(repository: CookbookRepository): com.ourcookbook.domain.usecase.cookbook.ImportCookbook = com.ourcookbook.domain.usecase.cookbook.ImportCookbook(repository)
-
     // Sharing Use Cases
     @Provides
     @Singleton
