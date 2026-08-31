@@ -8,7 +8,7 @@ import com.ourcookbook.domain.model.Device
 import com.ourcookbook.domain.model.SyncConflict
 import com.ourcookbook.domain.model.SyncLog
 import com.ourcookbook.domain.model.SyncMetadata
-import com.ourcookbook.domain.model.SyncStatus
+import com.ourcookbook.domain.usecase.sync.SyncStatus
 import com.ourcookbook.domain.usecase.sync.GetAllConflicts
 import com.ourcookbook.domain.usecase.sync.GetAllSyncMetadata
 import com.ourcookbook.domain.usecase.sync.GetPendingConflictCount
@@ -32,6 +32,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import java.time.Instant
 import javax.inject.Inject
@@ -264,7 +265,7 @@ class SyncStatusViewModel @Inject constructor(
                 // Get last sync timestamp
                 val lastSyncTimestamp = syncMetadata
                     .filter { it.deviceId == currentDeviceId }
-                    .maxByOrNull { it.lastSyncTimestamp }
+                    .maxByOrNull { it.lastSyncTimestamp ?: Instant.MIN }
                     ?.lastSyncTimestamp
                 
                 // Get pending changes
@@ -303,7 +304,7 @@ class SyncStatusViewModel @Inject constructor(
             _state.value = _state.value.copy(isLoadingHistory = true, historyError = null)
             
             try {
-                val logs = syncLogRepository.getAllSyncLogs()
+                val logs = syncLogRepository.getAllLogs()
                 val historyItems = logs.map { log ->
                     SyncHistoryItem.fromSyncLog(log, getDeviceName(log.deviceId))
                 }.sortedByDescending { it.timestamp }
@@ -327,8 +328,7 @@ class SyncStatusViewModel @Inject constructor(
             _state.value = _state.value.copy(isLoadingDevices = true, devicesError = null)
             
             try {
-                val devicesResult = getAllDevices()
-                val devices = devicesResult.getOrDefault(emptyList())
+                val devices = getAllDevices().first()
                 
                 val deviceSyncInfos = devices.map { device ->
                     DeviceSyncInfo(
@@ -339,7 +339,7 @@ class SyncStatusViewModel @Inject constructor(
                         lastSyncTimestamp = getLastSyncForDevice(device.deviceId),
                         pendingChanges = getPendingChangesForDevice(device.deviceId),
                         conflictCount = getConflictCountForDevice(device.deviceId),
-                        syncCapabilities = device.capabilities.map { it.name },
+                        syncCapabilities = device.capabilities.map { it.name }.toSet(),
                         isOnline = true // Would be determined by connectivity check
                     )
                 }
@@ -603,7 +603,7 @@ class SyncStatusViewModel @Inject constructor(
         viewModelScope.launch {
             // Find the sync log and retry
             try {
-                val syncLog = syncLogRepository.getSyncLogById(syncId)
+                val syncLog = syncLogRepository.getLogById(syncId)
                 syncLog?.let { log ->
                     // For now, just start a new sync
                     startFullSync()
@@ -702,11 +702,11 @@ class SyncStatusViewModel @Inject constructor(
         val successfulSyncs = currentDeviceMetadata.count { it.lastSuccessfulSync != null }
         val failedSyncs = totalSyncs - successfulSyncs
         
-        val totalChangesSynced = currentDeviceMetadata.sumOf { it.syncCount }
+        val totalChangesSynced = currentDeviceMetadata.sumOf { it.pendingChanges }
         val totalConflicts = currentDeviceMetadata.sumOf { it.conflictCount }
         
         val lastSyncTimestamp = currentDeviceMetadata
-            .maxByOrNull { it.lastSyncTimestamp }
+            .maxByOrNull { it.lastSyncTimestamp ?: Instant.MIN }
             ?.lastSyncTimestamp
         
         // Calculate average duration (would need sync logs for actual data)

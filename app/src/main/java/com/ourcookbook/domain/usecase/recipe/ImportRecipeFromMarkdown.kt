@@ -222,7 +222,7 @@ class ImportRecipeFromMarkdown @Inject constructor(
      * Extract time from text (in minutes)
      */
     private fun extractTime(text: String): Int? {
-        val timeRegex = Regex("(\d+)\s*(min|mins|minutes|hour|hours|h)")
+        val timeRegex = Regex("(\\d+)\\s*(min|mins|minutes|hour|hours|h)")
         val match = timeRegex.find(text)
         
         return match?.let {

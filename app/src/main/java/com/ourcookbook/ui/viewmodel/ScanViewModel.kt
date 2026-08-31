@@ -188,15 +188,15 @@ class ScanViewModel @Inject constructor(
                     }
                     trimmedLine.startsWith("Makes") || trimmedLine.startsWith("Serves") -> {
                         // Parse serving size
-                        val match = Regex("(\d+)").find(trimmedLine)
+                        val match = Regex("(\\d+)").find(trimmedLine)
                         match?.let { servingSize = it.value.toInt() }
                     }
                     trimmedLine.startsWith("Prep Time:") -> {
-                        val match = Regex("(\d+)").find(trimmedLine)
+                        val match = Regex("(\\d+)").find(trimmedLine)
                         match?.let { prepTime = it.value.toInt() }
                     }
                     trimmedLine.startsWith("Cook Time:") -> {
-                        val match = Regex("(\d+)").find(trimmedLine)
+                        val match = Regex("(\\d+)").find(trimmedLine)
                         match?.let { cookTime = it.value.toInt() }
                     }
                     currentSection == "ingredients" && trimmedLine.isNotBlank() && trimmedLine.firstOrNull() == '-' -> {
