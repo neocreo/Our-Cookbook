@@ -5,6 +5,7 @@ import com.ourcookbook.domain.usecase.cookbook.AddRecipeToCookbook
 import com.ourcookbook.domain.usecase.cookbook.CreateCookbook
 import com.ourcookbook.domain.usecase.cookbook.DeleteCookbook
 import com.ourcookbook.domain.usecase.cookbook.ExportCookbook
+import com.ourcookbook.domain.usecase.cookbook.GetCookbooks
 import com.ourcookbook.domain.usecase.cookbook.GetAllCookbooks
 import com.ourcookbook.domain.usecase.ingredient.UpdateIngredient
 import com.ourcookbook.domain.usecase.sync.GetConflictsByRecipe
@@ -29,6 +30,7 @@ import com.ourcookbook.domain.usecase.ingredient.DeleteIngredient
 import com.ourcookbook.domain.usecase.ingredient.GetIngredientsByRecipe
 import com.ourcookbook.domain.usecase.recipe.CreateRecipe
 import com.ourcookbook.domain.usecase.recipe.DeleteRecipe
+import com.ourcookbook.domain.usecase.recipe.GetRecipes
 import com.ourcookbook.domain.usecase.recipe.GetAllRecipes
 import com.ourcookbook.domain.usecase.recipe.GetFavorites
 import com.ourcookbook.domain.usecase.recipe.GetRecipeById
@@ -97,8 +99,8 @@ object ViewModelModule {
     // Home ViewModel
     @Provides
     fun provideHomeViewModel(
-        getRecipes: GetAllRecipes,
-        getCookbooks: GetAllCookbooks,
+        getRecipes: GetRecipes,
+        getCookbooks: GetCookbooks,
         searchRecipes: SearchRecipes,
         syncStatusService: SyncStatusService
     ): HomeViewModel = HomeViewModel(getRecipes, getCookbooks, searchRecipes, syncStatusService)
@@ -111,6 +113,7 @@ object ViewModelModule {
         getRecipesByCategory: GetRecipesByCategory,
         searchRecipes: SearchRecipes,
         toggleFavorite: ToggleFavorite,
+        deleteRecipe: DeleteRecipe
     ): RecipeListViewModel = RecipeListViewModel(
         getAllRecipes, getFavorites, getRecipesByCategory, searchRecipes, toggleFavorite, deleteRecipe
     )
