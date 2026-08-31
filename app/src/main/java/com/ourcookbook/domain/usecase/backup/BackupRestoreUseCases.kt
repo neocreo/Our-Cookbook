@@ -46,13 +46,13 @@ class CreateFullBackup @Inject constructor(
     @ApplicationContext private val context: Context
 ) {
     
-    operator fun invoke(
+    suspend operator fun invoke(
         outputUri: Uri,
         includeImages: Boolean = true,
         compressionLevel: Int = 6
-    ): BackupResult = runCatching {
+    ): BackupResult = try {
         performBackup(outputUri, includeImages, compressionLevel)
-    }.getOrElse { e ->
+    } catch (e: Exception) {
         BackupResult.Error(e.message ?: "Unknown error during backup")
     }
     
@@ -68,10 +68,10 @@ class CreateFullBackup @Inject constructor(
             backupDir.mkdirs()
             
             // Export data to temporary directory
-            val recipes = recipeRepository.getAll()
-            val cookbooks = cookbookRepository.getAll()
-            val devices = deviceRepository.getAll()
-            val syncMetadata = syncMetadataRepository.getAll()
+            val recipes = recipeRepository.getAllRecipesOnce()
+            val cookbooks = cookbookRepository.getAllCookbooksOnce()
+            val devices = deviceRepository.getAllDevicesOnce()
+            val syncMetadata = syncMetadataRepository.getAllMetadata()
             
             // Create metadata file
             val metadata = BackupMetadata(
@@ -137,20 +137,21 @@ class CreateFullBackup @Inject constructor(
     private suspend fun exportImages(recipes: List<Recipe>, outputDir: File) {
         val imagesDir = File(outputDir, BackupFormat.IMAGES_DIR)
         imagesDir.mkdirs()
-        
-        // In a real implementation, this would copy actual image files
-        // For now, we'll just create a placeholder
-        recipes.forEachIndexed { index, recipe ->
-            if (recipe.images.isNotEmpty()) {
-                recipe.images.forEachIndexed { imgIndex, image ->
-                    val imageFile = File(imagesDir, "${recipe.id}_$imgIndex.json")
-                    imageFile.writeText(BackupSerializer.serializeRecipeImage(image))
-                }
+
+        recipes.forEach { recipe ->
+            val imageUrl = recipe.imageUrl
+            if (!imageUrl.isNullOrBlank()) {
+                val image = com.ourcookbook.domain.model.RecipeImage.create(
+                    recipeId = recipe.id,
+                    imageUrl = imageUrl
+                )
+                val imageFile = File(imagesDir, "${recipe.id}_0.json")
+                imageFile.writeText(BackupSerializer.serializeRecipeImage(image))
             }
         }
     }
     
-    private fun createZipFile(sourceDir: File, outputFile: File) {
+    private suspend fun createZipFile(sourceDir: File, outputFile: File) {
         withContext(Dispatchers.IO) {
             ZipOutputStream(FileOutputStream(outputFile)).use { zipOut ->
                 sourceDir.walk().forEach { file ->
@@ -165,8 +166,8 @@ class CreateFullBackup @Inject constructor(
             }
         }
     }
-    
-    private fun copyToUri(sourceFile: File, outputUri: Uri) {
+
+    private suspend fun copyToUri(sourceFile: File, outputUri: Uri) {
         withContext(Dispatchers.IO) {
             context.contentResolver.openOutputStream(outputUri)?.use { outputStream ->
                 sourceFile.inputStream().use { inputStream ->
@@ -175,7 +176,7 @@ class CreateFullBackup @Inject constructor(
             }
         }
     }
-    
+
     private fun getAppVersion(): String {
         return try {
             val packageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
@@ -197,13 +198,13 @@ class RestoreFromBackup @Inject constructor(
     @ApplicationContext private val context: Context
 ) {
     
-    operator fun invoke(
+    suspend operator fun invoke(
         inputUri: Uri,
         restoreImages: Boolean = true,
         conflictResolution: ConflictResolutionStrategy = ConflictResolutionStrategy.SKIP
-    ): RestoreResult = runCatching {
+    ): RestoreResult = try {
         performRestore(inputUri, restoreImages, conflictResolution)
-    }.getOrElse { e ->
+    } catch (e: Exception) {
         RestoreResult.Error(e.message ?: "Unknown error during restore")
     }
     
@@ -250,15 +251,15 @@ class RestoreFromBackup @Inject constructor(
             // Restore cookbooks
             cookbooks.forEach { cookbook ->
                 try {
-                    val existing = cookbookRepository.getById(cookbook.id)
+                    val existing = cookbookRepository.getCookbookById(cookbook.id)
                     when (conflictResolution) {
                         ConflictResolutionStrategy.OVERWRITE -> {
-                            cookbookRepository.upsert(cookbook)
+                            if (existing == null) cookbookRepository.createCookbook(cookbook) else cookbookRepository.updateCookbook(cookbook)
                             restoreStats.cookbooksRestored++
                         }
                         ConflictResolutionStrategy.SKIP -> {
                             if (existing == null) {
-                                cookbookRepository.insert(cookbook)
+                                cookbookRepository.createCookbook(cookbook)
                                 restoreStats.cookbooksRestored++
                             } else {
                                 restoreStats.cookbooksSkipped++
@@ -270,7 +271,7 @@ class RestoreFromBackup @Inject constructor(
                                 id = "${cookbook.id}_restored_${Instant.now().toEpochMilli()}",
                                 name = "${cookbook.name} (Restored)"
                             )
-                            cookbookRepository.insert(copy)
+                            cookbookRepository.createCookbook(copy)
                             restoreStats.cookbooksRestored++
                         }
                     }
@@ -278,19 +279,19 @@ class RestoreFromBackup @Inject constructor(
                     restoreStats.cookbooksFailed++
                 }
             }
-            
+
             // Restore recipes
             recipes.forEach { recipe ->
                 try {
-                    val existing = recipeRepository.getById(recipe.id)
+                    val existing = recipeRepository.getRecipeById(recipe.id)
                     when (conflictResolution) {
                         ConflictResolutionStrategy.OVERWRITE -> {
-                            recipeRepository.upsert(recipe)
+                            if (existing == null) recipeRepository.createRecipe(recipe) else recipeRepository.updateRecipe(recipe)
                             restoreStats.recipesRestored++
                         }
                         ConflictResolutionStrategy.SKIP -> {
                             if (existing == null) {
-                                recipeRepository.insert(recipe)
+                                recipeRepository.createRecipe(recipe)
                                 restoreStats.recipesRestored++
                             } else {
                                 restoreStats.recipesSkipped++
@@ -302,7 +303,7 @@ class RestoreFromBackup @Inject constructor(
                                 id = "${recipe.id}_restored_${Instant.now().toEpochMilli()}",
                                 title = "${recipe.title} (Restored)"
                             )
-                            recipeRepository.insert(copy)
+                            recipeRepository.createRecipe(copy)
                             restoreStats.recipesRestored++
                         }
                     }
@@ -310,13 +311,13 @@ class RestoreFromBackup @Inject constructor(
                     restoreStats.recipesFailed++
                 }
             }
-            
+
             // Restore devices (be careful with device IDs)
             devices.forEach { device ->
                 try {
-                    val existing = deviceRepository.getById(device.id)
+                    val existing = deviceRepository.getDeviceById(device.id)
                     if (existing == null) {
-                        deviceRepository.insert(device)
+                        deviceRepository.createDevice(device)
                         restoreStats.devicesRestored++
                     } else {
                         restoreStats.devicesSkipped++
@@ -325,11 +326,15 @@ class RestoreFromBackup @Inject constructor(
                     restoreStats.devicesFailed++
                 }
             }
-            
+
             // Restore sync metadata
             syncMetadata.forEach { metadata ->
                 try {
-                    syncMetadataRepository.upsert(metadata)
+                    if (syncMetadataRepository.getMetadataById(metadata.id) == null) {
+                        syncMetadataRepository.createMetadata(metadata)
+                    } else {
+                        syncMetadataRepository.updateMetadata(metadata)
+                    }
                     restoreStats.syncMetadataRestored++
                 } catch (e: Exception) {
                     restoreStats.syncMetadataFailed++
@@ -382,23 +387,23 @@ class ExportCookbookBackup @Inject constructor(
     @ApplicationContext private val context: Context
 ) {
     
-    operator fun invoke(
+    suspend operator fun invoke(
         cookbookId: String,
         outputUri: Uri
-    ): BackupResult = runCatching {
+    ): BackupResult = try {
         performExport(cookbookId, outputUri)
-    }.getOrElse { e ->
+    } catch (e: Exception) {
         BackupResult.Error(e.message ?: "Unknown error during export")
     }
-    
+
     private suspend fun performExport(
         cookbookId: String,
         outputUri: Uri
-    ): BackupResult.Success {
-        val cookbook = cookbookRepository.getById(cookbookId)
+    ): BackupResult {
+        val cookbook = cookbookRepository.getCookbookById(cookbookId)
             ?: return BackupResult.Error("Cookbook not found")
-        
-        val recipes = recipeRepository.getAllByCookbookId(cookbookId)
+
+        val recipes = recipeRepository.getRecipesByCookbookId(cookbookId)
         
         val timestamp = Instant.now()
         val backupDir = File(context.cacheDir, "cookbook_export_${cookbookId}_${timestamp.toEpochMilli()}")
@@ -454,7 +459,7 @@ class ExportCookbookBackup @Inject constructor(
         }
     }
     
-    private fun createZipFile(sourceDir: File, outputFile: File) {
+    private suspend fun createZipFile(sourceDir: File, outputFile: File) {
         withContext(Dispatchers.IO) {
             ZipOutputStream(FileOutputStream(outputFile)).use { zipOut ->
                 sourceDir.walk().forEach { file ->
@@ -469,8 +474,8 @@ class ExportCookbookBackup @Inject constructor(
             }
         }
     }
-    
-    private fun copyToUri(sourceFile: File, outputUri: Uri) {
+
+    private suspend fun copyToUri(sourceFile: File, outputUri: Uri) {
         withContext(Dispatchers.IO) {
             context.contentResolver.openOutputStream(outputUri)?.use { outputStream ->
                 sourceFile.inputStream().use { inputStream ->
@@ -479,7 +484,7 @@ class ExportCookbookBackup @Inject constructor(
             }
         }
     }
-    
+
     private fun getAppVersion(): String {
         return try {
             val packageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
@@ -499,12 +504,12 @@ class ImportCookbookBackup @Inject constructor(
     @ApplicationContext private val context: Context
 ) {
     
-    operator fun invoke(
+    suspend operator fun invoke(
         inputUri: Uri,
         conflictResolution: ConflictResolutionStrategy = ConflictResolutionStrategy.SKIP
-    ): RestoreResult = runCatching {
+    ): RestoreResult = try {
         performImport(inputUri, conflictResolution)
-    }.getOrElse { e ->
+    } catch (e: Exception) {
         RestoreResult.Error(e.message ?: "Unknown error during import")
     }
     
@@ -536,15 +541,15 @@ class ImportCookbookBackup @Inject constructor(
             
             cookbooks.forEach { cookbook ->
                 try {
-                    val existing = cookbookRepository.getById(cookbook.id)
+                    val existing = cookbookRepository.getCookbookById(cookbook.id)
                     when (conflictResolution) {
                         ConflictResolutionStrategy.OVERWRITE -> {
-                            cookbookRepository.upsert(cookbook)
+                            if (existing == null) cookbookRepository.createCookbook(cookbook) else cookbookRepository.updateCookbook(cookbook)
                             restoreStats.cookbooksRestored++
                         }
                         ConflictResolutionStrategy.SKIP -> {
                             if (existing == null) {
-                                cookbookRepository.insert(cookbook)
+                                cookbookRepository.createCookbook(cookbook)
                                 restoreStats.cookbooksRestored++
                             } else {
                                 restoreStats.cookbooksSkipped++
@@ -555,7 +560,7 @@ class ImportCookbookBackup @Inject constructor(
                                 id = "${cookbook.id}_imported_${Instant.now().toEpochMilli()}",
                                 name = "${cookbook.name} (Imported)"
                             )
-                            cookbookRepository.insert(copy)
+                            cookbookRepository.createCookbook(copy)
                             restoreStats.cookbooksRestored++
                         }
                     }
@@ -563,18 +568,18 @@ class ImportCookbookBackup @Inject constructor(
                     restoreStats.cookbooksFailed++
                 }
             }
-            
+
             recipes.forEach { recipe ->
                 try {
-                    val existing = recipeRepository.getById(recipe.id)
+                    val existing = recipeRepository.getRecipeById(recipe.id)
                     when (conflictResolution) {
                         ConflictResolutionStrategy.OVERWRITE -> {
-                            recipeRepository.upsert(recipe)
+                            if (existing == null) recipeRepository.createRecipe(recipe) else recipeRepository.updateRecipe(recipe)
                             restoreStats.recipesRestored++
                         }
                         ConflictResolutionStrategy.SKIP -> {
                             if (existing == null) {
-                                recipeRepository.insert(recipe)
+                                recipeRepository.createRecipe(recipe)
                                 restoreStats.recipesRestored++
                             } else {
                                 restoreStats.recipesSkipped++
@@ -585,7 +590,7 @@ class ImportCookbookBackup @Inject constructor(
                                 id = "${recipe.id}_imported_${Instant.now().toEpochMilli()}",
                                 title = "${recipe.title} (Imported)"
                             )
-                            recipeRepository.insert(copy)
+                            recipeRepository.createRecipe(copy)
                             restoreStats.recipesRestored++
                         }
                     }
@@ -638,13 +643,13 @@ class VerifyBackup @Inject constructor(
     @ApplicationContext private val context: Context
 ) {
     
-    operator fun invoke(inputUri: Uri): BackupVerificationResult = runCatching {
+    suspend operator fun invoke(inputUri: Uri): BackupVerificationResult = try {
         performVerification(inputUri)
-    }.getOrElse { e ->
+    } catch (e: Exception) {
         BackupVerificationResult.Error(e.message ?: "Unknown error during verification")
     }
-    
-    private suspend fun performVerification(inputUri: Uri): BackupVerificationResult.Success {
+
+    private suspend fun performVerification(inputUri: Uri): BackupVerificationResult {
         val tempDir = File(context.cacheDir, "verify_${Instant.now().toEpochMilli()}")
         
         try {
