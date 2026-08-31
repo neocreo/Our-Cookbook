@@ -54,8 +54,8 @@ class BackupRepository @Inject constructor(
                 backupDir.mkdirs()
                 
                 // Get all data
-                val recipes = recipeRepository.getAll()
-                val cookbooks = cookbookRepository.getAll()
+                val recipes = recipeRepository.getAllRecipesOnce()
+                val cookbooks = cookbookRepository.getAllCookbooksOnce()
                 
                 // Create metadata
                 val metadata = BackupMetadata(
@@ -149,15 +149,15 @@ class BackupRepository @Inject constructor(
                 
                 cookbooks.forEach { cookbook ->
                     try {
-                        val existing = cookbookRepository.getById(cookbook.id)
+                        val existing = cookbookRepository.getCookbookById(cookbook.id)
                         when (conflictResolution) {
                             ConflictResolutionStrategy.OVERWRITE -> {
-                                cookbookRepository.upsert(cookbook)
+                                if (existing == null) cookbookRepository.createCookbook(cookbook) else cookbookRepository.updateCookbook(cookbook)
                                 stats.cookbooksRestored++
                             }
                             ConflictResolutionStrategy.SKIP -> {
                                 if (existing == null) {
-                                    cookbookRepository.insert(cookbook)
+                                    cookbookRepository.createCookbook(cookbook)
                                     stats.cookbooksRestored++
                                 } else {
                                     stats.cookbooksSkipped++
@@ -168,7 +168,7 @@ class BackupRepository @Inject constructor(
                                     id = "${cookbook.id}_restored_${Instant.now().toEpochMilli()}",
                                     name = "${cookbook.name} (Restored)"
                                 )
-                                cookbookRepository.insert(copy)
+                                cookbookRepository.createCookbook(copy)
                                 stats.cookbooksRestored++
                             }
                         }
@@ -176,18 +176,18 @@ class BackupRepository @Inject constructor(
                         stats.cookbooksFailed++
                     }
                 }
-                
+
                 recipes.forEach { recipe ->
                     try {
-                        val existing = recipeRepository.getById(recipe.id)
+                        val existing = recipeRepository.getRecipeById(recipe.id)
                         when (conflictResolution) {
                             ConflictResolutionStrategy.OVERWRITE -> {
-                                recipeRepository.upsert(recipe)
+                                if (existing == null) recipeRepository.createRecipe(recipe) else recipeRepository.updateRecipe(recipe)
                                 stats.recipesRestored++
                             }
                             ConflictResolutionStrategy.SKIP -> {
                                 if (existing == null) {
-                                    recipeRepository.insert(recipe)
+                                    recipeRepository.createRecipe(recipe)
                                     stats.recipesRestored++
                                 } else {
                                     stats.recipesSkipped++
@@ -198,7 +198,7 @@ class BackupRepository @Inject constructor(
                                     id = "${recipe.id}_restored_${Instant.now().toEpochMilli()}",
                                     title = "${recipe.title} (Restored)"
                                 )
-                                recipeRepository.insert(copy)
+                                recipeRepository.createRecipe(copy)
                                 stats.recipesRestored++
                             }
                         }
@@ -206,10 +206,10 @@ class BackupRepository @Inject constructor(
                         stats.recipesFailed++
                     }
                 }
-                
+
                 // Cleanup
                 tempDir.deleteRecursively()
-                
+
                 RestoreResult.Success(metadata, stats)
                 
             } catch (e: Exception) {
@@ -227,10 +227,10 @@ class BackupRepository @Inject constructor(
     ): BackupResult {
         return withContext(Dispatchers.IO) {
             try {
-                val cookbook = cookbookRepository.getById(cookbookId)
+                val cookbook = cookbookRepository.getCookbookById(cookbookId)
                     ?: return@withContext BackupResult.Error("Cookbook not found")
-                
-                val recipes = recipeRepository.getAllByCookbookId(cookbookId)
+
+                val recipes = recipeRepository.getRecipesByCookbookId(cookbookId)
                 
                 val timestamp = Instant.now()
                 val backupDir = File(context.cacheDir, "cookbook_export_${cookbookId}_${timestamp.toEpochMilli()}")
@@ -306,15 +306,15 @@ class BackupRepository @Inject constructor(
                 
                 cookbooks.forEach { cookbook ->
                     try {
-                        val existing = cookbookRepository.getById(cookbook.id)
+                        val existing = cookbookRepository.getCookbookById(cookbook.id)
                         when (conflictResolution) {
                             ConflictResolutionStrategy.OVERWRITE -> {
-                                cookbookRepository.upsert(cookbook)
+                                if (existing == null) cookbookRepository.createCookbook(cookbook) else cookbookRepository.updateCookbook(cookbook)
                                 stats.cookbooksRestored++
                             }
                             ConflictResolutionStrategy.SKIP -> {
                                 if (existing == null) {
-                                    cookbookRepository.insert(cookbook)
+                                    cookbookRepository.createCookbook(cookbook)
                                     stats.cookbooksRestored++
                                 } else {
                                     stats.cookbooksSkipped++
@@ -325,7 +325,7 @@ class BackupRepository @Inject constructor(
                                     id = "${cookbook.id}_imported_${Instant.now().toEpochMilli()}",
                                     name = "${cookbook.name} (Imported)"
                                 )
-                                cookbookRepository.insert(copy)
+                                cookbookRepository.createCookbook(copy)
                                 stats.cookbooksRestored++
                             }
                         }
@@ -333,18 +333,18 @@ class BackupRepository @Inject constructor(
                         stats.cookbooksFailed++
                     }
                 }
-                
+
                 recipes.forEach { recipe ->
                     try {
-                        val existing = recipeRepository.getById(recipe.id)
+                        val existing = recipeRepository.getRecipeById(recipe.id)
                         when (conflictResolution) {
                             ConflictResolutionStrategy.OVERWRITE -> {
-                                recipeRepository.upsert(recipe)
+                                if (existing == null) recipeRepository.createRecipe(recipe) else recipeRepository.updateRecipe(recipe)
                                 stats.recipesRestored++
                             }
                             ConflictResolutionStrategy.SKIP -> {
                                 if (existing == null) {
-                                    recipeRepository.insert(recipe)
+                                    recipeRepository.createRecipe(recipe)
                                     stats.recipesRestored++
                                 } else {
                                     stats.recipesSkipped++
@@ -355,7 +355,7 @@ class BackupRepository @Inject constructor(
                                     id = "${recipe.id}_imported_${Instant.now().toEpochMilli()}",
                                     title = "${recipe.title} (Imported)"
                                 )
-                                recipeRepository.insert(copy)
+                                recipeRepository.createRecipe(copy)
                                 stats.recipesRestored++
                             }
                         }
@@ -481,7 +481,7 @@ class BackupRepository @Inject constructor(
                 BackupInfo(
                     uri = backupUri,
                     metadata = metadata,
-                    fileSize = context.contentResolver.openInputStream(backupUri)?.available?.toLong() ?: 0L,
+                    fileSize = context.contentResolver.openInputStream(backupUri)?.use { it.available().toLong() } ?: 0L,
                     lastModified = Instant.now() // Would get actual file modification time
                 )
                 

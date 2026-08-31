@@ -20,8 +20,8 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Keyboard
 import androidx.compose.material.icons.filled.Mouse
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.Stylus
 import androidx.compose.material.icons.filled.Tablet
 import androidx.compose.material.icons.filled.Tv
 import androidx.compose.material3.AlertDialog
@@ -78,9 +78,11 @@ import com.ourcookbook.domain.usecase.chromebook.KeyboardShortcut
 import com.ourcookbook.ui.components.AppTopAppBar
 import com.ourcookbook.ui.theme.CookbookTheme
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -254,7 +256,7 @@ private fun DeviceInfoSection(config: ChromebookConfig) {
             )
             
             InfoCard(
-                icon = Icons.Default.Stylus,
+                icon = Icons.Default.Edit,
                 title = "Stylus",
                 value = if (config.hasStylus) "Yes" else "No",
                 modifier = Modifier.weight(1f)
@@ -834,30 +836,15 @@ class ChromebookSettingsViewModel @Inject constructor(
 ) : ViewModel() {
     
     private val _chromebookConfig = MutableStateFlow<ChromebookConfig?>(null)
-    val chromebookConfig: StateFlow<ChromebookConfig> = _chromebookConfig
-        .asStateFlow()
+    val chromebookConfig: Flow<ChromebookConfig> = _chromebookConfig
         .mapNotNull { it }
-    
+
     init {
         loadConfig()
     }
-    
+
     private fun loadConfig() {
-        val config = com.ourcookbook.domain.usecase.chromebook.createChromebookConfig(
-            chromebookOptimizations.context,
-            object : com.ourcookbook.domain.repository.DeviceRepository {
-                override suspend fun getById(id: String): com.ourcookbook.domain.model.Device? = null
-                override suspend fun getAll(): List<com.ourcookbook.domain.model.Device> = emptyList()
-                override suspend fun insert(device: com.ourcookbook.domain.model.Device) = Unit
-                override suspend fun update(device: com.ourcookbook.domain.model.Device) = Unit
-                override suspend fun delete(id: String) = Unit
-                override suspend fun getByDeviceId(deviceId: String): com.ourcookbook.domain.model.Device? = null
-                override fun getDeviceFlow(deviceId: String) = kotlinx.coroutines.flow.emptyFlow()
-            }
-        )
-        
-        // For preview purposes, use a mock config
-        // In production, this would come from the actual optimizations
+        // Build the config directly from the injected ChromebookOptimizations (context-only reads)
         _chromebookConfig.value = ChromebookConfig(
             deviceType = chromebookOptimizations.getDeviceType(),
             screenWidthDp = chromebookOptimizations.getScreenWidthDp(),
@@ -901,23 +888,11 @@ class ChromebookSettingsViewModel @Inject constructor(
     }
 }
 
-// Extension function for Pair to get recommended window size
+// Extension function for ChromebookConfig to get recommended window size
 fun ChromebookConfig.getRecommendedWindowSize(): Pair<Int, Int> {
-    return com.ourcookbook.domain.usecase.chromebook.ChromebookOptimizations(
-        LocalContext.current,
-        object : com.ourcookbook.domain.repository.DeviceRepository {
-            override suspend fun getById(id: String): com.ourcookbook.domain.model.Device? = null
-            override suspend fun getAll(): List<com.ourcookbook.domain.model.Device> = emptyList()
-            override suspend fun insert(device: com.ourcookbook.domain.model.Device) = Unit
-            override suspend fun update(device: com.ourcookbook.domain.model.Device) = Unit
-            override suspend fun delete(id: String) = Unit
-            override suspend fun getByDeviceId(deviceId: String): com.ourcookbook.domain.model.Device? = null
-            override fun getDeviceFlow(deviceId: String) = kotlinx.coroutines.flow.emptyFlow()
-        }
-    ).getRecommendedWindowSize()
-}
-
-// Extension for Flow
-fun <T, R> kotlinx.coroutines.flow.Flow<T>.mapNotNull(transform: suspend (T) -> R?): kotlinx.coroutines.flow.Flow<R> {
-    return kotlinx.coroutines.flow.map(transform).filterNotNull()
+    return when {
+        screenWidthDp >= 1200 -> Pair(1200, 800)
+        screenWidthDp >= 900 -> Pair(1000, 700)
+        else -> Pair(800, 600)
+    }
 }

@@ -34,7 +34,7 @@ import java.time.Instant
  */
 class ChromebookOptimizations(
     private val context: Context,
-    private val deviceRepository: DeviceRepository
+    private val deviceRepository: DeviceRepository? = null
 ) {
     
     companion object {
@@ -224,6 +224,7 @@ class ChromebookOptimizations(
      * Update device information for Chromebook
      */
     suspend fun updateDeviceForChromebook(deviceId: String) {
+        val deviceRepository = this.deviceRepository ?: return
         val device = deviceRepository.getDeviceById(deviceId) ?: return
         val capabilities = device.capabilities.toMutableSet()
         if (hasHardwareKeyboard()) capabilities.add(DeviceCapability.KEYBOARD)

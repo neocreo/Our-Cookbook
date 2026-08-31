@@ -109,19 +109,8 @@ class ChromebookCapabilitiesProvider(
     private val context: Context
 ) {
     
-    private val optimizations by lazy { 
-        ChromebookOptimizations(
-            context,
-            object : DeviceRepository {
-                override suspend fun getById(id: String): com.ourcookbook.domain.model.Device? = null
-                override suspend fun getAll(): List<com.ourcookbook.domain.model.Device> = emptyList()
-                override suspend fun insert(device: com.ourcookbook.domain.model.Device) = Unit
-                override suspend fun update(device: com.ourcookbook.domain.model.Device) = Unit
-                override suspend fun delete(id: String) = Unit
-                override suspend fun getByDeviceId(deviceId: String): com.ourcookbook.domain.model.Device? = null
-                override fun getDeviceFlow(deviceId: String) = kotlinx.coroutines.flow.emptyFlow()
-            }
-        )
+    private val optimizations by lazy {
+        ChromebookOptimizations(context, deviceRepository = null)
     }
     
     /**
