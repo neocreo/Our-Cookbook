@@ -59,39 +59,38 @@ class HomeViewModel @Inject constructor(
                         error = "Failed to load recipes: ${e.message}"
                     )
                 }.collect { result ->
-                    when (result) {
-                        is Result.Success -> {
-                            val recentRecipes = result.data.sortedByDescending { it.updatedAt }.take(5)
-                            val favorites = result.data.filter { it.isFavorite }
-                            
+                    result.fold(
+                        onSuccess = { recipes ->
+                            val recentRecipes = recipes.sortedByDescending { it.updatedAt }.take(5)
+                            val favorites = recipes.filter { it.isFavorite }
                             _state.value = _state.value.copy(
                                 recentRecipes = recentRecipes,
                                 favorites = favorites
                             )
-                        }
-                        is Result.Error -> {
+                        },
+                        onFailure = { e ->
                             _state.value = _state.value.copy(
                                 isLoading = false,
-                                error = result.error
+                                error = e.message ?: "Failed to load recipes"
                             )
                         }
-                    }
+                    )
                 }
 
                 // Load cookbooks
                 getCookbooks().catch { e ->
                     // Handle error but don't fail the whole screen
                 }.collect { result ->
-                    when (result) {
-                        is Result.Success -> {
+                    result.fold(
+                        onSuccess = { cookbooks ->
                             _state.value = _state.value.copy(
-                                cookbooks = result.data
+                                cookbooks = cookbooks
                             )
-                        }
-                        is Result.Error -> {
+                        },
+                        onFailure = { e ->
                             // Handle error
                         }
-                    }
+                    )
                 }
 
                 // Set categories
