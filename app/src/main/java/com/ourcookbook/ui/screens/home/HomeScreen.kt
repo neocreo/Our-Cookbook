@@ -19,7 +19,9 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
@@ -322,5 +324,27 @@ fun HomeBottomNavigation(
 fun HomeScreenPreview() {
     CookbookTheme {
         HomeScreen(navController = rememberNavController())
+    }
+}
+
+@Composable
+private fun ErrorState(
+    message: String,
+    onRetry: () -> Unit
+) {
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = message,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.error
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        androidx.compose.material3.Button(onClick = onRetry) {
+            Text("Retry")
+        }
     }
 }
