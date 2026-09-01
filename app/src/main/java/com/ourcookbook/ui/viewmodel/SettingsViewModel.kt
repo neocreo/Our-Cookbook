@@ -73,7 +73,7 @@ class SettingsViewModel @Inject constructor(
                     deviceModel = deviceModel,
                     androidVersion = androidVersion,
                     appVersion = getAppVersion(),
-                    buildNumber = Build.VERSION_CODES.toString()
+                    buildNumber = Build.VERSION.SDK_INT.toString()
                 )
             } catch (e: Exception) {
                 // Use default values if device info cannot be retrieved
@@ -319,12 +319,12 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 updateSyncInProgress(currentDeviceId, true)
-                updateLastSyncTimestamp(currentDeviceId, LocalDateTime.now())
+                updateLastSyncTimestamp(currentDeviceId, java.time.Instant.now())
                 
                 _state.value = _state.value.copy(
                     syncInProgress = true,
                     syncStatus = "SYNCING",
-                    lastSyncTime = LocalDateTime.now()
+                    lastSyncTime = java.time.Instant.now()
                 )
                 
                 _actions.value = SettingsAction.NavigateToSyncStatus(currentDeviceId)

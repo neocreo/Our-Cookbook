@@ -548,7 +548,7 @@ fun SyncProgressCard(progress: Int, message: String) {
             )
             
             LinearProgressIndicator(
-                progress = { progress / 100f },
+                progress = progress / 100f,
                 modifier = Modifier.fillMaxWidth()
             )
             

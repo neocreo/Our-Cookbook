@@ -9,6 +9,10 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
 import com.ourcookbook.ui.screens.auth.AuthScreen
+import com.ourcookbook.ui.viewmodel.AuthState
+import com.ourcookbook.ui.viewmodel.AuthViewModel
+import com.ourcookbook.ui.viewmodel.DeviceRegistrationState
+import com.ourcookbook.ui.viewmodel.DeviceRegistrationViewModel
 import com.ourcookbook.ui.screens.cookbook.CookbookManagementScreen
 import com.ourcookbook.ui.screens.home.HomeScreen
 import com.ourcookbook.ui.screens.ocr.OCRScannerScreen
