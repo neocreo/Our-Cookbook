@@ -22,6 +22,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.TextButton
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -138,6 +140,7 @@ fun CategoryChip(
     FilterChip(
         selected = isSelected,
         onClick = onClick,
+        label = { Text(text = category, style = CookbookTypography.labelMedium) },
         modifier = modifier,
         colors = FilterChipDefaults.filterChipColors(
             selectedContainerColor = categoryColor,
@@ -149,12 +152,7 @@ fun CategoryChip(
             borderColor = categoryColor,
             selectedBorderColor = categoryColor
         )
-    ) {
-        Text(
-            text = category,
-            style = CookbookTypography.labelMedium
-        )
-    }
+    )
 }
 
 /**
@@ -218,7 +216,7 @@ fun IngredientItem(
         Column(modifier = Modifier.weight(1f)) {
             // Ingredient name and amount
             Row(
-                verticalAlignment = Alignment.Baseline
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
                     text = ingredient.amount?.let { "$it " } ?: "",

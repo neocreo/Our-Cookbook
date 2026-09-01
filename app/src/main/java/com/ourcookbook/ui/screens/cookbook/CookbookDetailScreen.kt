@@ -201,7 +201,6 @@ fun CookbookHeader(cookbook: com.ourcookbook.domain.model.Cookbook) {
 
 @Composable
 @Preview(showBackground = true)
-@Composable
 fun CookbookDetailScreenPreview() {
     CookbookTheme {
         // Preview would need proper setup

@@ -7,6 +7,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -17,6 +18,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.IconButton
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
@@ -67,6 +69,7 @@ fun CookbookFilterChip(
     FilterChip(
         selected = isSelected,
         onClick = onClick,
+        label = { Text(text = label, style = CookbookTypography.labelMedium) },
         modifier = modifier,
         colors = FilterChipDefaults.filterChipColors(
             selectedContainerColor = chipColor,
@@ -78,12 +81,7 @@ fun CookbookFilterChip(
             borderColor = chipColor,
             selectedBorderColor = chipColor
         )
-    ) {
-        Text(
-            text = label,
-            style = CookbookTypography.labelMedium
-        )
-    }
+    )
 }
 
 /**
@@ -97,17 +95,13 @@ fun CookbookSuggestionChip(
 ) {
     SuggestionChip(
         onClick = onClick,
+        label = { Text(text = label, style = CookbookTypography.labelMedium) },
         modifier = modifier,
         colors = SuggestionChipDefaults.suggestionChipColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant,
             labelColor = MaterialTheme.colorScheme.onSurface
         )
-    ) {
-        Text(
-            text = label,
-            style = CookbookTypography.labelMedium
-        )
-    }
+    )
 }
 
 /**
@@ -122,25 +116,23 @@ fun CookbookAssistChip(
 ) {
     AssistChip(
         onClick = onClick,
+        label = {
+            if (icon != null) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp)
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+            }
+            Text(text = label, style = CookbookTypography.labelMedium)
+        },
         modifier = modifier,
         colors = AssistChipDefaults.assistChipColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant,
             labelColor = MaterialTheme.colorScheme.onSurface
         )
-    ) {
-        if (icon != null) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                modifier = Modifier.size(18.dp)
-            )
-            Spacer(modifier = Modifier.width(4.dp))
-        }
-        Text(
-            text = label,
-            style = CookbookTypography.labelMedium
-        )
-    }
+    )
 }
 
 /**
@@ -155,25 +147,23 @@ fun CookbookElevatedAssistChip(
 ) {
     ElevatedAssistChip(
         onClick = onClick,
+        label = {
+            if (icon != null) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp)
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+            }
+            Text(text = label, style = CookbookTypography.labelMedium)
+        },
         modifier = modifier,
         colors = AssistChipDefaults.assistChipColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainer,
+            containerColor = MaterialTheme.colorScheme.surface,
             labelColor = MaterialTheme.colorScheme.onSurface
         )
-    ) {
-        if (icon != null) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                modifier = Modifier.size(18.dp)
-            )
-            Spacer(modifier = Modifier.width(4.dp))
-        }
-        Text(
-            text = label,
-            style = CookbookTypography.labelMedium
-        )
-    }
+    )
 }
 
 /**
@@ -291,16 +281,17 @@ fun TagInputField(
         
         AssistChip(
             onClick = { onTagsChange(tags + "New Tag") },
+            label = {
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = "Add tag",
+                    modifier = Modifier.size(16.dp)
+                )
+            },
             colors = AssistChipDefaults.assistChipColors(
                 containerColor = MaterialTheme.colorScheme.surfaceVariant
             )
-        ) {
-            Icon(
-                imageVector = Icons.Default.Add,
-                contentDescription = "Add tag",
-                modifier = Modifier.size(16.dp)
-            )
-        }
+        )
     }
 }
 
