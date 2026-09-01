@@ -90,26 +90,6 @@ object AppModule {
     // USE CASES - Sync
     // ========================================================================
 
-    @Provides
-    @Singleton
-    fun provideGetSyncStatus(): GetSyncStatus {
-        // In a real implementation, this would use a SyncRepository
-        return GetSyncStatus { deviceId -> Result.success("IDLE") }
-    }
-
-    @Provides
-    @Singleton
-    fun provideUpdateSyncInProgress(): UpdateSyncInProgress {
-        // In a real implementation, this would use a SyncRepository
-        return UpdateSyncInProgress { deviceId, inProgress -> Result.success(Unit) }
-    }
-
-    @Provides
-    @Singleton
-    fun provideUpdateLastSyncTimestamp(): UpdateLastSyncTimestamp {
-        // In a real implementation, this would use a SyncRepository
-        return UpdateLastSyncTimestamp { deviceId, timestamp -> Result.success(Unit) }
-    }
 }
 
 // ============================================================================

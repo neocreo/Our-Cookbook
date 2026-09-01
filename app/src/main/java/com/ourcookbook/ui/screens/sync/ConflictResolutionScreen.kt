@@ -14,10 +14,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.Card
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -268,8 +270,8 @@ fun ResolutionOptions(
         
         // Keep Local option
         ResolutionOption(
-            resolution = com.ourcookbook.domain.model.ConflictResolution.KEEP_LOCAL,
-            selected = selectedResolution == com.ourcookbook.domain.model.ConflictResolution.KEEP_LOCAL,
+            resolution = com.ourcookbook.domain.model.ConflictResolution.KeepLocal,
+            selected = selectedResolution == com.ourcookbook.domain.model.ConflictResolution.KeepLocal,
             onSelect = onSelectResolution,
             title = "Keep Local Version",
             description = "Keep your local changes and overwrite the remote version"
@@ -277,8 +279,8 @@ fun ResolutionOptions(
         
         // Keep Remote option
         ResolutionOption(
-            resolution = com.ourcookbook.domain.model.ConflictResolution.KEEP_REMOTE,
-            selected = selectedResolution == com.ourcookbook.domain.model.ConflictResolution.KEEP_REMOTE,
+            resolution = com.ourcookbook.domain.model.ConflictResolution.KeepRemote,
+            selected = selectedResolution == com.ourcookbook.domain.model.ConflictResolution.KeepRemote,
             onSelect = onSelectResolution,
             title = "Keep Remote Version",
             description = "Discard your local changes and keep the remote version"
@@ -286,8 +288,8 @@ fun ResolutionOptions(
         
         // Merge option (would be implemented in future)
         ResolutionOption(
-            resolution = com.ourcookbook.domain.model.ConflictResolution.MERGE,
-            selected = selectedResolution == com.ourcookbook.domain.model.ConflictResolution.MERGE,
+            resolution = com.ourcookbook.domain.model.ConflictResolution.Merge,
+            selected = selectedResolution == com.ourcookbook.domain.model.ConflictResolution.Merge,
             onSelect = onSelectResolution,
             title = "Merge Changes",
             description = "Combine changes from both versions (coming soon)",
