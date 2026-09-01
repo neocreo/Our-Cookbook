@@ -31,12 +31,12 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.DeviceHub
 import androidx.compose.material.icons.filled.Dns
 import androidx.compose.material.icons.filled.DriveEta
-import androidx.compose.material.icons.filled.Export
+import androidx.compose.material.icons.filled.FileUpload
 import androidx.compose.material.icons.filled.Fingerprint
 import androidx.compose.material.icons.filled.FontDownload
 import androidx.compose.material.icons.filled.Help
 import androidx.compose.material.icons.filled.History
-import androidx.compose.material.icons.filled.Import
+import androidx.compose.material.icons.filled.FileDownload
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.LightMode
@@ -578,7 +578,7 @@ fun PrivacyAndSecuritySection(
         
         // Data export option
         SettingsItem(
-            icon = Icons.Default.Export,
+            icon = Icons.Default.FileUpload,
             title = "Export Data",
             subtitle = "Export your recipes to a file",
             onClick = { onEvent(SettingsEvent.ExportData) }
@@ -586,7 +586,7 @@ fun PrivacyAndSecuritySection(
         
         // Data import option
         SettingsItem(
-            icon = Icons.Default.Import,
+            icon = Icons.Default.FileDownload,
             title = "Import Data",
             subtitle = "Import recipes from a file",
             onClick = { onEvent(SettingsEvent.ImportData) }

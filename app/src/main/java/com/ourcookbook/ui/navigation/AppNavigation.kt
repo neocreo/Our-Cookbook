@@ -5,6 +5,7 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
 import com.ourcookbook.ui.screens.auth.AuthScreen
@@ -18,7 +19,7 @@ import com.ourcookbook.ui.screens.recipe.RecipeListScreen
 import com.ourcookbook.ui.screens.search.SearchScreen
 import com.ourcookbook.ui.screens.settings.SettingsScreen
 import com.ourcookbook.ui.screens.sync.ConflictResolutionScreen
-import com.ourcookbook.ui.screens.sync.DeviceRegistrationScreen
+import com.ourcookbook.ui.screens.auth.DeviceRegistrationScreen
 import com.ourcookbook.ui.screens.sync.SyncStatusScreen
 
 @Composable
@@ -32,11 +33,11 @@ fun AppNavigation(modifier: Modifier = Modifier) {
     ) {
         // Authentication flow
         composable(Route.AUTH) {
-            AuthScreen(navController = navController)
+            AuthScreen(state = com.ourcookbook.ui.screens.auth.AuthState(), onEvent = {}, onNavigateToDeviceRegistration = { navController.navigate(Route.DEVICE_REGISTRATION) }, onNavigateToHome = { navController.navigate(Route.HOME) })
         }
 
         composable(Route.DEVICE_REGISTRATION) {
-            DeviceRegistrationScreen(navController = navController)
+            DeviceRegistrationScreen(state = com.ourcookbook.ui.screens.auth.DeviceRegistrationState(), onEvent = {}, onNavigateBack = { navController.popBackStack() }, onNavigateToHome = { navController.navigate(Route.HOME) })
         }
 
         // Main flow
@@ -79,19 +80,19 @@ fun AppNavigation(modifier: Modifier = Modifier) {
         }
 
         composable(Route.COOKBOOK_MANAGEMENT) {
-            CookbookManagementScreen(navController = navController)
+            CookbookManagementScreen(viewModel = hiltViewModel(), navController = navController)
         }
 
         composable(Route.SEARCH) {
-            SearchScreen(navController = navController)
+            SearchScreen(viewModel = hiltViewModel(), navController = navController)
         }
 
         composable(Route.SETTINGS) {
-            SettingsScreen(navController = navController)
+            SettingsScreen(viewModel = hiltViewModel(), navController = navController)
         }
 
         composable(Route.SYNC_STATUS) {
-            SyncStatusScreen(navController = navController)
+            SyncStatusScreen(viewModel = hiltViewModel(), navController = navController)
         }
 
         composable(
@@ -102,6 +103,7 @@ fun AppNavigation(modifier: Modifier = Modifier) {
         ) { backStackEntry ->
             val conflictId = backStackEntry.arguments?.getString("conflictId")
             ConflictResolutionScreen(
+                viewModel = hiltViewModel(),
                 conflictId = conflictId ?: "",
                 navController = navController
             )
