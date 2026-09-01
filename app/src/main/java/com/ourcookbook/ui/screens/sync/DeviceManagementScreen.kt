@@ -289,42 +289,6 @@ fun DeviceManagementItem(
     }
 }
 
-@Composable
-    message: String,
-    onRetry: () -> Unit
-) {
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Icon(
-            imageVector = Icons.Default.Error,
-            contentDescription = "Error",
-            modifier = Modifier.size(64.dp),
-            tint = MaterialTheme.colorScheme.error
-        )
-        
-        Text(
-            text = "Error Loading Devices",
-            style = CookbookTypography.headlineSmall,
-            color = MaterialTheme.colorScheme.error
-        )
-        
-        Text(
-            text = message,
-            style = CookbookTypography.bodyMedium
-        )
-        
-        Spacer(modifier = Modifier.height(16.dp))
-        
-        OutlinedButton(
-            onClick = onRetry
-        ) {
-            Text("Retry")
-        }
-    }
-}
 
 @Preview(showBackground = true)
 @Composable

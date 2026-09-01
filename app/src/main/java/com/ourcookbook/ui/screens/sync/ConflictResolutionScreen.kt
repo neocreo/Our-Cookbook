@@ -486,41 +486,6 @@ fun ActionButtons(
     }
 }
 
-@Composable
-    message: String,
-    onRetry: () -> Unit
-) {
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Icon(
-            imageVector = Icons.Default.Close,
-            contentDescription = "Error",
-            modifier = Modifier.height(64.dp),
-            tint = MaterialTheme.colorScheme.error
-        )
-        
-        Text(
-            text = "Error Loading Conflict",
-            style = MaterialTheme.typography.headlineSmall,
-            color = MaterialTheme.colorScheme.error
-        )
-        
-        Text(
-            text = message,
-            style = MaterialTheme.typography.bodyMedium
-        )
-        
-        Spacer(modifier = Modifier.height(16.dp))
-        
-        CookbookPrimaryButton(
-            text = "Retry",
-            onClick = onRetry
-        )
-    }
-}
 
 @Composable
 fun NotFoundState(
