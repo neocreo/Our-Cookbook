@@ -327,7 +327,7 @@ enum class SyncStatus {
 @Composable
 fun SyncStatusIndicator(status: SyncStatus) {
     val (icon, color, description) = when (status) {
-        SyncStatus.SYNCED -> Triple(Icons.Default.Sync, MaterialTheme.colorScheme.success, "Synced")
+        SyncStatus.SYNCED -> Triple(Icons.Default.Sync, MaterialTheme.colorScheme.primary, "Synced")
         SyncStatus.SYNCING -> Triple(Icons.Default.Sync, MaterialTheme.colorScheme.primary, "Syncing")
         SyncStatus.NOT_SYNCED -> Triple(Icons.Default.SyncDisabled, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f), "Not Synced")
         SyncStatus.ERROR -> Triple(Icons.Default.SyncDisabled, MaterialTheme.colorScheme.error, "Sync Error")

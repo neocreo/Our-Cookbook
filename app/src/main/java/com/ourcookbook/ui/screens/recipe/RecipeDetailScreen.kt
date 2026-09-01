@@ -63,19 +63,33 @@ import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.ourcookbook.R
+import com.ourcookbook.ui.components.SectionHeader
 import com.ourcookbook.domain.model.Ingredient
+import com.ourcookbook.ui.components.SectionHeader
 import com.ourcookbook.domain.model.Recipe
+import com.ourcookbook.ui.components.SectionHeader
 import com.ourcookbook.ui.components.CookbookDeleteDialog
+import com.ourcookbook.ui.components.SectionHeader
 import com.ourcookbook.ui.components.CookbookIconButton
+import com.ourcookbook.ui.components.SectionHeader
 import com.ourcookbook.ui.components.CookbookPrimaryButton
+import com.ourcookbook.ui.components.SectionHeader
 import com.ourcookbook.ui.components.LoadingState
+import com.ourcookbook.ui.components.SectionHeader
 import com.ourcookbook.ui.navigation.Route
+import com.ourcookbook.ui.components.SectionHeader
 import com.ourcookbook.ui.theme.CookbookTheme
+import com.ourcookbook.ui.components.SectionHeader
 import com.ourcookbook.ui.theme.getCategoryColor
+import com.ourcookbook.ui.components.SectionHeader
 import com.ourcookbook.ui.viewmodel.RecipeDetailAction
+import com.ourcookbook.ui.components.SectionHeader
 import com.ourcookbook.ui.viewmodel.RecipeDetailEvent
+import com.ourcookbook.ui.components.SectionHeader
 import com.ourcookbook.ui.viewmodel.RecipeDetailState
+import com.ourcookbook.ui.components.SectionHeader
 import com.ourcookbook.ui.viewmodel.RecipeDetailViewModel
+import com.ourcookbook.ui.components.SectionHeader
 import kotlinx.coroutines.launch
 
 /**

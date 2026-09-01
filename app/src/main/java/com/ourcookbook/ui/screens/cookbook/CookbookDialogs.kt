@@ -1365,7 +1365,7 @@ fun SuccessDialog(
                 Icon(
                     imageVector = Icons.Default.Check,
                     contentDescription = "Success",
-                    tint = MaterialTheme.colorScheme.success,
+                    tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(64.dp)
                 )
 

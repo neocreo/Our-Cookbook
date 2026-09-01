@@ -268,7 +268,7 @@ fun DeviceDetailSyncStatus(device: DeviceSyncInfo) {
                 if (device.hasPendingChanges) {
                     StatusBadge(
                         text = "${device.pendingChanges} Pending",
-                        color = MaterialTheme.colorScheme.warning
+                        color = MaterialTheme.colorScheme.error
                     )
                 }
                 

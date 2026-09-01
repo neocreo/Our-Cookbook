@@ -284,7 +284,7 @@ fun FormatFeatures(
                 Icon(
                     imageVector = Icons.Default.Check,
                     contentDescription = "Feature",
-                    tint = MaterialTheme.colorScheme.success,
+                    tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(16.dp)
                 )
                 

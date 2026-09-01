@@ -142,7 +142,7 @@ fun SyncDetailsOverview(syncItem: SyncHistoryItem) {
                         imageVector = Icons.Default.Warning,
                         contentDescription = "Partial",
                         modifier = Modifier.height(64.dp),
-                        tint = MaterialTheme.colorScheme.warning
+                        tint = MaterialTheme.colorScheme.error
                     )
                 }
                 SyncStatusDisplay.CANCELLED -> {
@@ -171,7 +171,7 @@ fun SyncDetailsOverview(syncItem: SyncHistoryItem) {
                 color = when (syncItem.status) {
                     SyncStatusDisplay.SUCCESS -> MaterialTheme.colorScheme.primary
                     SyncStatusDisplay.FAILURE -> MaterialTheme.colorScheme.error
-                    SyncStatusDisplay.PARTIAL -> MaterialTheme.colorScheme.warning
+                    SyncStatusDisplay.PARTIAL -> MaterialTheme.colorScheme.error
                     SyncStatusDisplay.CANCELLED -> MaterialTheme.colorScheme.onSurface
                     SyncStatusDisplay.SYNCING -> MaterialTheme.colorScheme.primary
                 }

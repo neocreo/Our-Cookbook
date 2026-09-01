@@ -734,7 +734,7 @@ fun ResponsiveTitle(
  */
 @Composable
 fun ResponsiveFoldableLayout(
-    displayFeatures: List<androidx.window.layout.display.DisplayFeature>,
+    displayFeatures: List<androidx.window.layout.DisplayFeature>,
     modifier: Modifier = Modifier,
     unfoldedContent: @Composable () -> Unit,
     foldedContent: @Composable () -> Unit
@@ -756,6 +756,6 @@ fun ResponsiveFoldableLayout(
  * Check if current device is foldable
  */
 @Composable
-fun isFoldableDevice(displayFeatures: List<androidx.window.layout.display.DisplayFeature>): Boolean {
+fun isFoldableDevice(displayFeatures: List<androidx.window.layout.DisplayFeature>): Boolean {
     return FoldableSupport.hasFoldingFeature(displayFeatures)
 }

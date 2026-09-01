@@ -217,8 +217,8 @@ private fun PreviewItemCard(
     modifier: Modifier = Modifier
 ) {
     val statusColor = when (item.status) {
-        PreviewStatus.READY -> MaterialTheme.colorScheme.success
-        PreviewStatus.PROCESSING -> MaterialTheme.colorScheme.warning
+        PreviewStatus.READY -> MaterialTheme.colorScheme.primary
+        PreviewStatus.PROCESSING -> MaterialTheme.colorScheme.error
         PreviewStatus.ERROR -> MaterialTheme.colorScheme.error
     }
     

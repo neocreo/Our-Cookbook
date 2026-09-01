@@ -398,7 +398,7 @@ private fun StepIndicator(
         // Step circle
         val circleColor = when {
             isActive -> MaterialTheme.colorScheme.primary
-            isCompleted -> MaterialTheme.colorScheme.success
+            isCompleted -> MaterialTheme.colorScheme.primary
             else -> MaterialTheme.colorScheme.surfaceVariant
         }
         
@@ -412,7 +412,7 @@ private fun StepIndicator(
                 Icon(
                     imageVector = Icons.Default.Check,
                     contentDescription = "Completed",
-                    tint = MaterialTheme.colorScheme.onSuccess,
+                    tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(20.dp)
                 )
             } else {

@@ -446,12 +446,12 @@ fun SyncStatusOverviewCard(
                         imageVector = Icons.Default.Warning,
                         contentDescription = "Partial Sync",
                         modifier = Modifier.size(64.dp),
-                        tint = MaterialTheme.colorScheme.warning
+                        tint = MaterialTheme.colorScheme.error
                     )
                     Text(
                         text = "Partial Sync",
                         style = CookbookTypography.headlineSmall,
-                        color = MaterialTheme.colorScheme.warning
+                        color = MaterialTheme.colorScheme.error
                     )
                     Text(
                         text = "Some recipes may not be synced",
@@ -834,7 +834,7 @@ fun SyncStatusBadge(status: SyncStatusDisplay) {
     val (text, color) = when (status) {
         SyncStatusDisplay.SUCCESS -> Pair("Success", MaterialTheme.colorScheme.primary)
         SyncStatusDisplay.FAILURE -> Pair("Failed", MaterialTheme.colorScheme.error)
-        SyncStatusDisplay.PARTIAL -> Pair("Partial", MaterialTheme.colorScheme.warning)
+        SyncStatusDisplay.PARTIAL -> Pair("Partial", MaterialTheme.colorScheme.error)
         SyncStatusDisplay.CANCELLED -> Pair("Cancelled", MaterialTheme.colorScheme.onSurface)
         SyncStatusDisplay.SYNCING -> Pair("Syncing", MaterialTheme.colorScheme.primary)
     }
@@ -1127,7 +1127,7 @@ fun DeviceItemCard(
                         Text(
                             text = "Pending: ${device.pendingChanges} changes",
                             style = CookbookTypography.labelSmall,
-                            color = MaterialTheme.colorScheme.warning
+                            color = MaterialTheme.colorScheme.error
                         )
                     }
                     
@@ -1162,7 +1162,7 @@ fun DeviceStatusIndicator(device: DeviceSyncInfo) {
         !device.isOnline -> Triple(Icons.Default.Close, MaterialTheme.colorScheme.error, "Offline")
         device.syncStatus == SyncStatusDisplay.SYNCING -> Triple(Icons.Default.Sync, MaterialTheme.colorScheme.primary, "Syncing")
         device.syncStatus == SyncStatusDisplay.FAILURE -> Triple(Icons.Default.Error, MaterialTheme.colorScheme.error, "Error")
-        device.hasConflicts -> Triple(Icons.Default.Warning, MaterialTheme.colorScheme.warning, "Conflicts")
+        device.hasConflicts -> Triple(Icons.Default.Warning, MaterialTheme.colorScheme.error, "Conflicts")
         device.hasPendingChanges -> Triple(Icons.Default.Cloud, MaterialTheme.colorScheme.secondary, "Pending")
         else -> Triple(Icons.Default.CheckCircle, MaterialTheme.colorScheme.primary, "Synced")
     }
@@ -1295,7 +1295,7 @@ fun ErrorCategoryIcon(category: com.ourcookbook.ui.screens.sync.SyncErrorCategor
     val (icon, color) = when (category) {
         com.ourcookbook.ui.screens.sync.SyncErrorCategory.NETWORK -> Pair(Icons.Default.NetworkCheck, MaterialTheme.colorScheme.error)
         com.ourcookbook.ui.screens.sync.SyncErrorCategory.PERMISSION -> Pair(Icons.Default.Close, MaterialTheme.colorScheme.error)
-        com.ourcookbook.ui.screens.sync.SyncErrorCategory.CONFLICT -> Pair(Icons.Default.SyncProblem, MaterialTheme.colorScheme.warning)
+        com.ourcookbook.ui.screens.sync.SyncErrorCategory.CONFLICT -> Pair(Icons.Default.SyncProblem, MaterialTheme.colorScheme.error)
         com.ourcookbook.ui.screens.sync.SyncErrorCategory.STORAGE -> Pair(Icons.Default.DeviceHub, MaterialTheme.colorScheme.error)
         com.ourcookbook.ui.screens.sync.SyncErrorCategory.UNKNOWN -> Pair(Icons.Default.Error, MaterialTheme.colorScheme.error)
     }

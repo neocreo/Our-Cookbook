@@ -532,7 +532,7 @@ fun AccountAndDeviceSettingsSection(
                     .padding(vertical = 8.dp),
                 color = when {
                     state.storageUsagePercentage > 90 -> MaterialTheme.colorScheme.error
-                    state.storageUsagePercentage > 70 -> MaterialTheme.colorScheme.warning
+                    state.storageUsagePercentage > 70 -> MaterialTheme.colorScheme.error
                     else -> MaterialTheme.colorScheme.primary
                 }
             )

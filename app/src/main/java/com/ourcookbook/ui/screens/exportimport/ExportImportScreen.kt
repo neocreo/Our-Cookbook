@@ -1642,9 +1642,9 @@ fun OperationHistoryItem(
                 },
                 contentDescription = operation.type.name,
                 tint = when (operation.status) {
-                    OperationStatus.COMPLETED -> MaterialTheme.colorScheme.success
+                    OperationStatus.COMPLETED -> MaterialTheme.colorScheme.primary
                     OperationStatus.FAILED -> MaterialTheme.colorScheme.error
-                    OperationStatus.CANCELLED -> MaterialTheme.colorScheme.warning
+                    OperationStatus.CANCELLED -> MaterialTheme.colorScheme.error
                     else -> MaterialTheme.colorScheme.primary
                 },
                 modifier = Modifier.size(20.dp)
@@ -1713,7 +1713,7 @@ fun BatchResultsDialog(
                     BatchResultStat(
                         label = "Success",
                         value = result.successfulItems,
-                        color = MaterialTheme.colorScheme.success
+                        color = MaterialTheme.colorScheme.primary
                     )
                     
                     BatchResultStat(

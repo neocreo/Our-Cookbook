@@ -260,7 +260,7 @@ fun DeviceManagementItem(
                         Text(
                             text = "Pending: ${device.pendingChanges} changes",
                             style = CookbookTypography.labelSmall,
-                            color = MaterialTheme.colorScheme.warning
+                            color = MaterialTheme.colorScheme.error
                         )
                     }
                     

@@ -17,8 +17,8 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.window.layout.display.DisplayFeature
-import androidx.window.layout.display.FoldingFeature
+import androidx.window.layout.DisplayFeature
+import androidx.window.layout.FoldingFeature
 import com.ourcookbook.ui.components.ResponsiveAppBar
 import com.ourcookbook.ui.components.ResponsiveNavigation
 import com.ourcookbook.ui.components.ResponsiveNavigationType
