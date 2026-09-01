@@ -20,7 +20,6 @@ import com.ourcookbook.ui.theme.CookbookElevation
 val ComponentTypography = Typography(
     // Default font family - using system fonts as fallback
     // In production, you would use custom fonts loaded from resources
-    defaultFontFamily = FontFamily.Default,
     
     // Headings
     displayLarge = TextStyle(

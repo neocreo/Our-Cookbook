@@ -59,7 +59,7 @@ fun AuthScreen(
             }
             is AuthState.DeviceRegistrationRequired -> {
                 // Navigate to device registration
-                onNavigateToDeviceRegistration(state.deviceId)
+                onNavigateToDeviceRegistration(state.deviceId ?: "")
             }
             is AuthState.Error -> {
                 ErrorContent(

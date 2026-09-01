@@ -170,7 +170,6 @@ fun CookbookCardPreview() {
                 name = "Family Recipes",
                 description = "Collection of traditional family recipes passed down through generations",
                 ownerDeviceId = "device_123",
-                recipeCount = 42,
                 createdAt = java.time.Instant.now(),
                 updatedAt = java.time.Instant.now()
             )

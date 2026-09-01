@@ -170,7 +170,7 @@ fun TabletLayoutWithRail(
         // Navigation rail
         NavigationRail(
             modifier = Modifier.width(80.dp),
-            containerColor = MaterialTheme.colorScheme.surfaceContainer
+            containerColor = MaterialTheme.colorScheme.surface
         ) {
             // Header
             ElevatedCard(

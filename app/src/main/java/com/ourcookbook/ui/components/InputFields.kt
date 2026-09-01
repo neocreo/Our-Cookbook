@@ -143,7 +143,6 @@ fun CookbookMultilineTextField(
         keyboardType = KeyboardType.Text,
         readOnly = false,
         imeAction = ImeAction.Default,
-        minLines = minLines
     )
 }
 
