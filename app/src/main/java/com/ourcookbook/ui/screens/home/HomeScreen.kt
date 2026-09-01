@@ -14,10 +14,12 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Camera
-import androidx.compose.material.icons.filled.Import
+import androidx.compose.material.icons.filled.FileUpload
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Icon
 import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
@@ -31,16 +33,38 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.ourcookbook.domain.model.Recipe
+import com.ourcookbook.ui.viewmodel.HomeViewModel
+import com.ourcookbook.ui.viewmodel.HomeState
 import com.ourcookbook.ui.components.CookbookCard
+import com.ourcookbook.ui.viewmodel.HomeViewModel
+import com.ourcookbook.ui.viewmodel.HomeState
 import com.ourcookbook.ui.components.CookbookPrimaryButton
+import com.ourcookbook.ui.viewmodel.HomeViewModel
+import com.ourcookbook.ui.viewmodel.HomeState
 import com.ourcookbook.ui.components.EmptyState
+import com.ourcookbook.ui.viewmodel.HomeViewModel
+import com.ourcookbook.ui.viewmodel.HomeState
 import com.ourcookbook.ui.components.LoadingState
+import com.ourcookbook.ui.viewmodel.HomeViewModel
+import com.ourcookbook.ui.viewmodel.HomeState
 import com.ourcookbook.ui.components.QuickActionButton
+import com.ourcookbook.ui.viewmodel.HomeViewModel
+import com.ourcookbook.ui.viewmodel.HomeState
 import com.ourcookbook.ui.components.RecipeCard
+import com.ourcookbook.ui.viewmodel.HomeViewModel
+import com.ourcookbook.ui.viewmodel.HomeState
 import com.ourcookbook.ui.components.SectionHeader
+import com.ourcookbook.ui.viewmodel.HomeViewModel
+import com.ourcookbook.ui.viewmodel.HomeState
 import com.ourcookbook.ui.navigation.Route
+import com.ourcookbook.ui.viewmodel.HomeViewModel
+import com.ourcookbook.ui.viewmodel.HomeState
 import com.ourcookbook.ui.theme.CookbookSpacing
+import com.ourcookbook.ui.viewmodel.HomeViewModel
+import com.ourcookbook.ui.viewmodel.HomeState
 import com.ourcookbook.ui.theme.CookbookTheme
+import com.ourcookbook.ui.viewmodel.HomeViewModel
+import com.ourcookbook.ui.viewmodel.HomeState
 
 @Composable
 fun HomeScreen(
@@ -211,7 +235,7 @@ fun QuickActionsSection(
             onClick = onScanClick
         )
         QuickActionButton(
-            icon = Icons.Default.Import,
+            icon = Icons.Default.FileUpload,
             label = "Import",
             onClick = onImportClick
         )
