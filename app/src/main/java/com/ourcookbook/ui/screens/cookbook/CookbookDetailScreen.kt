@@ -200,33 +200,6 @@ fun CookbookHeader(cookbook: com.ourcookbook.domain.model.Cookbook) {
 }
 
 @Composable
-fun ErrorState(
-    message: String,
-    onRetry: () -> Unit
-) {
-    androidx.compose.foundation.layout.Column(
-        modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(
-            text = "Error loading cookbook",
-            style = androidx.compose.material3.MaterialTheme.typography.headlineSmall,
-            color = androidx.compose.material3.MaterialTheme.colorScheme.error
-        )
-        
-        Text(
-            text = message,
-            style = androidx.compose.material3.MaterialTheme.typography.bodyMedium
-        )
-        
-        com.ourcookbook.ui.components.CookbookPrimaryButton(
-            text = "Retry",
-            onClick = onRetry
-        )
-    }
-}
-
 @Preview(showBackground = true)
 @Composable
 fun CookbookDetailScreenPreview() {

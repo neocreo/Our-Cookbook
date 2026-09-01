@@ -1353,84 +1353,8 @@ fun FormatSelectionDialog(
         containerColor = MaterialTheme.colorScheme.surface,
         shape = MaterialTheme.shapes.large
     )
-}
 
-@Composable
-fun PreviewDialog(
-    preview: ExportImportPreview,
-    onConfirm: () -> Unit,
-    onDismiss: () -> Unit
-) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = {
-            Text(
-                text = "Import Preview",
-                style = CookbookTypography.headlineSmall
-            )
-        },
-        text = {
-            Column(
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text(
-                    text = "You are about to import ${preview.totalCount} items:",
-                    style = CookbookTypography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                
-                Spacer(modifier = Modifier.height(CookbookSpacing.medium))
-                
-                // Preview items list
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .verticalScroll(rememberScrollState())
-                        .heightIn(max = 300.dp)
-                ) {
-                    preview.items.forEach { item ->
-                        PreviewItem(
-                            item = item,
-                            statusColor = when (item.status) {
-                                PreviewStatus.READY -> MaterialTheme.colorScheme.success
-                                PreviewStatus.PROCESSING -> MaterialTheme.colorScheme.warning
-                                PreviewStatus.ERROR -> MaterialTheme.colorScheme.error
-                            }
-                        )
-                        Spacer(modifier = Modifier.height(CookbookSpacing.xSmall))
-                    }
-                }
-                
-                Spacer(modifier = Modifier.height(CookbookSpacing.medium))
-                
-                Text(
-                    text = "Format: ${preview.format}",
-                    style = CookbookTypography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                )
-                
-                Text(
-                    text = "Estimated size: ${formatFileSize(preview.estimatedSize)}",
-                    style = CookbookTypography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                )
-            }
-        },
-        confirmButton = {
-            TextButton(onClick = onConfirm) {
-                Text("Confirm", style = CookbookTypography.labelLarge)
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Cancel", style = CookbookTypography.labelLarge)
-            }
-        },
-        containerColor = MaterialTheme.colorScheme.surface,
-        shape = MaterialTheme.shapes.large
-    )
 }
-
 @Composable
 fun PreviewItem(
     item: PreviewItem,
@@ -1477,51 +1401,6 @@ fun PreviewItem(
         )
     }
 }
-
-@Composable
-fun ProgressDialog(
-    title: String,
-    message: String,
-    progress: Float,
-    onCancel: () -> Unit
-) {
-    AlertDialog(
-        onDismissRequest = onCancel,
-        title = {
-            Text(
-                text = title,
-                style = CookbookTypography.headlineSmall
-            )
-        },
-        text = {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                LinearProgressIndicator(
-                    progress = { progress },
-                    modifier = Modifier.fillMaxWidth()
-                )
-                
-                Spacer(modifier = Modifier.height(CookbookSpacing.medium))
-                
-                Text(
-                    text = message,
-                    style = CookbookTypography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-            }
-        },
-        confirmButton = {
-            TextButton(onClick = onCancel) {
-                Text("Cancel", style = CookbookTypography.labelLarge)
-            }
-        },
-        containerColor = MaterialTheme.colorScheme.surface,
-        shape = MaterialTheme.shapes.large
-    )
-}
-
 @Composable
 fun ConflictResolutionDialog(
     conflict: ImportConflict,
@@ -1971,20 +1850,6 @@ fun FormatSelectionDialogPreview() {
         )
     }
 }
-
-@Preview(showBackground = true)
-@Composable
-fun ProgressDialogPreview() {
-    MaterialTheme {
-        ProgressDialog(
-            title = "Exporting...",
-            message = "Processing 50%",
-            progress = 0.5f,
-            onCancel = {}
-        )
-    }
-}
-
 @Preview(showBackground = true)
 @Composable
 fun ConflictResolutionDialogPreview() {

@@ -487,7 +487,6 @@ fun ActionButtons(
 }
 
 @Composable
-fun ErrorState(
     message: String,
     onRetry: () -> Unit
 ) {

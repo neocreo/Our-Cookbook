@@ -290,7 +290,6 @@ fun DeviceManagementItem(
 }
 
 @Composable
-fun ErrorState(
     message: String,
     onRetry: () -> Unit
 ) {

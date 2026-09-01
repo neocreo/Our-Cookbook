@@ -1,5 +1,4 @@
 package com.ourcookbook.ui.components
-
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -14,14 +13,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.ourcookbook.ui.theme.CookbookTheme
-
 /**
  * Loading State Component
  * Task 1.9: Complete Navigation Setup
  * 
  * Displays a loading indicator with optional text
  */
-
 @Composable
 fun LoadingState(
     message: String? = null,
@@ -46,44 +43,6 @@ fun LoadingState(
         }
     }
 }
-
-@Composable
-fun EmptyState(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    title: String,
-    description: String? = null,
-    modifier: Modifier = Modifier
-) {
-    Column(
-        modifier = modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        androidx.compose.material3.Icon(
-            imageVector = icon,
-            contentDescription = title,
-            modifier = Modifier.height(64.dp),
-            tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
-        )
-        
-        Spacer(modifier = Modifier.height(16.dp))
-        
-        Text(
-            text = title,
-            style = MaterialTheme.typography.headlineSmall
-        )
-        
-        description?.let {
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = it,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-            )
-        }
-    }
-}
-
 @Composable
 fun QuickActionButton(
     icon: androidx.compose.ui.graphics.vector.ImageVector,
@@ -113,69 +72,9 @@ fun QuickActionButton(
         )
     }
 }
-
-@Composable
-fun SectionHeader(
-    title: String,
-    actionText: String? = null,
-    onActionClick: (() -> Unit)? = null,
-    modifier: Modifier = Modifier
-) {
-    androidx.compose.foundation.layout.Row(
-        modifier = modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Text(
-            text = title,
-            style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.primary
-        )
-        
-        actionText?.let { text ->
-            onActionClick?.let { action ->
-                TextButton(
-                    text = text,
-                    onClick = action
-                )
-            }
-        }
-    }
-}
-
-@Composable
-fun TextButton(
-    text: String,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    androidx.compose.material3.TextButton(
-        onClick = onClick,
-        modifier = modifier
-    ) {
-        Text(
-            text = text,
-            style = MaterialTheme.typography.labelMedium
-        )
-    }
-}
-
-@Preview(showBackground = true)
 @Composable
 fun LoadingStatePreview() {
     CookbookTheme {
         LoadingState(message = "Loading recipes...")
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun EmptyStatePreview() {
-    CookbookTheme {
-        EmptyState(
-            icon = androidx.compose.material.icons.Icons.Default.Search,
-            title = "No recipes found",
-            description = "Try a different search term"
-        )
     }
 }
