@@ -16,6 +16,7 @@ import androidx.camera.core.ImageProxy
 import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.Preview as CameraPreview
 import androidx.camera.lifecycle.ProcessCameraProvider
+import androidx.camera.view.PreviewView
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -104,7 +105,9 @@ import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
+import com.google.accompanist.permissions.shouldShowRationale
 import com.ourcookbook.ui.components.CookbookIconButton
 import com.ourcookbook.ui.components.CookbookPrimaryButton
 import com.ourcookbook.ui.components.CookbookSecondaryButton
@@ -358,33 +361,35 @@ fun CameraPreviewContent(
     ) {
         // Camera Preview
         AndroidView(
-            factory = { androidView ->
+            factory = { ctx ->
+                val previewView = PreviewView(ctx)
                 val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
                 cameraProviderFuture.addListener({
                     cameraProvider = cameraProviderFuture.get()
-                    
+
                     // Unbind all use cases
                     cameraProvider?.unbindAll()
-                    
+
                     // Create preview
                     preview = CameraPreview.Builder().build().also {
-                        it.setSurfaceProvider(androidView.surfaceProvider)
+                        it.setSurfaceProvider(previewView.surfaceProvider)
                     }
-                    
+
                     // Create image capture
                     imageCapture = ImageCapture.Builder()
                         .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
                         .build()
-                    
+
                     // Bind to lifecycle
                     cameraProvider?.bindToLifecycle(
                         lifecycleOwner,
                         cameraSelector,
                         preview,
                         imageCapture
-                    
+
                     )
                 }, ContextCompat.getMainExecutor(context))
+                previewView
             },
             modifier = Modifier
                 .fillMaxSize()
@@ -462,8 +467,7 @@ fun CameraPreviewContent(
                 ) {
                     IconButton(
                         onClick = {
-                            // Capture image and pass to ViewModel
-                            capturePhoto(imageCapture, viewModel, context, onCapture)
+                            onCapture()
                         },
                         modifier = Modifier
                             .size(72.dp)

@@ -20,10 +20,12 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Print
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.Restaurant
@@ -988,9 +990,6 @@ fun RecipeDetailScreenPreview() {
             servingSize = 4,
             prepTime = 10,
             cookTime = 15,
-            rating = 4.5f,
-            isFavorite = true,
-            notes = "For an authentic taste, use guanciale instead of pancetta. The key to a perfect carbonara is to work quickly when combining the egg mixture with the hot pasta to create a creamy sauce without scrambling the eggs.",
             source = "Traditional Italian Recipe",
             tags = listOf("Italian", "Pasta", "Quick", "Classic"),
             deviceId = "preview-device"

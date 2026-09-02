@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -105,7 +106,7 @@ fun ExportImportScreen(
     // Show file picker when requested
     if (state.showFilePicker) {
         LaunchedEffect(Unit) {
-            filePickerLauncher.launch(arrayOf("application/*", "text/*"))
+            filePickerLauncher.launch("*/*")
             viewModel.handleEvent(ExportImportEvent.HideFilePicker)
         }
     }
@@ -145,10 +146,10 @@ fun ExportImportScreen(
             isExport = state.currentMode == ExportImportMode.EXPORT,
             onFormatSelected = { format ->
                 when (state.currentMode) {
-                    ExportImportMode.EXPORT -> 
-                        viewModel.handleEvent(ExportImportEvent.SelectExportFormat(format))
-                    ExportImportMode.IMPORT -> 
-                        viewModel.handleEvent(ExportImportEvent.SelectImportFormat(format))
+                    ExportImportMode.EXPORT ->
+                        viewModel.handleEvent(ExportImportEvent.SelectExportFormat(format as ExportFormat))
+                    ExportImportMode.IMPORT ->
+                        viewModel.handleEvent(ExportImportEvent.SelectImportFormat(format as ImportFormat))
                 }
             },
             onDismiss = { viewModel.handleEvent(ExportImportEvent.HideFormatSelection) }
@@ -1335,6 +1336,7 @@ fun FormatSelectionDialog(
                                 ExportFormat.DOCX -> "Editable"
                                 ImportFormat.JSON -> "Structured"
                                 ImportFormat.MARKDOWN -> "Readable"
+                                else -> ""
                             },
                             style = CookbookTypography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
@@ -1397,7 +1399,7 @@ fun PreviewItem(
         Box(
             modifier = Modifier
                 .size(12.dp)
-                .background(statusColor, MaterialTheme.shapes.full)
+                .background(statusColor, CircleShape)
         )
     }
 }
@@ -1727,7 +1729,7 @@ fun BatchResultsDialog(
                 
                 // Success rate
                 LinearProgressIndicator(
-                    progress = { result.successRate },
+                    progress = result.successRate,
                     modifier = Modifier.fillMaxWidth()
                 )
                 
@@ -1811,18 +1813,6 @@ private fun BatchResultStat(
             style = CookbookTypography.bodySmall,
             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
         )
-    }
-}
-
-// ==================== UTILITY FUNCTIONS ====================
-
-@Composable
-private fun formatFileSize(bytes: Long): String {
-    return when {
-        bytes >= 1024 * 1024 * 1024 -> "%.2f GB".format(bytes.toDouble() / (1024 * 1024 * 1024))
-        bytes >= 1024 * 1024 -> "%.2f MB".format(bytes.toDouble() / (1024 * 1024))
-        bytes >= 1024 -> "%.2f KB".format(bytes.toDouble() / 1024)
-        else -> "$bytes B"
     }
 }
 

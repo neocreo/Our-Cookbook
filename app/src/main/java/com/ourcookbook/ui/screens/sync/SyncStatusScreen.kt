@@ -212,7 +212,7 @@ fun SyncStatusScreen(
                 }
                 state.error != null -> {
                     ErrorState(
-                        message = state.error,
+                        message = state.error!!,
                         onRetry = { viewModel.handleEvent(SyncStatusEvent.RefreshAll) }
                     )
                 }

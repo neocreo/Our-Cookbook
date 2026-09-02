@@ -9,6 +9,7 @@ import com.ourcookbook.domain.repository.RecipeRepository
 import com.ourcookbook.domain.service.ChecksumService
 import com.ourcookbook.domain.service.ConflictResolver
 import com.ourcookbook.domain.service.SyncService
+import dagger.Lazy
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -21,7 +22,7 @@ import javax.inject.Inject
  * Uses RecipeRepository for local operations and IRecipeRemoteDataSource for remote operations
  */
 class SyncServiceImpl @Inject constructor(
-    private val recipeRepository: RecipeRepository,
+    private val recipeRepository: Lazy<RecipeRepository>,
     private val remoteDataSource: IRecipeRemoteDataSource,
     private val checksumService: ChecksumService
 ) : SyncService {
@@ -156,7 +157,7 @@ class SyncServiceImpl @Inject constructor(
             
              // Check for conflicts and apply changes
              val localRecipes = try {
-                 recipeRepository.getAllRecipesOnce()
+                 recipeRepository.get().getAllRecipesOnce()
              } catch (e: Exception) {
                  errors.add("Failed to get local recipes: ${e.message}")
                  return SyncService.SyncResult(
@@ -199,9 +200,9 @@ class SyncServiceImpl @Inject constructor(
         // Get recipes that have been updated since last sync
         val lastSync = getSyncMetadata().lastSyncTimestamp
         return if (lastSync != null) {
-            recipeRepository.getUpdatedSince(lastSync)
+            recipeRepository.get().getUpdatedSince(lastSync)
         } else {
-            recipeRepository.getAllRecipesOnce()
+            recipeRepository.get().getAllRecipesOnce()
         }
     }
     
@@ -272,11 +273,11 @@ class SyncServiceImpl @Inject constructor(
                 }
                 com.ourcookbook.domain.model.ResolutionAction.UPDATE_LOCAL -> {
                     // Update local with remote version
-                    recipeRepository.updateRecipe(result.resolvedRecipe)
+                    recipeRepository.get().updateRecipe(result.resolvedRecipe)
                 }
                 com.ourcookbook.domain.model.ResolutionAction.MERGE -> {
                     // Update both local and remote with merged version
-                    recipeRepository.updateRecipe(result.resolvedRecipe)
+                    recipeRepository.get().updateRecipe(result.resolvedRecipe)
                     remoteDataSource.pushRecipes(listOf(result.resolvedRecipe))
                 }
             }

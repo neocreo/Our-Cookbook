@@ -257,7 +257,7 @@ class SearchViewModel @Inject constructor(
         performSearch()
     }
 
-    private fun performSearch() {
+    fun performSearch() {
         viewModelScope.launch {
             val currentState = _state.value
             _state.value = currentState.copy(isSearching = true, isLoading = true, error = null)

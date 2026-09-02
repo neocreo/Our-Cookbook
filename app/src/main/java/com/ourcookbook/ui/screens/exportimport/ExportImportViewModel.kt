@@ -33,7 +33,7 @@ class ExportImportViewModel @Inject constructor(
     val state: StateFlow<ExportImportState> = _state.asStateFlow()
     
     // Actions flow
-    private val _actions = MutableSharedFlow<ExportImportAction>()
+    private val _actions = MutableSharedFlow<ExportImportAction>(extraBufferCapacity = 64)
     val actions: SharedFlow<ExportImportAction> = _actions.asSharedFlow()
     
     // Current operation tracking
@@ -520,15 +520,17 @@ class ExportImportViewModel @Inject constructor(
             val result = importUseCases.batchImport(
                 filePaths,
                 currentState.importSettings.format,
-                currentState.importSettings
-            ) { processed, total ->
-                updateOperationProgress(operation.id, processed, total)
-            }
-            
+                currentState.importSettings,
+                onProgress = { processed, total ->
+                    updateOperationProgress(operation.id, processed, total)
+                },
+                onConflict = { com.ourcookbook.domain.model.ConflictResolution.KeepLocal }
+            )
+
             result.onSuccess { batchResult ->
                 updateOperationStatus(operation.id, OperationStatus.COMPLETED)
                 _actions.emit(ExportImportAction.OperationCompleted(operation))
-                
+
                 if (batchResult.hasFailures) {
                     _actions.emit(ExportImportAction.ShowMessage(
                         "Import completed with ${batchResult.failedItems} failures"
@@ -601,9 +603,9 @@ class ExportImportViewModel @Inject constructor(
     private suspend fun resolveConflict(resolution: ConflictResolution) {
         val currentState = _state.value
         val conflict = currentState.currentConflict ?: return
-        
+
         try {
-            val result = importUseCases.resolveConflict(conflict, resolution)
+            val result = importUseCases.resolveConflict(conflict, mapToDomainResolution(resolution))
             
             result.onSuccess { recipe ->
                 if (recipe != null) {
@@ -649,6 +651,15 @@ class ExportImportViewModel @Inject constructor(
     
     private suspend fun overwriteConflict() {
         resolveConflict(ConflictResolution.REPLACE_WITH_NEW)
+    }
+
+    private fun mapToDomainResolution(resolution: ConflictResolution): com.ourcookbook.domain.model.ConflictResolution {
+        return when (resolution) {
+            ConflictResolution.KEEP_EXISTING -> com.ourcookbook.domain.model.ConflictResolution.KeepLocal
+            ConflictResolution.REPLACE_WITH_NEW -> com.ourcookbook.domain.model.ConflictResolution.KeepRemote
+            ConflictResolution.MERGE -> com.ourcookbook.domain.model.ConflictResolution.KeepLocal
+            ConflictResolution.SKIP -> com.ourcookbook.domain.model.ConflictResolution.KeepLocal
+        }
     }
     
     // ==================== OPERATION HISTORY ====================
@@ -911,14 +922,16 @@ class ExportImportViewModel @Inject constructor(
             val result = importUseCases.batchImport(
                 filePaths,
                 currentState.importSettings.format,
-                currentState.importSettings
-            ) { processed, total ->
-                updateOperationProgress(operation.id, processed, total)
-            }
-            
+                currentState.importSettings,
+                onProgress = { processed, total ->
+                    updateOperationProgress(operation.id, processed, total)
+                },
+                onConflict = { com.ourcookbook.domain.model.ConflictResolution.KeepLocal }
+            )
+
             result.onSuccess { batchResult ->
                 updateOperationStatus(operation.id, OperationStatus.COMPLETED)
-                _state.update { 
+                _state.update {
                     it.copy(
                         batchOperationResult = batchResult,
                         showBatchResults = true
@@ -1086,7 +1099,7 @@ class ExportImportViewModel @Inject constructor(
         }
     }
     
-    private suspend fun updateOperationProgress(
+    private fun updateOperationProgress(
         operationId: String,
         processedItems: Int,
         totalItems: Int
@@ -1111,7 +1124,7 @@ class ExportImportViewModel @Inject constructor(
             )
         }
         
-        _actions.emit(ExportImportAction.UpdateProgress(progress))
+        _actions.tryEmit(ExportImportAction.UpdateProgress(progress))
     }
     
     /**

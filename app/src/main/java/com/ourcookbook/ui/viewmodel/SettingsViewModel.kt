@@ -324,7 +324,7 @@ class SettingsViewModel @Inject constructor(
                 _state.value = _state.value.copy(
                     syncInProgress = true,
                     syncStatus = "SYNCING",
-                    lastSyncTime = java.time.Instant.now()
+                    lastSyncTime = java.time.LocalDateTime.now()
                 )
                 
                 _actions.value = SettingsAction.NavigateToSyncStatus(currentDeviceId)

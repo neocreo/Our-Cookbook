@@ -116,8 +116,8 @@ sealed class ExportImportEvent {
     
     // Conflict resolution
     data class ResolveConflict(val resolution: ConflictResolution) : ExportImportEvent()
-    data class SkipConflict : ExportImportEvent()
-    data class OverwriteConflict : ExportImportEvent()
+    object SkipConflict : ExportImportEvent()
+    object OverwriteConflict : ExportImportEvent()
     
     // UI events
     object ShowFormatSelection : ExportImportEvent()
@@ -160,9 +160,9 @@ sealed class ExportImportEvent {
     
     // Error handling
     data class ShowError(val message: String) : ExportImportEvent()
-    data class ClearError : ExportImportEvent()
+    object ClearError : ExportImportEvent()
     data class ShowSuccess(val message: String) : ExportImportEvent()
-    data class ClearSuccess : ExportImportEvent()
+    object ClearSuccess : ExportImportEvent()
 }
 
 /**

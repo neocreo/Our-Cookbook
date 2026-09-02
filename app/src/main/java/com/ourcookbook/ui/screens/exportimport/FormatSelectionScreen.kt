@@ -158,7 +158,7 @@ private fun FormatItem(
             
             Icon(
                 imageVector = icon,
-                contentDescription = format.name,
+                contentDescription = format.toString(),
                 tint = if (isSelected) {
                     MaterialTheme.colorScheme.onPrimaryContainer
                 } else {
@@ -174,7 +174,7 @@ private fun FormatItem(
                 modifier = Modifier.weight(1f)
             ) {
                 Text(
-                    text = format.name,
+                    text = format.toString(),
                     style = CookbookTypography.titleMedium,
                     color = if (isSelected) {
                         MaterialTheme.colorScheme.onPrimaryContainer

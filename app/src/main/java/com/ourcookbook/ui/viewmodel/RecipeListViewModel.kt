@@ -105,7 +105,7 @@ class RecipeListViewModel @Inject constructor(
     private val getRecipesByCategory: GetRecipesByCategory,
     private val searchRecipes: SearchRecipes,
     private val toggleFavorite: ToggleFavorite,
-    private val deleteRecipe: DeleteRecipe
+    private val deleteRecipeUseCase: DeleteRecipe
 ) : ViewModel() {
 
     private val _state = MutableStateFlow<RecipeListState>(RecipeListState.Loading)
@@ -399,7 +399,7 @@ class RecipeListViewModel @Inject constructor(
     fun confirmDeleteRecipe(recipeId: String) {
         viewModelScope.launch {
             try {
-                deleteRecipe(recipeId).onSuccess {
+                deleteRecipeUseCase(recipeId).onSuccess {
                     // Remove from local list and refresh
                     allRecipes = allRecipes.filter { it.id != recipeId }
                     filteredRecipes = filteredRecipes.filter { it.id != recipeId }

@@ -2,6 +2,7 @@ package com.ourcookbook.ui.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.material3.Text
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -670,24 +671,29 @@ composable(Route.FAVORITES) {
                         navController.navigate(Route.SYNC_STATUS)
                         viewModel.clearAction()
                     }
-        composable(Route.PROFILE) {
-            val viewModel: UserProfileViewModel = hiltViewModel()
-            UserProfileScreen(
-                viewModel = viewModel,
-                navController = navController
-            )
-        }
                     is com.ourcookbook.ui.viewmodel.SettingsAction.NavigateToDriveAuth -> {
                         navController.navigate(Route.DRIVE_AUTH)
                         viewModel.clearAction()
                     }
-                    is com.ourcookbook.ui.viewmodel.SettingsAction.NavigateToExportImport -> {
+                    is com.ourcookbook.ui.viewmodel.SettingsAction.NavigateToExport -> {
+                        navController.navigate(Route.EXPORT_IMPORT)
+                        viewModel.clearAction()
+                    }
+                    is com.ourcookbook.ui.viewmodel.SettingsAction.NavigateToImport -> {
                         navController.navigate(Route.EXPORT_IMPORT)
                         viewModel.clearAction()
                     }
                     else -> {}
                 }
             }
+        }
+
+        composable(Route.PROFILE) {
+            val viewModel: UserProfileViewModel = hiltViewModel()
+            UserProfileScreen(
+                viewModel = viewModel,
+                navController = navController
+            )
         }
         
         
@@ -751,7 +757,7 @@ composable(Route.FAVORITES) {
         composable(Route.EXPORT_IMPORT) {
             val viewModel: ExportImportViewModel = hiltViewModel()
             val state by viewModel.state.collectAsState()
-            val actions by viewModel.actions.collectAsState()
+            val actions by viewModel.actions.collectAsState(initial = null)
             
             ExportImportScreen(
                 navController = navController,

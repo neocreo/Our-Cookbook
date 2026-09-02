@@ -2,8 +2,8 @@ package com.ourcookbook.ui.theme
 
 import android.content.Context
 import android.os.Build
-import android.util.TypedValue
-import android.view.accessibility.AccessibilityManager
+import android.provider.Settings
+import android.view.accessibility.AccessibilityManager as SystemAccessibilityManager
 import androidx.compose.foundation.text.selection.TextSelectionColors
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
@@ -16,12 +16,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.TextUnit
-import androidx.compose.ui.unit.sp
-import androidx.core.view.accessibility.AccessibilityManagerCompat
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import com.ourcookbook.domain.model.DevicePreferences
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.channels.Channel
@@ -29,6 +27,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.receiveAsFlow
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.math.abs
 
 /**
  * Accessibility Manager for WCAG 2.1 AA Compliance
@@ -91,7 +90,7 @@ class AccessibilityManager @Inject constructor(
 ) {
     
     private val accessibilityManager by lazy {
-        context.getSystemService(Context.ACCESSIBILITY_SERVICE) as AccessibilityManager
+        context.getSystemService(Context.ACCESSIBILITY_SERVICE) as SystemAccessibilityManager
     }
     
     private val _settings = mutableStateOf(AccessibilitySettings())
@@ -126,10 +125,13 @@ class AccessibilityManager @Inject constructor(
      * Check if reduced motion is enabled (system preference)
      */
     fun isReducedMotionEnabled(): Boolean {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            accessibilityManager.isReducedMotionEnabled
-        } else {
-            // Fallback for older versions
+        return try {
+            Settings.Global.getFloat(
+                context.contentResolver,
+                Settings.Global.ANIMATOR_DURATION_SCALE,
+                1f
+            ) == 0f
+        } catch (e: Exception) {
             false
         }
     }
@@ -138,7 +140,7 @@ class AccessibilityManager @Inject constructor(
      * Check if screen reader is enabled
      */
     fun isScreenReaderEnabled(): Boolean {
-        return AccessibilityManagerCompat.getInstance(context).isEnabled
+        return accessibilityManager.isEnabled
     }
     
     /**
@@ -148,9 +150,11 @@ class AccessibilityManager @Inject constructor(
         // Check if high contrast is enabled in system settings
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
             try {
-                val accessibilityManager = context.getSystemService(Context.ACCESSIBILITY_SERVICE)
-                    as android.view.accessibility.AccessibilityManager
-                accessibilityManager.isHighTextContrastEnabled
+                Settings.Secure.getInt(
+                    context.contentResolver,
+                    "high_text_contrast_enabled",
+                    0
+                ) == 1
             } catch (e: Exception) {
                 false
             }
@@ -395,7 +399,7 @@ class AccessibilityManager @Inject constructor(
             baseStyle.fontWeight
         }
         
-        val fontSize = baseStyle.fontSize?.times(scale)
+        val fontSize = baseStyle.fontSize.times(scale)
         
         return baseStyle.copy(
             fontSize = fontSize,
@@ -502,11 +506,11 @@ class AccessibilityManager @Inject constructor(
     /**
      * Get accessible touch target size
      */
-    fun getTouchTargetSize(): TextUnit {
+    fun getTouchTargetSize(): Dp {
         return if (settings.minimumTouchTarget) {
             MIN_TOUCH_TARGET_SIZE
         } else {
-            40.sp // Default touch target size
+            40.dp
         }
     }
     
@@ -531,23 +535,25 @@ class AccessibilityManager @Inject constructor(
         deviceId: String,
         devicePreferencesRepository: com.ourcookbook.domain.repository.DevicePreferencesRepository
     ): AccessibilitySettings {
-        return devicePreferencesRepository.getByDeviceId(deviceId)?.let { prefs ->
-            AccessibilitySettings(
-                reducedMotion = prefs.reduceMotion,
-                highContrast = prefs.highContrastMode,
-                textScaling = prefs.textScaling,
-                colorBlindnessMode = when (prefs.colorBlindnessMode) {
-                    "DEUTERANOPIA" -> ColorBlindnessMode.DEUTERANOPIA
-                    "PROTANOPIA" -> ColorBlindnessMode.PROTANOPIA
-                    "TRITANOPIA" -> ColorBlindnessMode.TRITANOPIA
-                    "ACHROMATOPSIA" -> ColorBlindnessMode.ACHROMATOPSIA
-                    else -> ColorBlindnessMode.NONE
-                },
-                screenReaderEnabled = prefs.screenReaderCompatibility,
-                minimumTouchTarget = true,
-                boldText = false
-            )
-        } ?: AccessibilitySettings()
+        return devicePreferencesRepository.getDevicePreferencesByDevice(deviceId)
+            .getOrDefault(DevicePreferences.createDefault(deviceId))
+            .let { prefs ->
+                AccessibilitySettings(
+                    reducedMotion = prefs.reduceMotion,
+                    highContrast = prefs.highContrastMode,
+                    textScaling = prefs.textScaling,
+                    colorBlindnessMode = when (prefs.colorBlindnessMode) {
+                        "DEUTERANOPIA" -> ColorBlindnessMode.DEUTERANOPIA
+                        "PROTANOPIA" -> ColorBlindnessMode.PROTANOPIA
+                        "TRITANOPIA" -> ColorBlindnessMode.TRITANOPIA
+                        "ACHROMATOPSIA" -> ColorBlindnessMode.ACHROMATOPSIA
+                        else -> ColorBlindnessMode.NONE
+                    },
+                    screenReaderEnabled = prefs.screenReaderCompatibility,
+                    minimumTouchTarget = true,
+                    boldText = false
+                )
+            }
     }
     
     /**
@@ -558,17 +564,16 @@ class AccessibilityManager @Inject constructor(
         settings: AccessibilitySettings,
         devicePreferencesRepository: com.ourcookbook.domain.repository.DevicePreferencesRepository
     ) {
-        val currentPrefs = devicePreferencesRepository.getByDeviceId(deviceId)
-        if (currentPrefs != null) {
-            val updatedPrefs = currentPrefs.copy(
-                reduceMotion = settings.reducedMotion,
-                highContrastMode = settings.highContrast,
-                textScaling = settings.textScaling,
-                colorBlindnessMode = settings.colorBlindnessMode.name,
-                screenReaderCompatibility = settings.screenReaderEnabled
-            )
-            devicePreferencesRepository.update(updatedPrefs)
-        }
+        val currentPrefs = devicePreferencesRepository.getDevicePreferencesByDevice(deviceId)
+            .getOrDefault(DevicePreferences.createDefault(deviceId))
+        val updatedPrefs = currentPrefs.copy(
+            reduceMotion = settings.reducedMotion,
+            highContrastMode = settings.highContrast,
+            textScaling = settings.textScaling,
+            colorBlindnessMode = settings.colorBlindnessMode.name,
+            screenReaderCompatibility = settings.screenReaderEnabled
+        )
+        devicePreferencesRepository.updateDevicePreferences(updatedPrefs)
     }
 }
 
@@ -585,20 +590,16 @@ private data class HSL(
  * Composable function to remember accessibility settings
  */
 @Composable
-fun rememberAccessibilitySettings(
-    accessibilityManager: AccessibilityManager = remember {
-        LocalContext.current.getSystemService(Context.ACCESSIBILITY_SERVICE)
-            as AccessibilityManager
-    }
-): AccessibilitySettings {
+fun rememberAccessibilitySettings(): AccessibilitySettings {
+    val context = LocalContext.current
+    val accessibilityManager = remember { AccessibilityManager(context) }
     var settings by remember { mutableStateOf(AccessibilitySettings()) }
-    
+
     LaunchedEffect(accessibilityManager) {
-        val manager = AccessibilityManager(LocalContext.current)
-        manager.updateSettings()
-        settings = manager.settings
+        accessibilityManager.updateSettings()
+        settings = accessibilityManager.settings
     }
-    
+
     return settings
 }
 
@@ -608,8 +609,9 @@ fun rememberAccessibilitySettings(
 @Composable
 fun accessibleColorScheme(): ColorScheme {
     val colorScheme = MaterialTheme.colorScheme
-    val accessibilityManager = remember { AccessibilityManager(LocalContext.current) }
-    
+    val context = LocalContext.current
+    val accessibilityManager = remember { AccessibilityManager(context) }
+
     return if (accessibilityManager.settings.highContrast) {
         accessibilityManager.getHighContrastColors(colorScheme)
     } else {
@@ -622,7 +624,8 @@ fun accessibleColorScheme(): ColorScheme {
  */
 @Composable
 fun shouldReduceMotion(): Boolean {
-    val accessibilityManager = remember { AccessibilityManager(LocalContext.current) }
+    val context = LocalContext.current
+    val accessibilityManager = remember { AccessibilityManager(context) }
     return accessibilityManager.shouldReduceMotion()
 }
 
@@ -631,7 +634,8 @@ fun shouldReduceMotion(): Boolean {
  */
 @Composable
 fun isScreenReaderActive(): Boolean {
-    val accessibilityManager = remember { AccessibilityManager(LocalContext.current) }
+    val context = LocalContext.current
+    val accessibilityManager = remember { AccessibilityManager(context) }
     return accessibilityManager.isScreenReaderActive()
 }
 
@@ -639,8 +643,9 @@ fun isScreenReaderActive(): Boolean {
  * Composable function to get touch target size
  */
 @Composable
-fun touchTargetSize(): TextUnit {
-    val accessibilityManager = remember { AccessibilityManager(LocalContext.current) }
+fun touchTargetSize(): Dp {
+    val context = LocalContext.current
+    val accessibilityManager = remember { AccessibilityManager(context) }
     return accessibilityManager.getTouchTargetSize()
 }
 
@@ -654,7 +659,8 @@ fun AccessibleText(
     isLargeText: Boolean = false,
     modifier: androidx.compose.ui.Modifier = androidx.compose.ui.Modifier
 ) {
-    val accessibilityManager = remember { AccessibilityManager(LocalContext.current) }
+    val context = LocalContext.current
+    val accessibilityManager = remember { AccessibilityManager(context) }
     val accessibleStyle = accessibilityManager.getAccessibleTextStyle(style, isLargeText)
     
     androidx.compose.material3.Text(

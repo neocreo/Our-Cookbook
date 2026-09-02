@@ -114,7 +114,7 @@ fun CookbookSecondaryButton(
             disabledContentColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
         ),
         shape = MaterialTheme.shapes.medium,
-        border = androidx.compose.foundation.border.BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
+        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
     ) {
         Text(
             text = text.uppercase(),

@@ -200,10 +200,10 @@ sealed class SettingsAction {
     data class NavigateToExport(val format: String = "JSON") : SettingsAction()
     data class NavigateToImport(val format: String = "JSON") : SettingsAction()
     data class NavigateToPrivacyPolicy(val url: String) : SettingsAction()
-    data class NavigateToOpenSourceLicenses : SettingsAction()
-    data class NavigateToContact : SettingsAction()
-    data class NavigateToRateApp : SettingsAction()
-    data class NavigateToChangelog : SettingsAction()
+    object NavigateToOpenSourceLicenses : SettingsAction()
+    object NavigateToContact : SettingsAction()
+    object NavigateToRateApp : SettingsAction()
+    object NavigateToChangelog : SettingsAction()
     data class NavigateToSubSettings(val category: SettingsCategory) : SettingsAction()
     
     // Dialog actions

@@ -30,6 +30,7 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.NavigationRail
 import androidx.compose.material3.NavigationRailItem
+import androidx.compose.material3.NavigationRailItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -125,11 +126,11 @@ fun CookbookTopAppBar(
 ) {
     TopAppBar(
         title = { Text(title, style = CookbookTypography.headlineSmall) },
-        navigationIcon = navigationIcon?.let {
-            {
+        navigationIcon = {
+            if (navigationIcon != null) {
                 IconButton(onClick = onNavigationClick) {
                     Icon(
-                        imageVector = it,
+                        imageVector = navigationIcon,
                         contentDescription = "Navigate back"
                     )
                 }

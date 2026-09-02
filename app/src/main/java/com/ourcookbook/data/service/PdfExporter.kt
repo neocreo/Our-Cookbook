@@ -9,6 +9,7 @@ import android.graphics.Typeface
 import android.graphics.pdf.PdfDocument
 import android.os.Environment
 import com.ourcookbook.domain.model.Recipe
+import javax.inject.Inject
 import java.io.File
 import java.io.FileOutputStream
 import java.io.OutputStream
@@ -20,7 +21,7 @@ import java.io.OutputStream
  * Exports recipes to PDF format with professional layout
  * Supports single recipe, multiple recipes, or entire cookbooks
  */
-class PdfExporter {
+class PdfExporter @Inject constructor() {
 
     companion object {
         private const val PAGE_WIDTH = 595  // A4 width in points (72 dpi)

@@ -125,7 +125,7 @@ class SyncViewModel @Inject constructor(
                 // Get last sync timestamp
                 val lastSyncTimestamp = syncMetadata
                     .filter { it.deviceId == currentDeviceId }
-                    .maxByOrNull { it.lastSyncTimestamp }
+                    .maxByOrNull { it.lastSyncTimestamp ?: java.time.Instant.MIN }
                     ?.lastSyncTimestamp
                 
                 _state.value = _state.value.copy(

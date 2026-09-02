@@ -1,4 +1,4 @@
-@file:OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
+@file:OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class, androidx.compose.ui.ExperimentalComposeUiApi::class)
 
 package com.ourcookbook.ui.screens.recipe
 
@@ -22,8 +22,10 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.FilterList
@@ -39,7 +41,7 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
@@ -82,6 +84,7 @@ import androidx.navigation.compose.rememberNavController
 import com.ourcookbook.domain.model.Recipe
 import com.ourcookbook.ui.components.CompactRecipeCard
 import com.ourcookbook.ui.components.CookbookFilterChip
+import com.ourcookbook.ui.components.CookbookSearchField
 import com.ourcookbook.ui.components.EmptyState
 import com.ourcookbook.ui.components.LoadingState
 import com.ourcookbook.ui.components.RecipeCard
@@ -517,7 +520,7 @@ fun FilterBottomSheetContent(
             }
         }
         
-        HorizontalDivider()
+        Divider()
         
         Row(
             verticalAlignment = Alignment.CenterVertically,

@@ -7,6 +7,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
@@ -224,8 +225,7 @@ fun CookbookManagementCard(
             // Quick actions row
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.End,
-                verticalArrangement = Arrangement.spacedBy(CookbookSpacing.xSmall)
+                horizontalArrangement = Arrangement.spacedBy(CookbookSpacing.xSmall, Alignment.End)
             ) {
                 IconButton(
                     onClick = onShare,
@@ -498,8 +498,7 @@ fun CookbookGridCard(
             // Action bar
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.End,
-                verticalArrangement = Arrangement.spacedBy(CookbookSpacing.xxSmall)
+                horizontalArrangement = Arrangement.spacedBy(CookbookSpacing.xxSmall, Alignment.End)
             ) {
                 IconButton(
                     onClick = onShare,

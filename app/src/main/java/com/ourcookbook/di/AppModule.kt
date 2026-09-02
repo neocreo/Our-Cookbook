@@ -50,14 +50,6 @@ object AppModule {
         return SettingsRepository(context)
     }
 
-    @Provides
-    @Singleton
-    fun provideDevicePreferencesRepository(
-        settingsRepository: SettingsRepository
-    ): DevicePreferencesRepository {
-        return DevicePreferencesRepositoryImpl(settingsRepository)
-    }
-
     // ========================================================================
     // USE CASES - Device Preferences
     // ========================================================================

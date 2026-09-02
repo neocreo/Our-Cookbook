@@ -1,6 +1,7 @@
 package com.ourcookbook.ui.screens.search
 
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -178,7 +179,8 @@ fun SearchScreen(
                 onBack = { navController.popBackStack() },
                 onFilter = { showFilterDrawer = true },
                 onSort = { showSortMenu = true },
-                currentSortOption = state.sortOption
+                currentSortOption = state.sortOption,
+                viewModel = viewModel
             )
         }
     ) { paddingValues ->
@@ -226,7 +228,7 @@ fun SearchScreen(
                     }
                     state.error != null -> {
                         ErrorState(
-                            message = state.error,
+                            message = state.error!!,
                             onRetry = { viewModel.refresh() },
                             modifier = Modifier.weight(1f)
                         )
@@ -590,7 +592,7 @@ fun FilterBottomSheet(
                     .padding(vertical = 8.dp)
                     .width(40.dp)
                     .height(4.dp),
-                shape = MaterialTheme.shapes.full,
+                shape = CircleShape,
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
             ) {}
         }
@@ -737,7 +739,7 @@ fun CookingTimeFilter(
             style = MaterialTheme.typography.titleMedium
         )
         
-        val maxTime = maxCookingTime ?: 120f
+        val maxTime = (maxCookingTime ?: 120).toFloat()
         
         Slider(
             value = maxTime,

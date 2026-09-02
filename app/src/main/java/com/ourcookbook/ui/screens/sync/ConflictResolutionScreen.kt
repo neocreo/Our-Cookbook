@@ -285,16 +285,6 @@ fun ResolutionOptions(
             title = "Keep Remote Version",
             description = "Discard your local changes and keep the remote version"
         )
-        
-        // Merge option (would be implemented in future)
-        ResolutionOption(
-            resolution = com.ourcookbook.domain.model.ConflictResolution.Merge,
-            selected = selectedResolution == com.ourcookbook.domain.model.ConflictResolution.Merge,
-            onSelect = onSelectResolution,
-            title = "Merge Changes",
-            description = "Combine changes from both versions (coming soon)",
-            enabled = false
-        )
     }
 }
 

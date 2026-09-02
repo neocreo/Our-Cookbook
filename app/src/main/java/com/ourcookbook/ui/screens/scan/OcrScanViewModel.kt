@@ -8,6 +8,7 @@ import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.text.TextRecognition
 import com.google.mlkit.vision.text.TextRecognizer
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions
+import com.google.android.gms.tasks.Tasks
 import com.ourcookbook.domain.model.Recipe
 import com.ourcookbook.domain.usecase.recipe.CreateRecipe
 import com.ourcookbook.domain.usecase.recipeimage.CreateRecipeImage
@@ -277,10 +278,9 @@ class OcrScanViewModel @Inject constructor(
         try {
             val inputImage = InputImage.fromBitmap(bitmap, 0)
             val result = textRecognizer.process(inputImage)
-            
-            val recognizedText = result.text
-            result.release()
-            
+
+            val recognizedText = Tasks.await(result).text
+
             // Preprocess the text
             textParser.preprocessOcrText(recognizedText)
         } catch (e: Exception) {
@@ -475,8 +475,7 @@ class OcrScanViewModel @Inject constructor(
                 id = "",
                 recipeId = recipeId,
                 imageUrl = imagePath,
-                order = 0,
-                checksum = ""
+                order = 0
             )
             createRecipeImage(image)
         } catch (e: Exception) {

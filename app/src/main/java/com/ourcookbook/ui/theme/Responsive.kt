@@ -19,7 +19,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.window.layout.DisplayFeature
 import androidx.window.layout.FoldingFeature
-import com.ourcookbook.ui.components.ResponsiveAppBar
+import com.ourcookbook.ui.components.ResponsiveAppBarConfiguration
 import com.ourcookbook.ui.components.ResponsiveNavigation
 import com.ourcookbook.ui.components.ResponsiveNavigationType
 
@@ -289,7 +289,7 @@ fun ResponsiveRowColumn(
             Column(
                 modifier = modifier,
                 verticalArrangement = Arrangement.spacedBy(spacing),
-                horizontalAlignment = horizontalArrangement
+                horizontalAlignment = Alignment.Start
             ) {
                 content()
             }
@@ -341,19 +341,19 @@ fun responsiveNavigationType(): ResponsiveNavigationType {
  * Responsive app bar configuration
  */
 @Composable
-fun responsiveAppBarConfiguration(): ResponsiveAppBar.Configuration {
+fun responsiveAppBarConfiguration(): ResponsiveAppBarConfiguration {
     return when (ScreenSize.current()) {
-        ScreenSize.COMPACT -> ResponsiveAppBar.Configuration(
+        ScreenSize.COMPACT -> ResponsiveAppBarConfiguration(
             showTitle = true,
             showNavigationIcon = true,
             showActions = true
         )
-        ScreenSize.MEDIUM -> ResponsiveAppBar.Configuration(
+        ScreenSize.MEDIUM -> ResponsiveAppBarConfiguration(
             showTitle = true,
             showNavigationIcon = true,
             showActions = true
         )
-        ScreenSize.EXPANDED -> ResponsiveAppBar.Configuration(
+        ScreenSize.EXPANDED -> ResponsiveAppBarConfiguration(
             showTitle = true,
             showNavigationIcon = false,
             showActions = true

@@ -132,26 +132,34 @@
     @com.google.android.gms.drive.DriveClient <methods>;
 }
 
-# Keep all classes that have a @Keep annotation for Google Credential Manager
--keep @androidx.credentials.** { *; }
+# Keep all classes for Google Credential Manager
+-keep class androidx.credentials.** { *; }
 
-# Keep all classes that have a @Keep annotation for Accompanist
--keep @com.google.accompanist.** { *; }
+# Keep all classes for Accompanist
+-keep class com.google.accompanist.** { *; }
 
-# Keep all classes that have a @Keep annotation for Coil
--keep @io.coil-kt.** { *; }
+# Keep all classes for Coil
+-keep class io.coil.** { *; }
 
-# Keep all classes that have a @Keep annotation for ZXing
--keep @com.journeyapps.** { *; }
+# Keep all classes for ZXing
+-keep class com.journeyapps.** { *; }
 
-# Keep all classes that have a @Keep annotation for iText
--keep @com.itextpdf.** { *; }
+# Keep all classes for iText
+-keep class com.itextpdf.** { *; }
 
-# Keep all classes that have a @Keep annotation for Jackson
--keep @com.fasterxml.jackson.** { *; }
+# Keep all classes for Jackson
+-keep class com.fasterxml.jackson.** { *; }
 
-# Keep all classes that have a @Keep annotation for Kotlin
--keep @kotlinx.** { *; }
+# Keep all classes for Kotlin
+-keep class kotlinx.** { *; }
 
-# Keep all classes that have a @Keep annotation for Coroutines
--keep @kotlinx.coroutines.** { *; }
+# Keep all classes for Coroutines
+-keep class kotlinx.coroutines.** { *; }
+
+# R8: suppress warnings for missing optional classes (iText bouncycastle, AWT, SLF4J)
+-dontwarn com.itextpdf.bouncycastle.**
+-dontwarn com.itextpdf.bouncycastlefips.**
+-dontwarn java.awt.**
+-dontwarn java.beans.**
+-dontwarn javax.imageio.**
+-dontwarn org.slf4j.impl.**

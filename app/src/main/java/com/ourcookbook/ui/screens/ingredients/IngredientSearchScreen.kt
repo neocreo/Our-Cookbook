@@ -3,6 +3,8 @@
 package com.ourcookbook.ui.screens.ingredients
 
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -48,6 +50,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -151,16 +154,14 @@ fun IngredientSearchScreen(
                     EmptyState(
                         icon = Icons.Default.Close,
                         title = "Error",
-                        message = currentState.message,
-                        onRetry = { viewModel.handleEvent(IngredientSearchEvent.Retry) }
+                        description = currentState.message
                     )
                 }
                 is IngredientSearchState.Empty -> {
                     EmptyState(
                         icon = Icons.Default.Search,
                         title = "No Recipes Found",
-                        message = "No recipes match the selected ingredients. Try different ingredients.",
-                        onRetry = { viewModel.handleEvent(IngredientSearchEvent.ClearSelection) }
+                        description = "No recipes match the selected ingredients. Try different ingredients."
                     )
                 }
             }
@@ -428,8 +429,7 @@ fun IngredientSearchResultsContent(
             EmptyState(
                 icon = Icons.Default.Search,
                 title = "No Recipes Found",
-                message = "No recipes match the selected ingredients.",
-                onRetry = onBack
+                description = "No recipes match the selected ingredients."
             )
         } else {
             val gridColumns = if (isTablet) 3 else 2

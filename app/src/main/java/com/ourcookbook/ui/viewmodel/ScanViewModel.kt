@@ -220,9 +220,6 @@ class ScanViewModel @Inject constructor(
                 com.ourcookbook.domain.model.Ingredient(
                     id = "",
                     name = ingredient,
-                    quantity = null,
-                    unit = null,
-                    recipeId = "",
                     order = index
                 )
             }
@@ -295,8 +292,7 @@ class ScanViewModel @Inject constructor(
                 id = "",
                 recipeId = recipeId,
                 imageUrl = imagePath,
-                order = 0,
-                checksum = ""
+                order = 0
             )
             createRecipeImage(image)
         } catch (e: Exception) {

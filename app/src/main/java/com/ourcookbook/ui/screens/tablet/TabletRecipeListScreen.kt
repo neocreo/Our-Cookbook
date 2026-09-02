@@ -21,11 +21,13 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Card
@@ -40,6 +42,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -59,13 +62,15 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.ourcookbook.domain.model.Recipe
 import com.ourcookbook.ui.components.ResponsiveAppBar
-import com.ourcookbook.ui.components.ResponsiveComponents
 import com.ourcookbook.ui.components.ResponsiveNavigation
 import com.ourcookbook.ui.components.ResponsiveNavItem
+import com.ourcookbook.ui.navigation.Route
 import com.ourcookbook.ui.theme.CookbookColors
 import com.ourcookbook.ui.theme.CookbookSpacing
 import com.ourcookbook.ui.theme.ResponsiveGrid
 import com.ourcookbook.ui.theme.ScreenSize
+import com.ourcookbook.ui.viewmodel.RecipeListEvent
+import com.ourcookbook.ui.viewmodel.RecipeListState
 import com.ourcookbook.ui.viewmodel.RecipeListViewModel
 
 /**
@@ -84,19 +89,20 @@ fun TabletRecipeListScreen(
     navController: NavController,
     viewModel: RecipeListViewModel = hiltViewModel()
 ) {
-    val state by viewModel.state
-    
+    val state by viewModel.state.collectAsState()
+    val recipes = (state as? RecipeListState.Success)?.recipes ?: emptyList()
+
     // Use navigation rail for tablets
     val navigationItems = listOf(
         ResponsiveNavItem(
             route = "recipes",
             label = "Recipes",
-            icon = androidx.compose.material.icons.Icons.Default.Home
+            icon = Icons.Default.Home
         ),
         ResponsiveNavItem(
             route = "categories",
             label = "Categories",
-            icon = androidx.compose.material.icons.Icons.Default.Category
+            icon = Icons.Default.Category
         ),
         ResponsiveNavItem(
             route = "favorites",
@@ -128,12 +134,12 @@ fun TabletRecipeListScreen(
                 .padding(start = CookbookSpacing.small)
         ) {
             TabletRecipeContent(
-                recipes = state.recipes,
+                recipes = recipes,
                 onRecipeClick = { recipeId ->
-                    viewModel.onRecipeClick(recipeId)
+                    navController.navigate(Route.recipeDetail(recipeId))
                 },
                 onFavoriteClick = { recipeId ->
-                    viewModel.toggleFavorite(recipeId)
+                    viewModel.handleEvent(RecipeListEvent.ToggleFavorite(recipeId))
                 },
                 navController = navController
             )
@@ -286,9 +292,9 @@ fun RecipeCard(
                         .size(36.dp)
                 ) {
                     Icon(
-                        if (recipe.favorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                        if (recipe.isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
                         contentDescription = "Toggle favorite",
-                        tint = if (recipe.favorite) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface
+                        tint = if (recipe.isFavorite) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface
                     )
                 }
                 
@@ -349,12 +355,13 @@ fun RecipeCard(
                     }
                     
                     // Rating
-                    if (recipe.rating > 0) {
+                    val ratingValue = recipe.rating
+                    if (ratingValue != null && ratingValue > 0) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             repeat(5) { index ->
                                 Icon(
                                     painter = painterResource(
-                                        if (index < recipe.rating.toInt()) {
+                                        if (index < ratingValue.toInt()) {
                                             android.R.drawable.star_on
                                         } else {
                                             android.R.drawable.star_off
@@ -372,9 +379,9 @@ fun RecipeCard(
                 Spacer(modifier = Modifier.height(CookbookSpacing.xSmall))
                 
                 // Description preview
-                if (recipe.description.isNotBlank()) {
+                if (!recipe.description.isNullOrBlank()) {
                     Text(
-                        text = recipe.description,
+                        text = recipe.description ?: "",
                         style = MaterialTheme.typography.bodySmall,
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis,
@@ -389,7 +396,7 @@ fun RecipeCard(
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.Start,
-                        verticalArrangement = Alignment.CenterVertically
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
                         recipe.tags.take(3).forEach { tag ->
                             Box(
@@ -608,9 +615,6 @@ fun TabletRecipeListScreenPreview() {
             servingSize = 4,
             prepTime = 10,
             cookTime = 15,
-            totalTime = 25,
-            rating = 4.5f,
-            favorite = true,
             tags = listOf("Italian", "Pasta", "Quick"),
             deviceId = ""
         ),
@@ -627,9 +631,6 @@ fun TabletRecipeListScreenPreview() {
             servingSize = 8,
             prepTime = 20,
             cookTime = 30,
-            totalTime = 50,
-            rating = 5f,
-            favorite = true,
             tags = listOf("Dessert", "Chocolate", "Cake"),
             deviceId = ""
         )

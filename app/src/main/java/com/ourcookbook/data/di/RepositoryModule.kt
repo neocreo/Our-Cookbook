@@ -5,6 +5,7 @@ import com.ourcookbook.data.datasource.local.*
 import com.ourcookbook.data.db.dao.RecipeFtsDao
 import com.ourcookbook.data.repository.*
 import com.ourcookbook.data.datasource.remote.IRecipeRemoteDataSource
+import com.ourcookbook.data.service.SyncServiceImpl
 import com.ourcookbook.domain.repository.*
 import com.ourcookbook.domain.service.ChecksumService
 import com.ourcookbook.domain.service.ConflictResolver
@@ -23,6 +24,11 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 object RepositoryModule {
+
+    @Provides
+    @Singleton
+    fun provideSyncService(impl: SyncServiceImpl): SyncService = impl
+
 
     // Recipe Repository
     @Provides

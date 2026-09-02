@@ -95,7 +95,7 @@ class RecipeEditViewModel @Inject constructor(
     private val updateRecipe: UpdateRecipe,
     private val createIngredient: CreateIngredient,
     private val updateIngredientUseCase: UpdateIngredient,
-    private val deleteIngredient: DeleteIngredient,
+    private val deleteIngredientUseCase: DeleteIngredient,
     private val getIngredientsByRecipe: GetIngredientsByRecipe
 ) : ViewModel() {
 
@@ -303,7 +303,7 @@ class RecipeEditViewModel @Inject constructor(
     private fun deleteIngredient(ingredientId: String) {
         viewModelScope.launch {
             try {
-                val result = deleteIngredient(ingredientId)
+                val result = deleteIngredientUseCase(ingredientId)
                 result.onSuccess {
                     _state.value = _state.value.copy(
                         ingredients = _state.value.ingredients.filter { it.id != ingredientId }

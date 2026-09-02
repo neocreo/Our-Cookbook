@@ -1,6 +1,7 @@
 package com.ourcookbook.data.service
 
 import com.ourcookbook.domain.model.Recipe
+import javax.inject.Inject
 import java.io.File
 import java.io.FileOutputStream
 import java.io.OutputStream
@@ -12,7 +13,7 @@ import java.io.OutputStream
  * Exports recipes to Markdown format matching the Cookbook folder style
  * Supports single recipe, multiple recipes, or entire cookbooks
  */
-class MarkdownExporter {
+class MarkdownExporter @Inject constructor() {
 
     /**
      * Export settings for Markdown generation

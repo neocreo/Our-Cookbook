@@ -93,6 +93,7 @@ import com.ourcookbook.ui.viewmodel.CookbookSharingInfo
 import com.ourcookbook.ui.viewmodel.ExportFormat
 import com.ourcookbook.ui.viewmodel.Permission
 import com.ourcookbook.ui.viewmodel.SharedUserInfo
+import java.io.File
 import java.time.Instant
 
 /**
@@ -203,9 +204,7 @@ fun CookbookCreationDialog(
                     placeholder = "Enter cookbook name",
                     isError = nameError != null,
                     errorMessage = nameError,
-                    keyboardOptions = KeyboardOptions(
-                        imeAction = ImeAction.Next
-                    )
+                    imeAction = ImeAction.Next
                 )
 
                 // Description field
@@ -377,9 +376,7 @@ fun CookbookEditingDialog(
                     placeholder = "Enter cookbook name",
                     isError = nameError != null,
                     errorMessage = nameError,
-                    keyboardOptions = KeyboardOptions(
-                        imeAction = ImeAction.Next
-                    )
+                    imeAction = ImeAction.Next
                 )
 
                 // Description field
@@ -820,8 +817,7 @@ fun PermissionChip(
     OutlinedButton(
         onClick = onSelected,
         colors = ButtonDefaults.outlinedButtonColors(
-            contentColor = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
-            borderColor = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
+            contentColor = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
         ),
         border = if (isSelected) {
             androidx.compose.foundation.BorderStroke(
@@ -1253,10 +1249,10 @@ fun ImportCookbookDialog(
 
                     Button(
                         onClick = { 
-                            selectedFormat?.let { 
+                            selectedFormat?.let {
                                 // In production, this would open a file picker
                                 // For now, just call the callback
-                                onImport(File("selected_file.${selectedFormat.name.lowercase()}"), selectedFormat)
+                                onImport(File("selected_file.${it.name.lowercase()}"), it)
                             }
                         },
                         enabled = selectedFormat != null,
@@ -1308,7 +1304,7 @@ fun ProgressDialog(
                 modifier = Modifier.padding(CookbookSpacing.large)
             ) {
                 CircularProgressIndicator(
-                    progress = { progress / 100f },
+                    progress = progress / 100f,
                     color = MaterialTheme.colorScheme.primary,
                     strokeWidth = 4.dp,
                     modifier = Modifier.size(64.dp)

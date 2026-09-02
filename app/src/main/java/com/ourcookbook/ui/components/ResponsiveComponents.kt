@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyGridState
@@ -38,6 +39,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
+import androidx.compose.material3.PermanentNavigationDrawer
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationDrawerItem
@@ -72,6 +74,7 @@ import com.ourcookbook.ui.theme.isLandscape
 import com.ourcookbook.ui.theme.isPortrait
 import com.ourcookbook.ui.theme.paddingValues
 import com.ourcookbook.ui.theme.responsiveAppBarConfiguration
+import com.ourcookbook.ui.theme.toPaddingValues
 import com.ourcookbook.ui.theme.responsiveNavigationType
 import com.ourcookbook.ui.theme.screenWidthDp
 
@@ -182,14 +185,14 @@ private fun CompactAppBar(
                 }
             }
         },
-        navigationIcon = if (configuration.showNavigationIcon && navigationIcon != null) {
-            {
+        navigationIcon = {
+            if (configuration.showNavigationIcon && navigationIcon != null) {
                 IconButton(onClick = onNavigationClick) {
                     Icon(navigationIcon, contentDescription = "Menu")
                 }
             }
-        } else null,
-        actions = if (configuration.showActions) actions else {},
+        },
+        actions = { if (configuration.showActions) actions() },
         colors = TopAppBarDefaults.mediumTopAppBarColors()
     )
 }
@@ -234,7 +237,7 @@ private fun ExpandedAppBar(
                 }
             }
         },
-        actions = if (configuration.showActions) actions else {},
+        actions = { if (configuration.showActions) actions() },
         colors = TopAppBarDefaults.largeTopAppBarColors()
     )
 }
@@ -392,14 +395,17 @@ fun NavigationDrawerComponent(
         }
     } else {
         ModalNavigationDrawer(
+            drawerContent = {
+                DrawerContent(
+                    navController = navController,
+                    items = items,
+                    drawerContent = drawerContent
+                )
+            },
             drawerState = drawerState,
             modifier = modifier
         ) {
-            DrawerContent(
-                navController = navController,
-                items = items,
-                drawerContent = drawerContent
-            )
+            // Main content is rendered by the caller alongside this drawer
         }
     }
 }
@@ -486,7 +492,7 @@ fun ResponsiveScaffold(
         modifier = modifier,
         topBar = topBar,
         floatingActionButton = floatingActionButton,
-        bottomBar = if (navigationType == ResponsiveNavigationType.BOTTOM_NAVIGATION) bottomBar else null,
+        bottomBar = { if (navigationType == ResponsiveNavigationType.BOTTOM_NAVIGATION) bottomBar() },
         content = { paddingValues ->
             content(paddingValues)
         }
@@ -647,7 +653,7 @@ fun ResponsiveForm(
         modifier = modifier
             .fillMaxWidth()
             .padding(ResponsiveDimensions.padding()),
-        verticalArrangement = Arrangement.spacedBy(ResponsiveDimensions.formFieldSpacing()),
+        verticalArrangement = Arrangement.spacedBy(CookbookSpacing.medium),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         content()

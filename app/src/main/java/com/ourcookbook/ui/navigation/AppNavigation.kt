@@ -37,11 +37,11 @@ fun AppNavigation(modifier: Modifier = Modifier) {
     ) {
         // Authentication flow
         composable(Route.AUTH) {
-            AuthScreen(state = com.ourcookbook.ui.screens.auth.AuthState(), onEvent = {}, onNavigateToDeviceRegistration = { navController.navigate(Route.DEVICE_REGISTRATION) }, onNavigateToHome = { navController.navigate(Route.HOME) })
+            AuthScreen(state = com.ourcookbook.ui.viewmodel.AuthState.Idle, onEvent = {}, onNavigateToDeviceRegistration = { navController.navigate(Route.DEVICE_REGISTRATION) }, onNavigateToHome = { navController.navigate(Route.HOME) })
         }
 
         composable(Route.DEVICE_REGISTRATION) {
-            DeviceRegistrationScreen(state = com.ourcookbook.ui.screens.auth.DeviceRegistrationState(), onEvent = {}, onNavigateBack = { navController.popBackStack() }, onNavigateToHome = { navController.navigate(Route.HOME) })
+            DeviceRegistrationScreen(state = com.ourcookbook.ui.viewmodel.DeviceRegistrationState(), onEvent = {}, onNavigateBack = { navController.popBackStack() }, onNavigateToHome = { navController.navigate(Route.HOME) })
         }
 
         // Main flow

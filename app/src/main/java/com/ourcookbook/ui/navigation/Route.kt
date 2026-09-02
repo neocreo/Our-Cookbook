@@ -69,6 +69,8 @@ object Route {
     fun recipeEdit(recipeId: String) = "recipe_edit/$recipeId"
     fun cookbookDetail(cookbookId: String) = "cookbook_detail/$cookbookId"
     fun cookbookEdit(cookbookId: String) = "cookbook_edit/$cookbookId"
+    fun categoryRecipes(category: String) = "category_recipes/$category"
+    fun tagRecipes(tag: String) = "tag_recipes/$tag"
     fun conflictResolution(conflictId: String) = "conflict_resolution/$conflictId"
     fun syncDetails(syncId: String) = "sync_details/$syncId"
     fun deviceDetail(deviceId: String) = "device_detail/$deviceId"

@@ -107,13 +107,8 @@ class DeviceRegistrationViewModel @Inject constructor(
                     id = UUID.randomUUID().toString(),
                     deviceId = deviceId,
                     name = currentState.deviceName,
-                    deviceType = currentState.deviceType,
-                    osVersion = getOsVersion(),
-                    appVersion = "1.0.0",
-                    lastSeen = java.time.Instant.now(),
                     createdAt = java.time.Instant.now(),
-                    isActive = true,
-                    checksum = ""
+                    lastSeenAt = java.time.Instant.now()
                 )
                 
                 val result = createDevice(device)

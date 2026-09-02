@@ -14,9 +14,5 @@
     
     <!-- Include app files directory -->
     <include domain="file" path="files/" />
-    
-    <!-- Exclude cache and temporary files -->
-    <exclude domain="file" path="cache/" />
-    <exclude domain="file" path="code_cache/" />
-    <exclude domain="file" path="no_backup/" />
+
 </full-backup-content>

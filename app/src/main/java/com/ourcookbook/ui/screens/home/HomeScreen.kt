@@ -93,7 +93,7 @@ fun HomeScreen(
         when {
             state.isLoading -> LoadingState()
             state.error != null -> ErrorState(
-                message = state.error,
+                message = state.error!!,
                 onRetry = { viewModel.loadData() }
             )
             else -> HomeContent(

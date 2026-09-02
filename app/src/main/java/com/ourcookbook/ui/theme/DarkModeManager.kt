@@ -29,6 +29,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -279,10 +280,8 @@ class ThemeViewModel @Inject constructor(
             ThemePreference.LIGHT -> false
             ThemePreference.DARK -> true
             ThemePreference.SYSTEM -> {
-                // Follow system preference
-                android.preference.PreferenceManager.getDefaultSharedPreferences(
-                    getApplication<android.app.Application>()
-                ).getBoolean("dark_theme_enabled", false)
+                // System preference is resolved at the Compose layer via isSystemInDarkTheme()
+                false
             }
             ThemePreference.AUTO -> {
                 // Auto mode based on time
@@ -317,14 +316,6 @@ class ThemeViewModel @Inject constructor(
     fun updateThemePreference(theme: ThemePreference) {
         scope.launch {
             themePreferencesManager.setThemePreference(theme)
-            
-            // Also update device preferences if repository is available
-            devicePreferencesRepository?.let { repo ->
-                val currentPrefs = repo.getAll().firstOrNull()
-                currentPrefs?.let { prefs ->
-                    repo.update(prefs.copy(theme = theme.toDeviceTheme()))
-                }
-            }
         }
     }
     
@@ -473,11 +464,8 @@ class SharedPrefsThemeManager(private val sharedPreferences: SharedPreferences) 
             ThemePreference.LIGHT -> false
             ThemePreference.DARK -> true
             ThemePreference.SYSTEM -> {
-                val uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES
-                val nightMode = android.content.res.Configuration.UI_MODE_NIGHT_MASK
-                (android.preference.PreferenceManager.getDefaultSharedPreferences(
-                    sharedPreferences.context
-                ).getInt("ui_mode_night", 0) and nightMode) == uiMode
+                // System preference is resolved at the Compose layer via isSystemInDarkTheme()
+                false
             }
             ThemePreference.AUTO -> {
                 val currentHour = java.time.LocalTime.now().hour
@@ -513,13 +501,13 @@ suspend fun getThemeSettingsFromDevice(
     deviceId: String,
     devicePreferencesRepository: DevicePreferencesRepository
 ): ThemeSettings {
-    return devicePreferencesRepository.getByDeviceId(deviceId)?.let { prefs ->
-        ThemeSettings(
-            themePreference = prefs.toThemePreference(),
-            dynamicColorsEnabled = true, // Default for now
-            autoDarkModeEnabled = false, // Default for now
-            darkModeStartTime = "20:00",
-            darkModeEndTime = "07:00"
-        )
-    } ?: ThemeSettings()
+    val prefs = devicePreferencesRepository.getDevicePreferencesByDevice(deviceId)
+        .getOrDefault(DevicePreferences.createDefault(deviceId))
+    return ThemeSettings(
+        themePreference = prefs.toThemePreference(),
+        dynamicColorsEnabled = true, // Default for now
+        autoDarkModeEnabled = false, // Default for now
+        darkModeStartTime = "20:00",
+        darkModeEndTime = "07:00"
+    )
 }

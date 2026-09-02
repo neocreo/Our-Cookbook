@@ -77,7 +77,7 @@ fun CookbookCard(
             contentColor = MaterialTheme.colorScheme.onSurface
         ),
         border = if (onClick != null) 
-            androidx.compose.foundation.border.BorderStroke(
+            androidx.compose.foundation.BorderStroke(
                 1.dp, 
                 MaterialTheme.colorScheme.outlineVariant
             ) 

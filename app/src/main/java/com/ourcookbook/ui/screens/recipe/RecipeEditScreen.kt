@@ -9,6 +9,7 @@ import android.graphics.Bitmap
 import android.net.Uri
 import android.provider.MediaStore
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -702,7 +703,7 @@ fun RecipeImageSection(
                     ElevatedCard(
                         onClick = {
                             imagePickerLauncher.launch(
-                                ActivityResultContracts.PickVisualMedia.Request(
+                                PickVisualMediaRequest(
                                     mediaType = ActivityResultContracts.PickVisualMedia.ImageOnly
                                 )
                             )
@@ -888,8 +889,8 @@ fun IngredientsSection(
                 ingredients.forEach { ingredient ->
                     IngredientItem(
                         ingredient = ingredient,
-                        onEdit = { editingIngredient = it },
-                        onDelete = { onDeleteIngredient(it.id) },
+                        onEdit = { editingIngredient = ingredient },
+                        onDelete = { onDeleteIngredient(ingredient.id) },
                         modifier = Modifier.fillMaxWidth()
                     )
                 }
@@ -900,7 +901,6 @@ fun IngredientsSection(
         CookbookPrimaryButton(
             text = "Add Ingredient",
             onClick = { showAddIngredientDialog = true },
-            icon = Icons.Default.Add,
             modifier = Modifier.fillMaxWidth()
         )
         
@@ -1056,9 +1056,8 @@ fun IngredientDialog(
                 modifier = Modifier.padding(horizontal = CookbookSpacing.small)
             )
         },
-        containerColor = MaterialTheme.colorScheme.surface,
-        shape = MaterialTheme.shapes.large
-    ) {
+        shape = MaterialTheme.shapes.large,
+        text = {
         Column(
             verticalArrangement = Arrangement.spacedBy(CookbookSpacing.medium),
             modifier = Modifier.fillMaxWidth()
@@ -1141,11 +1140,11 @@ fun IngredientDialog(
                 value = order,
                 onValueChange = { order = it },
                 label = "Order",
-                placeholder = "Display order",
-                keyboardType = KeyboardType.Number
+                placeholder = "Display order"
             )
         }
-    }
+        }
+    )
 }
 
 @Composable
@@ -1248,7 +1247,6 @@ fun InstructionsSection(
                 updatedInstructions.add("")
                 onInstructionsChange(updatedInstructions)
             },
-            icon = Icons.Default.Add,
             modifier = Modifier.fillMaxWidth()
         )
     }

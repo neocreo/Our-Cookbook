@@ -196,13 +196,8 @@ class AuthViewModel @Inject constructor(
                     id = UUID.randomUUID().toString(),
                     deviceId = deviceId,
                     name = deviceName,
-                    deviceType = "ANDROID",
-                    osVersion = "13", // Will be set properly in production
-                    appVersion = "1.0.0",
-                    lastSeen = java.time.Instant.now(),
                     createdAt = java.time.Instant.now(),
-                    isActive = true,
-                    checksum = ""
+                    lastSeenAt = java.time.Instant.now()
                 )
                 
                 val result = createDevice(device)

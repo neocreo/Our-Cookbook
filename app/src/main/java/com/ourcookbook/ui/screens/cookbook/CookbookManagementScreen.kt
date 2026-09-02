@@ -21,6 +21,7 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowForward
+import androidx.compose.material.icons.filled.Book
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.FilterList
@@ -32,7 +33,9 @@ import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Sort
 import androidx.compose.material.icons.filled.Upload
 import androidx.compose.material.icons.filled.Download
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.AlertDialog
+import java.io.File
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -487,9 +490,7 @@ fun CookbookManagementScreen(
                 EmptyState(
                     icon = Icons.Default.Add,
                     title = "No cookbooks yet",
-                    description = "Create your first cookbook to organize your recipes",
-                    actionText = "Create Cookbook",
-                    onAction = { viewModel.showCreateCookbookDialog() }
+                    description = "Create your first cookbook to organize your recipes"
                 )
             }
             is CookbookManagementState.Success -> {

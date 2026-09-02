@@ -5,6 +5,7 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.ourcookbook.domain.model.Recipe
 import com.ourcookbook.domain.model.Cookbook
+import javax.inject.Inject
 import java.io.File
 import java.io.FileOutputStream
 import java.io.OutputStream
@@ -16,7 +17,7 @@ import java.io.OutputStream
  * Exports recipes to JSON format for easy import/export
  * Supports single recipe, multiple recipes, or entire cookbooks
  */
-class JsonExporter {
+class JsonExporter @Inject constructor() {
 
     private val objectMapper: ObjectMapper = jacksonObjectMapper()
 

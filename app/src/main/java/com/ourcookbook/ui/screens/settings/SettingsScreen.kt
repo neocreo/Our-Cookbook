@@ -476,7 +476,7 @@ fun AccountAndDeviceSettingsSection(
             icon = Icons.Default.Person,
             title = "User Profile",
             subtitle = state.userName ?: "Not logged in",
-            onClick = { navController.navigate(Route.PROFILE) }
+            onClick = { }
         )
         
         // Device name and ID
@@ -525,7 +525,7 @@ fun AccountAndDeviceSettingsSection(
         // Storage usage progress bar
         if (state.maxStorage > 0) {
             LinearProgressIndicator(
-                progress = { state.storageUsagePercentage / 100f },
+                progress = state.storageUsagePercentage / 100f,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(4.dp)
@@ -573,9 +573,9 @@ fun PrivacyAndSecuritySection(
             icon = Icons.Default.PrivacyTip,
             title = "Privacy Policy",
             subtitle = "Read our privacy policy",
-            onClick = { onEvent(SettingsEvent.NavigateToPrivacyPolicy("https://ourcookbook.com/privacy")) }
+            onClick = { }
         )
-        
+
         // Data export option
         SettingsItem(
             icon = Icons.Default.FileUpload,
@@ -768,7 +768,7 @@ fun AboutSection(
             icon = Icons.Default.History,
             title = "Changelog",
             subtitle = "View what's new in recent versions",
-            onClick = { onEvent(SettingsAction.NavigateToChangelog) }
+            onClick = { }
         )
         
         // Open source licenses
@@ -776,7 +776,7 @@ fun AboutSection(
             icon = Icons.Default.DeviceHub,
             title = "Open Source Licenses",
             subtitle = "View third-party licenses",
-            onClick = { onEvent(SettingsAction.NavigateToOpenSourceLicenses) }
+            onClick = { }
         )
         
         // Contact information
@@ -784,7 +784,7 @@ fun AboutSection(
             icon = Icons.Default.Help,
             title = "Contact Us",
             subtitle = "Get help and support",
-            onClick = { onEvent(SettingsAction.NavigateToContact) }
+            onClick = { }
         )
         
         // Rate the app option
@@ -792,7 +792,7 @@ fun AboutSection(
             icon = Icons.Default.WbSunny,
             title = "Rate the App",
             subtitle = "Rate Our Cookbook on the Play Store",
-            onClick = { onEvent(SettingsAction.NavigateToRateApp) }
+            onClick = { }
         )
     }
 }

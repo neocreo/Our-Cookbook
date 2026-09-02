@@ -39,7 +39,7 @@ fun ProgressDialog(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 CircularProgressIndicator(
-                    progress = { if (progress >= 0) progress else null },
+                    progress = if (progress >= 0) progress else 0f,
                     color = MaterialTheme.colorScheme.primary,
                     strokeWidth = 3.dp,
                     modifier = Modifier.size(24.dp)
@@ -61,7 +61,7 @@ fun ProgressDialog(
             ) {
                 // Linear progress indicator
                 LinearProgressIndicator(
-                    progress = { if (progress >= 0) progress else null },
+                    progress = if (progress >= 0) progress else 0f,
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(8.dp),
@@ -271,7 +271,7 @@ fun DeterminateProgressDialog(
                 
                 // Progress bar
                 LinearProgressIndicator(
-                    progress = { progress },
+                    progress = progress,
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(8.dp),
@@ -360,7 +360,7 @@ fun MultiStepProgressDialog(
                 
                 // Progress bar
                 LinearProgressIndicator(
-                    progress = { if (totalSteps > 0) (currentStep - 1).toFloat() / (totalSteps - 1) else 0f },
+                    progress = if (totalSteps > 0) (currentStep - 1).toFloat() / (totalSteps - 1) else 0f,
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(4.dp),

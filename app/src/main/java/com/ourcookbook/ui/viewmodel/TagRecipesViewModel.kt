@@ -41,8 +41,7 @@ class TagRecipesViewModel @Inject constructor(
                 error = null
             )
             try {
-                val allRecipes = getAllRecipes().first()
-                val filteredRecipes = filterRecipesByTags(allRecipes, listOf(tag))
+                val filteredRecipes = filterRecipesByTags(listOf(tag)).getOrDefault(emptyList())
                 _state.value = _state.value.copy(
                     recipes = filteredRecipes,
                     isLoading = false
