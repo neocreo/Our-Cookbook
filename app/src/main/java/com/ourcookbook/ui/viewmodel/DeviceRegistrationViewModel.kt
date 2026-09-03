@@ -1,5 +1,6 @@
 package com.ourcookbook.ui.viewmodel
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ourcookbook.domain.model.Device
@@ -8,6 +9,7 @@ import com.ourcookbook.domain.usecase.device.GetDeviceByDeviceId
 import com.ourcookbook.domain.usecase.device.UpdateDevice
 import com.ourcookbook.domain.usecase.devicepreferences.CreateDevicePreferences
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -57,11 +59,17 @@ sealed class DeviceRegistrationAction {
  */
 @HiltViewModel
 class DeviceRegistrationViewModel @Inject constructor(
+    @ApplicationContext private val context: Context,
     private val createDevice: CreateDevice,
     private val getDeviceByDeviceId: GetDeviceByDeviceId,
     private val updateDevice: UpdateDevice,
     private val createDevicePreferences: CreateDevicePreferences
 ) : ViewModel() {
+
+    companion object {
+        private const val PREFS_NAME = "auth_prefs"
+        private const val KEY_DEVICE_ID = "device_id"
+    }
 
     private val _state = MutableStateFlow(DeviceRegistrationState())
     val state: StateFlow<DeviceRegistrationState> = _state.asStateFlow()
@@ -155,8 +163,11 @@ class DeviceRegistrationViewModel @Inject constructor(
     }
 
     private suspend fun storeDeviceId(deviceId: String) {
-        // In production, this would store in Android Credential Manager or secure storage
         existingDeviceId = deviceId
+        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            .edit()
+            .putString(KEY_DEVICE_ID, deviceId)
+            .apply()
     }
 
     private suspend fun createDefaultPreferences(deviceId: String) {

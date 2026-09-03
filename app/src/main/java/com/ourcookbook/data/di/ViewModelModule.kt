@@ -237,29 +237,8 @@ object ViewModelModule {
         getConflictById, resolveSyncConflict, getConflictsByRecipe, updateConflict
     )
 
-    // Auth ViewModel
-    @Provides
-    fun provideAuthViewModel(
-        createDevice: CreateDevice,
-        getDeviceByDeviceId: GetDeviceByDeviceId,
-        updateDevice: UpdateDevice,
-        createDevicePreferences: CreateDevicePreferences,
-        getDevicePreferencesByDevice: GetDevicePreferencesByDevice
-    ): AuthViewModel = AuthViewModel(
-        createDevice, getDeviceByDeviceId, updateDevice, 
-        createDevicePreferences, getDevicePreferencesByDevice
-    )
-
-    // Device Registration ViewModel
-    @Provides
-    fun provideDeviceRegistrationViewModel(
-        createDevice: CreateDevice,
-        getDeviceByDeviceId: GetDeviceByDeviceId,
-        updateDevice: UpdateDevice,
-        createDevicePreferences: CreateDevicePreferences
-    ): DeviceRegistrationViewModel = DeviceRegistrationViewModel(
-        createDevice, getDeviceByDeviceId, updateDevice, createDevicePreferences
-    )
+    // Auth ViewModel - provided automatically by Hilt via @HiltViewModel
+    // Device Registration ViewModel - provided automatically by Hilt via @HiltViewModel
 
     // Settings ViewModel
     @Provides

@@ -1,5 +1,6 @@
 package com.ourcookbook.ui.viewmodel
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ourcookbook.domain.model.Device
@@ -9,6 +10,7 @@ import com.ourcookbook.domain.usecase.device.UpdateDevice
 import com.ourcookbook.domain.usecase.devicepreferences.CreateDevicePreferences
 import com.ourcookbook.domain.usecase.devicepreferences.GetDevicePreferencesByDevice
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -54,12 +56,18 @@ sealed class AuthAction {
  */
 @HiltViewModel
 class AuthViewModel @Inject constructor(
+    @ApplicationContext private val context: Context,
     private val createDevice: CreateDevice,
     private val getDeviceByDeviceId: GetDeviceByDeviceId,
     private val updateDevice: UpdateDevice,
     private val createDevicePreferences: CreateDevicePreferences,
     private val getDevicePreferencesByDevice: GetDevicePreferencesByDevice
 ) : ViewModel() {
+
+    companion object {
+        private const val PREFS_NAME = "auth_prefs"
+        private const val KEY_DEVICE_ID = "device_id"
+    }
 
     private val _state = MutableStateFlow<AuthState>(AuthState.Loading)
     val state: StateFlow<AuthState> = _state.asStateFlow()
@@ -121,9 +129,8 @@ class AuthViewModel @Inject constructor(
     }
 
     private suspend fun getStoredDeviceId(): String? {
-        // In production, this would come from Android Credential Manager or secure storage
-        // For now, return null to simulate first-time user
-        return null
+        return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            .getString(KEY_DEVICE_ID, null)
     }
 
     private suspend fun checkDevicePreferences(deviceId: String) {
@@ -221,8 +228,11 @@ class AuthViewModel @Inject constructor(
     }
 
     private suspend fun storeDeviceId(deviceId: String) {
-        // In production, this would store in Android Credential Manager or secure storage
         currentDeviceId = deviceId
+        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            .edit()
+            .putString(KEY_DEVICE_ID, deviceId)
+            .apply()
     }
 
     private fun skipRegistration() {
