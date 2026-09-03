@@ -50,8 +50,8 @@ fun AuthScreen(
             }
             is AuthState.Idle -> {
                 AuthContent(
-                    onStartRegistration = { onEvent(AuthEvent.StartDeviceRegistration) },
-                    onSkipRegistration = { onEvent(AuthEvent.SkipRegistration) }
+                    onLoginWithGoogle = { onEvent(AuthEvent.LoginWithGoogle) },
+                    onProceedOffline = { onEvent(AuthEvent.ProceedOffline) }
                 )
             }
             is AuthState.Authenticated -> {
@@ -73,8 +73,8 @@ fun AuthScreen(
 
 @Composable
 fun AuthContent(
-    onStartRegistration: () -> Unit,
-    onSkipRegistration: () -> Unit
+    onLoginWithGoogle: () -> Unit,
+    onProceedOffline: () -> Unit
 ) {
     Column(
         modifier = Modifier.fillMaxWidth(),
@@ -86,35 +86,35 @@ fun AuthContent(
             style = MaterialTheme.typography.headlineMedium,
             textAlign = TextAlign.Center
         )
-        
+
         Text(
             text = "Your personal recipe manager",
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
             textAlign = TextAlign.Center
         )
-        
+
         Spacer(modifier = Modifier.height(32.dp))
-        
+
         Text(
-            text = "To get started, please register your device",
+            text = "Cookbooks can sync to your Google Drive, or stay on this phone only.",
             style = MaterialTheme.typography.bodyMedium,
             textAlign = TextAlign.Center
         )
-        
+
         Spacer(modifier = Modifier.height(24.dp))
-        
+
         CookbookPrimaryButton(
-            text = "Register Device",
-            onClick = onStartRegistration,
+            text = "Log in with Google",
+            onClick = onLoginWithGoogle,
             modifier = Modifier.fillMaxWidth(0.8f)
         )
-        
+
         Button(
-            onClick = onSkipRegistration,
+            onClick = onProceedOffline,
             modifier = Modifier.fillMaxWidth(0.8f)
         ) {
-            Text("Skip for now")
+            Text("Proceed offline")
         }
     }
 }

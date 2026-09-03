@@ -264,57 +264,27 @@ class RecipeEditViewModel @Inject constructor(
     }
 
     private fun addIngredient(ingredient: Ingredient) {
-        viewModelScope.launch {
-            try {
-                val result = createIngredient(ingredient)
-                result.onSuccess { ingredientId ->
-                    val newIngredient = ingredient.copy(id = ingredientId)
-                    _state.value = _state.value.copy(
-                        ingredients = _state.value.ingredients + newIngredient
-                    )
-                }.onFailure { e ->
-                    _actions.value = RecipeEditAction.ShowError("Failed to add ingredient: ${e.message}")
-                }
-            } catch (e: Exception) {
-                _actions.value = RecipeEditAction.ShowError("Failed to add ingredient: ${e.message}")
-            }
-        }
+        // Keep ingredients in memory only; they are persisted as part of the
+        // recipe (ingredientsJson) when the recipe is saved. Persisting them
+        // as separate rows here would violate the recipe foreign key for a
+        // new, not-yet-saved recipe (SQLite error 19).
+        _state.value = _state.value.copy(
+            ingredients = _state.value.ingredients + ingredient
+        )
     }
 
     private fun updateIngredient(ingredient: Ingredient) {
-        viewModelScope.launch {
-            try {
-                val result = updateIngredientUseCase(ingredient)
-                result.onSuccess {
-                    _state.value = _state.value.copy(
-                        ingredients = _state.value.ingredients.map {
-                            if (it.id == ingredient.id) ingredient else it
-                        }
-                    )
-                }.onFailure { e ->
-                    _actions.value = RecipeEditAction.ShowError("Failed to update ingredient: ${e.message}")
-                }
-            } catch (e: Exception) {
-                _actions.value = RecipeEditAction.ShowError("Failed to update ingredient: ${e.message}")
+        _state.value = _state.value.copy(
+            ingredients = _state.value.ingredients.map {
+                if (it.id == ingredient.id) ingredient else it
             }
-        }
+        )
     }
 
     private fun deleteIngredient(ingredientId: String) {
-        viewModelScope.launch {
-            try {
-                val result = deleteIngredientUseCase(ingredientId)
-                result.onSuccess {
-                    _state.value = _state.value.copy(
-                        ingredients = _state.value.ingredients.filter { it.id != ingredientId }
-                    )
-                }.onFailure { e ->
-                    _actions.value = RecipeEditAction.ShowError("Failed to delete ingredient: ${e.message}")
-                }
-            } catch (e: Exception) {
-                _actions.value = RecipeEditAction.ShowError("Failed to delete ingredient: ${e.message}")
-            }
-        }
+        _state.value = _state.value.copy(
+            ingredients = _state.value.ingredients.filter { it.id != ingredientId }
+        )
     }
 
     private fun validateRecipe() {

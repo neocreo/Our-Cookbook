@@ -68,9 +68,14 @@ fun HomeScreen(
             )
         },
         bottomBar = {
-            HomeBottomNavigation(
+            com.ourcookbook.ui.components.CookbookBottomNavigation(
                 currentRoute = Route.HOME,
-                onNavigate = { route -> navController.navigate(route) }
+                onNavigate = { route ->
+                    navController.navigate(route) {
+                        launchSingleTop = true
+                        restoreState = true
+                    }
+                }
             )
         },
         floatingActionButton = {
@@ -104,6 +109,15 @@ fun HomeScreen(
                 onCategoryClick = { category ->
                     navController.navigate("${Route.RECIPE_LIST}?category=$category")
                 },
+                onCookbookClick = { cookbookId ->
+                    navController.navigate("${Route.COOKBOOK_DETAIL}/${cookbookId}")
+                },
+                onCreateCookbook = { navController.navigate(Route.COOKBOOK_CREATE) },
+                onCreateRecipe = { navController.navigate(Route.RECIPE_CREATE) },
+                onViewAllRecipes = { navController.navigate(Route.RECIPE_LIST) },
+                onViewFavorites = { navController.navigate("${Route.RECIPE_LIST}?favorites=true") },
+                onScan = { navController.navigate(Route.OCR_SCANNER) },
+                onSync = { navController.navigate(Route.SYNC_STATUS) },
                 modifier = Modifier.padding(paddingValues)
             )
         }
@@ -115,6 +129,13 @@ fun HomeContent(
     state: HomeState,
     onRecipeClick: (String) -> Unit,
     onCategoryClick: (String) -> Unit,
+    onCookbookClick: (String) -> Unit,
+    onCreateCookbook: () -> Unit,
+    onCreateRecipe: () -> Unit,
+    onViewAllRecipes: () -> Unit,
+    onViewFavorites: () -> Unit,
+    onScan: () -> Unit,
+    onSync: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     LazyColumn(
@@ -125,11 +146,49 @@ fun HomeContent(
         // Quick actions
         item {
             QuickActionsSection(
-                onNewRecipeClick = { /* Handled by FAB */ },
-                onScanClick = { /* navController.navigate(Route.OCR_SCANNER) */ },
-                onImportClick = { /* navController.navigate("${Route.RECIPE_LIST}?import=true") */ },
-                onSyncClick = { /* navController.navigate(Route.SYNC_STATUS) */ }
+                onNewRecipeClick = onCreateRecipe,
+                onScanClick = onScan,
+                onImportClick = { /* import flow - later phase */ },
+                onSyncClick = onSync
             )
+        }
+
+        // Cookbooks — must exist before recipes can be saved.
+        item {
+            SectionHeader(
+                title = "Your Cookbooks",
+                actionText = if (state.cookbooks.isNotEmpty()) "Manage" else null,
+                onActionClick = if (state.cookbooks.isNotEmpty()) {
+                    { /* navigate to cookbook management */ }
+                } else null
+            )
+        }
+
+        if (state.cookbooks.isEmpty()) {
+            item {
+                EmptyState(
+                    icon = Icons.Default.Add,
+                    title = "No cookbooks yet",
+                    description = "Create a cookbook first — you need one before you can save recipes."
+                )
+            }
+            item {
+                CookbookPrimaryButton(
+                    text = "Create a Cookbook",
+                    onClick = onCreateCookbook,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        } else {
+            items(state.cookbooks, key = { it.id }) { cookbook ->
+                CookbookCard(
+                    cookbook = cookbook,
+                    onClick = { onCookbookClick(cookbook.id) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = CookbookSpacing.xSmall)
+                )
+            }
         }
 
         // Recent recipes
@@ -137,20 +196,58 @@ fun HomeContent(
             SectionHeader(
                 title = "Recent Recipes",
                 actionText = "View All",
-                onActionClick = { /* navController.navigate(Route.RECIPE_LIST) */ }
+                onActionClick = onViewAllRecipes
             )
         }
 
         if (state.recentRecipes.isEmpty()) {
             item {
-                EmptyState(
-                    icon = Icons.Default.Search,
-                    title = "No recent recipes",
-                    description = "Add your first recipe to get started"
-                )
+                if (state.cookbooks.isEmpty()) {
+                    EmptyState(
+                        icon = Icons.Default.Search,
+                        title = "No recipes yet",
+                        description = "Create a cookbook first, then add your recipes."
+                    )
+                } else {
+                    EmptyState(
+                        icon = Icons.Default.Add,
+                        title = "No recipes yet",
+                        description = "Add your first recipe to get started."
+                    )
+                }
+            }
+            if (state.cookbooks.isNotEmpty()) {
+                item {
+                    CookbookPrimaryButton(
+                        text = "Add a Recipe",
+                        onClick = onCreateRecipe,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
             }
         } else {
             items(state.recentRecipes, key = { it.id }) { recipe ->
+                RecipeCard(
+                    recipe = recipe,
+                    onClick = { onRecipeClick(recipe.id) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = CookbookSpacing.xSmall)
+                )
+            }
+        }
+
+        // Favorites quick link
+        item {
+            SectionHeader(
+                title = "Favorites",
+                actionText = if (state.favorites.isNotEmpty()) "View All" else null,
+                onActionClick = if (state.favorites.isNotEmpty()) onViewFavorites else null
+            )
+        }
+
+        if (state.favorites.isNotEmpty()) {
+            items(state.favorites, key = { it.id }) { recipe ->
                 RecipeCard(
                     recipe = recipe,
                     onClick = { onRecipeClick(recipe.id) },
@@ -171,27 +268,6 @@ fun HomeContent(
                 categories = state.categories,
                 onCategoryClick = onCategoryClick
             )
-        }
-
-        // Favorites
-        if (state.favorites.isNotEmpty()) {
-            item {
-                SectionHeader(
-                    title = "Favorites",
-                    actionText = "View All",
-                    onActionClick = { /* navController.navigate("${Route.RECIPE_LIST}?favorites=true") */ }
-                )
-            }
-
-            items(state.favorites, key = { it.id }) { recipe ->
-                RecipeCard(
-                    recipe = recipe,
-                    onClick = { onRecipeClick(recipe.id) },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = CookbookSpacing.xSmall)
-                )
-            }
         }
     }
 }
@@ -240,7 +316,7 @@ fun CategoryGrid(
         verticalArrangement = Arrangement.spacedBy(CookbookSpacing.small),
         modifier = Modifier.fillMaxWidth()
     ) {
-        val allCategories = listOf("Breakfasts", "Mains", "Desserts & Snacks", "Sides", "Sauces and Spices")
+        val allCategories = com.ourcookbook.ui.viewmodel.HomeViewModel.DEFAULT_CATEGORIES
         
         allCategories.forEach { category ->
             CookbookPrimaryButton(

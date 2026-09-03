@@ -37,6 +37,8 @@ sealed class AuthEvent {
     object StartDeviceRegistration : AuthEvent()
     data class RegisterDevice(val deviceName: String) : AuthEvent()
     object SkipRegistration : AuthEvent()
+    object ProceedOffline : AuthEvent()
+    object LoginWithGoogle : AuthEvent()
     object RetryAuthentication : AuthEvent()
 }
 
@@ -46,6 +48,7 @@ sealed class AuthEvent {
 sealed class AuthAction {
     data class NavigateToDeviceRegistration(val deviceId: String? = null) : AuthAction()
     data class NavigateToHome(val deviceId: String) : AuthAction()
+    object NavigateToDriveAuth : AuthAction()
     data class ShowError(val message: String) : AuthAction()
     object ShowLoading : AuthAction()
 }
@@ -87,6 +90,8 @@ class AuthViewModel @Inject constructor(
             is AuthEvent.StartDeviceRegistration -> startDeviceRegistration()
             is AuthEvent.RegisterDevice -> registerDevice(event.deviceName)
             is AuthEvent.SkipRegistration -> skipRegistration()
+            is AuthEvent.ProceedOffline -> proceedOffline()
+            is AuthEvent.LoginWithGoogle -> loginWithGoogle()
             is AuthEvent.RetryAuthentication -> retryAuthentication()
         }
     }
@@ -242,6 +247,47 @@ class AuthViewModel @Inject constructor(
             currentDeviceId = tempDeviceId
             _state.value = AuthState.Authenticated
             _actions.value = AuthAction.NavigateToHome(tempDeviceId)
+        }
+    }
+
+    /**
+     * Proceed offline: create and persist a local device (phone memory only,
+     * no Google Drive sync) so subsequent launches skip straight to Home.
+     */
+    private fun proceedOffline() {
+        viewModelScope.launch {
+            _state.value = AuthState.Loading
+            try {
+                val deviceName = "${android.os.Build.MANUFACTURER} ${android.os.Build.MODEL}".trim()
+                val deviceId = UUID.randomUUID().toString()
+                val device = Device(
+                    id = UUID.randomUUID().toString(),
+                    deviceId = deviceId,
+                    name = deviceName.ifBlank { "My Phone" },
+                    createdAt = java.time.Instant.now(),
+                    lastSeenAt = java.time.Instant.now()
+                )
+                createDevice(device)
+                storeDeviceId(deviceId)
+                createDefaultPreferences(deviceId)
+            } catch (e: Exception) {
+                // Even if device creation fails, persist the id and go home.
+                val fallbackId = "local_${UUID.randomUUID()}"
+                storeDeviceId(fallbackId)
+                currentDeviceId = fallbackId
+                _state.value = AuthState.Authenticated
+                _actions.value = AuthAction.NavigateToHome(fallbackId)
+            }
+        }
+    }
+
+    /**
+     * Log in with Google: defer to the Drive auth flow. After it returns we
+     * still need a device record, so the registration screen handles naming.
+     */
+    private fun loginWithGoogle() {
+        viewModelScope.launch {
+            _actions.value = AuthAction.NavigateToDriveAuth
         }
     }
 

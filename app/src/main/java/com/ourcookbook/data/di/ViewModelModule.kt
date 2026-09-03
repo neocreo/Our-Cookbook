@@ -96,14 +96,7 @@ import android.content.Context
 @InstallIn(ViewModelComponent::class)
 object ViewModelModule {
 
-    // Home ViewModel
-    @Provides
-    fun provideHomeViewModel(
-        getRecipes: GetRecipes,
-        getCookbooks: GetCookbooks,
-        searchRecipes: SearchRecipes,
-        syncStatusService: SyncStatusService
-    ): HomeViewModel = HomeViewModel(getRecipes, getCookbooks, searchRecipes, syncStatusService)
+    // Home ViewModel - provided via @HiltViewModel constructor injection
 
     // Recipe List ViewModel
     @Provides

@@ -7,8 +7,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
-import androidx.hilt.navigation.compose.hiltViewModel
-import com.ourcookbook.ui.navigation.AppNavigation
+import androidx.navigation.compose.rememberNavController
+import com.ourcookbook.ui.navigation.CookbookNavHost
 import com.ourcookbook.ui.theme.CookbookTheme
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -18,12 +18,12 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             CookbookTheme {
-                // A surface container using the 'background' color from the theme
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    AppNavigation()
+                    val navController = rememberNavController()
+                    CookbookNavHost(navController = navController)
                 }
             }
         }

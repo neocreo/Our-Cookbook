@@ -42,46 +42,46 @@ import androidx.core.view.WindowCompat
  * Based on design tokens from project-docs/cookbook-ux-foundation.md
  */
 object CookbookColors {
-    // Primary colors - Soft red (tomatoes, peppers)
-    val primary: Color = Color(0xFFE57373)
-    val primaryVariant: Color = Color(0xFFC62828)  // Deep red
-    val primaryLight: Color = Color(0xFFFFCDD2)  // Light red
-    val primaryDark: Color = Color(0xFFB71C1C)    // Deep tomato red
-    val primaryContainer: Color = Color(0xFFFFDAD6)
-    val onPrimary: Color = Color(0xFFFFFFFF)
-    val onPrimaryContainer: Color = Color(0xFF410002)
+    // Primary colors - Terracotta (Organic design system)
+    val primary: Color = Color(0xFFC67139)
+    val primaryVariant: Color = Color(0xFF8C491A)  // Deep terracotta
+    val primaryLight: Color = Color(0xFFFFE1D0)  // Light terracotta
+    val primaryDark: Color = Color(0xFF8C491A)    // Deep terracotta
+    val primaryContainer: Color = Color(0xFFFFF2EB)
+    val onPrimary: Color = Color(0xFFFFF8F1)
+    val onPrimaryContainer: Color = Color(0xFF402310)
 
-    // Secondary colors - Earth tones (herbs)
-    val secondary: Color = Color(0xFF81C784)     // Soft green
-    val secondaryVariant: Color = Color(0xFF388E3C) // Deep green
-    val secondaryLight: Color = Color(0xFFC8E6C9) // Light green
-    val secondaryDark: Color = Color(0xFF4CAF50)   // Fresh green
-    val secondaryContainer: Color = Color(0xFFC8E6C9)
-    val onSecondary: Color = Color(0xFFFFFFFF)
-    val onSecondaryContainer: Color = Color(0xFF003800)
+    // Secondary colors - Sage (Organic accent-2)
+    val secondary: Color = Color(0xFF7A8A5E)     // Sage
+    val secondaryVariant: Color = Color(0xFF56633F) // Deep sage
+    val secondaryLight: Color = Color(0xFFE1EECC) // Light sage
+    val secondaryDark: Color = Color(0xFF728157)   // Fresh sage
+    val secondaryContainer: Color = Color(0xFFF0FAE1)
+    val onSecondary: Color = Color(0xFF272E1B)
+    val onSecondaryContainer: Color = Color(0xFF3D472B)
 
     // Tertiary colors - Warm accents
-    val tertiary: Color = Color(0xFFFFC107)      // Amber (morning)
-    val tertiaryVariant: Color = Color(0xFFFF9800) // Orange (spicy)
-    val tertiaryLight: Color = Color(0xFFFFECB3) // Light amber
-    val tertiaryDark: Color = Color(0xFFFF8C00)   // Warning orange
-    val tertiaryContainer: Color = Color(0xFFFFDBCB)
-    val onTertiary: Color = Color(0xFF3E1A00)
-    val onTertiaryContainer: Color = Color(0xFFFFFFFF)
+    val tertiary: Color = Color(0xFFC8963C)      // Mustard
+    val tertiaryVariant: Color = Color(0xFFE3C17A) // Light mustard
+    val tertiaryLight: Color = Color(0xFFF5EAD8) // Cream
+    val tertiaryDark: Color = Color(0xFFA97A2C)   // Deep mustard
+    val tertiaryContainer: Color = Color(0xFFF5EAD8)
+    val onTertiary: Color = Color(0xFF402310)
+    val onTertiaryContainer: Color = Color(0xFF474238)
 
-    // Surface colors
-    val surfaceLight: Color = Color(0xFFFFFFFF)     // White
-    val surfaceVariantLight: Color = Color(0xFFF5F5F5) // Light gray
-    val backgroundLight: Color = Color(0xFFF5F5F5)   // Light background
-    val onSurfaceLight: Color = Color(0xFF212121)   // Dark text
-    val onBackgroundLight: Color = Color(0xFF212121) // Dark text
+    // Surface colors - Cream/sand ground
+    val surfaceLight: Color = Color(0xFFEBDDC5)     // Sand surface
+    val surfaceVariantLight: Color = Color(0xFFDCD3C4) // Warm variant
+    val backgroundLight: Color = Color(0xFFF5EAD8)   // Cream background
+    val onSurfaceLight: Color = Color(0xFF201E1D)   // Ink text
+    val onBackgroundLight: Color = Color(0xFF201E1D) // Ink text
 
     // Dark theme surface colors
-    val surfaceDark: Color = Color(0xFF121212)       // Dark surface
-    val surfaceVariantDark: Color = Color(0xFF1E1E1E) // Darker surface
-    val backgroundDark: Color = Color(0xFF121212)    // Dark background
-    val onSurfaceDark: Color = Color(0xFFFFFFFF)    // Light text
-    val onBackgroundDark: Color = Color(0xFFFFFFFF) // Light text
+    val surfaceDark: Color = Color(0xFF332E27)       // Dark warm surface
+    val surfaceVariantDark: Color = Color(0xFF474238) // Darker warm surface
+    val backgroundDark: Color = Color(0xFF221F1B)    // Dark warm background
+    val onSurfaceDark: Color = Color(0xFFF5EAD8)    // Cream text
+    val onBackgroundDark: Color = Color(0xFFF5EAD8) // Cream text
 
     // Status colors
     val success: Color = Color(0xFF4CAF50)     // Success green
@@ -101,7 +101,15 @@ object CookbookColors {
         "Desserts" to Color(0xFFE91E63),        // Pink
         "Snacks" to Color(0xFFFF9800),         // Orange
         "Side" to Color(0xFF81C784),            // Green
-        "Sauce" to Color(0xFFFF9800)           // Orange
+        "Sauce" to Color(0xFFFF9800),           // Orange
+        "Breakfast & Brunch" to Color(0xFFFFC107),
+        "Appetizers" to Color(0xFFFF9800),
+        "Soups & Stews" to Color(0xFFE57373),
+        "Salads" to Color(0xFF81C784),
+        "Main Dishes" to Color(0xFFE57373),
+        "Snacks" to Color(0xFFFF9800),
+        "Beverages" to Color(0xFF2196F3),
+        "Condiments" to Color(0xFFFF9800)
     )
 
     // Additional semantic colors
@@ -147,7 +155,7 @@ val LightColorScheme: ColorScheme = lightColorScheme(
     surface = CookbookColors.surfaceLight,
     surfaceVariant = CookbookColors.surfaceVariantLight,
     onSurface = CookbookColors.onSurfaceLight,
-    onSurfaceVariant = Color(0xFF49454F),
+    onSurfaceVariant = Color(0xFF645C50),
     
     // Background colors
     background = CookbookColors.backgroundLight,
@@ -160,8 +168,8 @@ val LightColorScheme: ColorScheme = lightColorScheme(
     onErrorContainer = Color(0xFF410002),
     
     // Outline colors
-    outline = Color(0xFF757575),
-    outlineVariant = Color(0xFFC2C2C2),
+    outline = Color(0xFF82796A),
+    outlineVariant = Color(0xFFC0B6A5),
     
     // Other colors
     scrim = Color(0xFF000000),
@@ -204,7 +212,7 @@ val DarkColorScheme: ColorScheme = darkColorScheme(
     surface = CookbookColors.surfaceDark,
     surfaceVariant = CookbookColors.surfaceVariantDark,
     onSurface = CookbookColors.onSurfaceDark,
-    onSurfaceVariant = Color(0xFFCAC4D0),
+    onSurfaceVariant = Color(0xFFC0B6A5),
     
     // Background colors
     background = CookbookColors.backgroundDark,
@@ -217,8 +225,8 @@ val DarkColorScheme: ColorScheme = darkColorScheme(
     onErrorContainer = Color(0xFFFFB4AB),
     
     // Outline colors
-    outline = Color(0xFF9E9E9E),
-    outlineVariant = Color(0xFF424242),
+    outline = Color(0xFF9E9586),
+    outlineVariant = Color(0xFF424238),
     
     // Other colors
     scrim = Color(0xFF000000),
@@ -250,7 +258,7 @@ val DarkColorScheme: ColorScheme = darkColorScheme(
 @Composable
 fun CookbookTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    dynamicColor: Boolean = true,
+    dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
     // Use dynamic colors on Android 12+ if enabled

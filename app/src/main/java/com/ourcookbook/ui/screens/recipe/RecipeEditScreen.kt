@@ -767,9 +767,16 @@ fun CategorySelectionSection(
     errorMessage: String? = null
 ) {
     val categories = listOf(
-        "Breakfasts", "Mains", "Desserts & Snacks", "Sides", 
-        "Sauces and Spices", "Appetizers", "Soups", "Salads", 
-        "Beverages", "Baking"
+        "Breakfast & Brunch",
+        "Appetizers",
+        "Soups & Stews",
+        "Salads",
+        "Sides",
+        "Main Dishes",
+        "Desserts",
+        "Snacks",
+        "Beverages",
+        "Condiments"
     )
     
     var expanded by remember { mutableStateOf(false) }

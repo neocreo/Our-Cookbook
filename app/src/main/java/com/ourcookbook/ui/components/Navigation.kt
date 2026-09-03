@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Article
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.Home
@@ -40,11 +41,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.ourcookbook.ui.navigation.Route
 import com.ourcookbook.ui.theme.CookbookSpacing
 import com.ourcookbook.ui.theme.CookbookTypography
 
 /**
- * Bottom navigation bar for main app navigation
+ * Bottom navigation bar for main app navigation.
+ * Icon-only: Home, Recipes, Settings. Search is a top-bar link, not a tab.
  */
 @Composable
 fun CookbookBottomNavigation(
@@ -54,31 +57,19 @@ fun CookbookBottomNavigation(
 ) {
     val items = listOf(
         BottomNavItem(
-            route = "home",
+            route = Route.HOME,
             icon = Icons.Default.Home,
             label = "Home",
             contentDescription = "Home"
         ),
         BottomNavItem(
-            route = "recipes",
-            icon = Icons.Default.List,
+            route = Route.RECIPE_LIST,
+            icon = Icons.Default.Article,
             label = "Recipes",
             contentDescription = "Recipes"
         ),
         BottomNavItem(
-            route = "search",
-            icon = Icons.Default.Search,
-            label = "Search",
-            contentDescription = "Search"
-        ),
-        BottomNavItem(
-            route = "cookbooks",
-            icon = Icons.Default.Folder,
-            label = "Cookbooks",
-            contentDescription = "Cookbooks"
-        ),
-        BottomNavItem(
-            route = "settings",
+            route = Route.SETTINGS,
             icon = Icons.Default.Settings,
             label = "Settings",
             contentDescription = "Settings"
@@ -93,20 +84,21 @@ fun CookbookBottomNavigation(
         items.forEach { item ->
             NavigationBarItem(
                 selected = currentRoute == item.route,
-                onClick = { onNavigate(item.route) },
+                onClick = {
+                    if (currentRoute != item.route) onNavigate(item.route)
+                },
                 icon = {
                     Icon(
                         imageVector = item.icon,
                         contentDescription = item.contentDescription
                     )
                 },
-                label = { Text(item.label) },
                 colors = NavigationBarItemDefaults.colors(
                     selectedIconColor = MaterialTheme.colorScheme.primary,
                     unselectedIconColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                     selectedTextColor = MaterialTheme.colorScheme.primary,
                     unselectedTextColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                    indicatorColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
+                    indicatorColor = MaterialTheme.colorScheme.primaryContainer
                 )
             )
         }

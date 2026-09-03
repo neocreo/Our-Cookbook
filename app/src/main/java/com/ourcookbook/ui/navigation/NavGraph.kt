@@ -121,6 +121,10 @@ fun CookbookNavHost(
                         }
                         viewModel.clearAction()
                     }
+                    is com.ourcookbook.ui.viewmodel.AuthAction.NavigateToDriveAuth -> {
+                        navController.navigate(Route.DRIVE_AUTH)
+                        viewModel.clearAction()
+                    }
                     else -> {}
                 }
             }
@@ -452,17 +456,6 @@ composable(Route.FAVORITES) {
                 viewModel = viewModel,
                 navController = navController
             )
-        }
-        
-        composable(Route.CATEGORIES) {
-            // Categories screen - navigate to recipe list with category filter
-            // This will be implemented in a future task
-            // For now, redirect to recipe list
-            LaunchedEffect(Unit) {
-                navController.navigate(Route.RECIPE_LIST) {
-                    popUpTo(Route.CATEGORIES) { inclusive = true }
-                }
-            }
         }
         
         // ==================== SYNC FLOW ====================
