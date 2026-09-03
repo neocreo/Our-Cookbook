@@ -60,3 +60,6 @@ local.properties
 *.tar.gz
 OpenJDK*.tar.gz
 gradle-8.6-bin.zip*
+
+# Source materials (large binaries, not part of source)
+_sources/
