@@ -145,13 +145,14 @@ class RecipeEditViewModel @Inject constructor(
             _state.value = _state.value.copy(isLoading = true, error = null)
             
             if (recipeId == null) {
-                // New recipe
+                // New recipe — use empty id so saveRecipe calls createRecipe
                 _state.value = _state.value.copy(
                     isLoading = false,
-                    recipe = Recipe.create(
+                    recipe = Recipe(
+                        id = "",
                         title = "",
                         category = "",
-                        deviceId = "" // Will be set when saving
+                        deviceId = ""
                     )
                 )
                 return@launch

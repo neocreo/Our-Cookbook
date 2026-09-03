@@ -164,29 +164,7 @@ object ViewModelModule {
 
     // Sync Status ViewModel - provided via @HiltViewModel constructor injection
 
-    // Cookbook Management ViewModel
-    @Provides
-    fun provideCookbookManagementViewModel(
-        createCookbook: CreateCookbook,
-        updateCookbook: UpdateCookbook,
-        deleteCookbook: DeleteCookbook,
-        getAllCookbooks: GetAllCookbooks,
-        getCookbooksByOwner: GetCookbooksByOwner,
-        getSharedCookbooks: GetSharedCookbooks,
-        searchCookbooks: SearchCookbooks,
-        addRecipeToCookbook: AddRecipeToCookbook,
-        removeRecipeFromCookbook: RemoveRecipeFromCookbook,
-        exportCookbook: ExportCookbook,
-        importCookbook: ImportCookbook,
-        shareCookbook: ShareCookbook,
-        generateSharingLink: GenerateSharingLink,
-        getSharingInfo: GetSharingInfo
-    ): CookbookManagementViewModel = CookbookManagementViewModel(
-        createCookbook, updateCookbook, deleteCookbook, getAllCookbooks,
-        getCookbooksByOwner, getSharedCookbooks, searchCookbooks,
-        addRecipeToCookbook, removeRecipeFromCookbook, exportCookbook, importCookbook,
-        shareCookbook, generateSharingLink, getSharingInfo
-    )
+    // Cookbook Management ViewModel - provided via @HiltViewModel constructor injection
 
     // Conflict Resolution ViewModel
     @Provides

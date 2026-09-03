@@ -1,5 +1,6 @@
 package com.ourcookbook.ui.viewmodel
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ourcookbook.domain.model.Cookbook
@@ -19,10 +20,12 @@ import com.ourcookbook.domain.usecase.cookbook.ShareCookbook
 import com.ourcookbook.domain.usecase.cookbook.GenerateSharingLink
 import com.ourcookbook.domain.usecase.cookbook.GetSharingInfo
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import java.io.File
 import javax.inject.Inject
@@ -176,6 +179,7 @@ sealed class CookbookManagementAction {
  */
 @HiltViewModel
 class CookbookManagementViewModel @Inject constructor(
+    @ApplicationContext private val context: Context,
     private val createCookbook: CreateCookbook,
     private val updateCookbookUseCase: UpdateCookbook,
     private val deleteCookbookUseCase: DeleteCookbook,
@@ -198,12 +202,15 @@ class CookbookManagementViewModel @Inject constructor(
     private val _actions = MutableStateFlow<CookbookManagementAction?>(null)
     val actions: StateFlow<CookbookManagementAction?> = _actions.asStateFlow()
 
-    private var currentDeviceId: String = "current_device_id" // Will be set properly in production
+    private var currentDeviceId: String = "local-device"
     private var currentQuery: String = ""
     private var currentSortOrder: SortOrder = SortOrder.NAME_ASC
     private var recentlyDeletedCookbooks: MutableList<Cookbook> = mutableListOf()
+    private var pendingCookbookId: String? = null
 
     init {
+        currentDeviceId = context.getSharedPreferences("auth_prefs", Context.MODE_PRIVATE)
+            .getString("device_id", null) ?: "local-device"
         loadCookbooks()
     }
 
@@ -266,6 +273,12 @@ class CookbookManagementViewModel @Inject constructor(
                                         recentlyDeleted = recentlyDeletedCookbooks
                                     )
                                 }
+
+                                // Apply any pending cookbook selection from before loading completed.
+                                pendingCookbookId?.let { id ->
+                                    pendingCookbookId = null
+                                    selectCookbook(id)
+                                }
                             }
                     }
                 
@@ -279,8 +292,12 @@ class CookbookManagementViewModel @Inject constructor(
         try {
             val sharingInfoMap = mutableMapOf<String, CookbookSharingInfo>()
             cookbooks.forEach { cookbook ->
-                getSharingInfo(cookbook.id).collect { sharingInfo ->
+                // Use first() so we don't block forever on a Flow.collect.
+                try {
+                    val sharingInfo = getSharingInfo(cookbook.id).first()
                     sharingInfoMap[cookbook.id] = sharingInfo
+                } catch (e: Exception) {
+                    // Skip sharing info for this cookbook
                 }
             }
             val currentState = _state.value
@@ -323,11 +340,12 @@ class CookbookManagementViewModel @Inject constructor(
                     ?: currentState.sharedCookbooks.find { it.id == cookbookId }
                 
                 if (cookbook != null) {
-                    // In production, we would load the recipes for this cookbook
-                    // For now, just set the selected cookbook
                     _state.value = currentState.copy(selectedCookbook = cookbook)
                     _actions.value = CookbookManagementAction.ShowCookbookDetail(cookbookId)
                 }
+            } else {
+                // Cookbooks still loading — store the pending ID and apply after load.
+                pendingCookbookId = cookbookId
             }
         }
     }
