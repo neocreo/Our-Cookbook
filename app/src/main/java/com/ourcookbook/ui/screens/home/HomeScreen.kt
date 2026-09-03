@@ -104,13 +104,13 @@ fun HomeScreen(
             else -> HomeContent(
                 state = state,
                 onRecipeClick = { recipeId ->
-                    navController.navigate("${Route.RECIPE_DETAIL}/${recipeId}")
+                    navController.navigate(Route.recipeDetail(recipeId))
                 },
                 onCategoryClick = { category ->
                     navController.navigate("${Route.RECIPE_LIST}?category=$category")
                 },
                 onCookbookClick = { cookbookId ->
-                    navController.navigate("${Route.COOKBOOK_DETAIL}/${cookbookId}")
+                    navController.navigate(Route.cookbookDetail(cookbookId))
                 },
                 onCreateCookbook = { navController.navigate(Route.COOKBOOK_CREATE) },
                 onCreateRecipe = { navController.navigate(Route.RECIPE_CREATE) },

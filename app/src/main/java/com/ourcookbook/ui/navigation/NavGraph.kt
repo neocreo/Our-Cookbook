@@ -202,16 +202,60 @@ fun CookbookNavHost(
         
         // ==================== RECIPE FLOW ====================
         
-        composable(Route.RECIPE_LIST) {
+        composable(
+            route = "recipe_list?category={category}&favorites={favorites}",
+            arguments = listOf(
+                navArgument("category") {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
+                },
+                navArgument("favorites") {
+                    type = NavType.BoolType
+                    defaultValue = false
+                }
+            )
+        ) { backStackEntry ->
+            val category = backStackEntry.arguments?.getString("category")
+            val favorites = backStackEntry.arguments?.getBoolean("favorites") ?: false
             val viewModel: RecipeListViewModel = hiltViewModel()
             val state by viewModel.state.collectAsState()
             val actions by viewModel.actions.collectAsState()
-            
+
+            LaunchedEffect(category, favorites) {
+                if (favorites) {
+                    viewModel.handleEvent(com.ourcookbook.ui.viewmodel.RecipeListEvent.FilterByFavorites(true))
+                } else if (category != null) {
+                    viewModel.handleEvent(com.ourcookbook.ui.viewmodel.RecipeListEvent.FilterByCategory(category))
+                }
+            }
+
             RecipeListScreen(
                 viewModel = viewModel,
                 navController = navController
             )
-            
+
+            actions?.let { action ->
+                when (action) {
+                    is com.ourcookbook.ui.viewmodel.RecipeListAction.ShowRecipeDetail -> {
+                        navController.navigate(Route.recipeDetail(action.recipeId))
+                        viewModel.clearAction()
+                    }
+                    else -> {}
+                }
+            }
+        }
+
+        composable(Route.RECIPE_LIST) {
+            val viewModel: RecipeListViewModel = hiltViewModel()
+            val state by viewModel.state.collectAsState()
+            val actions by viewModel.actions.collectAsState()
+
+            RecipeListScreen(
+                viewModel = viewModel,
+                navController = navController
+            )
+
             // Handle navigation actions from ViewModel
             actions?.let { action ->
                 when (action) {

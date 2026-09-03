@@ -197,20 +197,46 @@ fun CookbookSearchField(
     onSearch: (() -> Unit)? = null,
     onClear: (() -> Unit)? = null
 ) {
-    CookbookTextField(
+    OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
-        label = "Search",
-        modifier = modifier,
-        placeholder = placeholder,
-        leadingIcon = Icons.Default.Search,
-        onClearClick = { 
-            onValueChange("")
-            onClear?.invoke()
+        placeholder = { Text(placeholder) },
+        leadingIcon = {
+            Icon(
+                imageVector = Icons.Default.Search,
+                contentDescription = null,
+                modifier = Modifier.size(20.dp)
+            )
         },
-        keyboardType = KeyboardType.Text,
-        imeAction = ImeAction.Search,
-        onNext = { onSearch?.invoke() }
+        trailingIcon = {
+            if (value.isNotEmpty()) {
+                IconButton(onClick = {
+                    onValueChange("")
+                    onClear?.invoke()
+                }) {
+                    Icon(
+                        imageVector = Icons.Default.Clear,
+                        contentDescription = "Clear",
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+            }
+        },
+        singleLine = true,
+        keyboardOptions = KeyboardOptions(
+            keyboardType = KeyboardType.Text,
+            imeAction = ImeAction.Search
+        ),
+        keyboardActions = KeyboardActions(
+            onSearch = { onSearch?.invoke() }
+        ),
+        modifier = modifier,
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedBorderColor = MaterialTheme.colorScheme.primary,
+            unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+            focusedContainerColor = MaterialTheme.colorScheme.surface,
+            unfocusedContainerColor = MaterialTheme.colorScheme.surface
+        )
     )
 }
 
