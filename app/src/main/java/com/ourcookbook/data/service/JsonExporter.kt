@@ -19,7 +19,10 @@ import java.io.OutputStream
  */
 class JsonExporter @Inject constructor() {
 
-    private val objectMapper: ObjectMapper = jacksonObjectMapper()
+    private val objectMapper: ObjectMapper = jacksonObjectMapper().apply {
+        registerModule(com.fasterxml.jackson.datatype.jsr310.JavaTimeModule())
+        disable(com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+    }
 
     /**
      * Export settings for JSON generation

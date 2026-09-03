@@ -24,7 +24,10 @@ import java.util.UUID
  * Handles conversion between complex types and database storage
  */
 class DatabaseConverters {
-    private val mapper = jacksonObjectMapper()
+    private val mapper = jacksonObjectMapper().apply {
+        registerModule(com.fasterxml.jackson.datatype.jsr310.JavaTimeModule())
+        disable(com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+    }
 
     // Instant converters
     @TypeConverter
