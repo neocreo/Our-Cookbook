@@ -34,7 +34,8 @@ sealed class RecipeListState {
         val sortOption: SortOption = SortOption.TITLE_ASC,
         val filterCategory: String? = null,
         val showFavoritesOnly: Boolean = false,
-        val searchQuery: String = ""
+        val searchQuery: String = "",
+        val selectedLetter: String? = null
     ) : RecipeListState()
     data class Error(val message: String) : RecipeListState()
     object Empty : RecipeListState()
@@ -63,6 +64,7 @@ sealed class RecipeListEvent {
     data class Search(val query: String) : RecipeListEvent()
     data class FilterByCategory(val category: String?) : RecipeListEvent()
     data class FilterByFavorites(val showFavorites: Boolean) : RecipeListEvent()
+    data class FilterByLetter(val letter: String?) : RecipeListEvent()
     data class ToggleFavorite(val recipeId: String) : RecipeListEvent()
     data class DeleteRecipe(val recipeId: String) : RecipeListEvent()
     object LoadMore : RecipeListEvent()
@@ -125,6 +127,7 @@ class RecipeListViewModel @Inject constructor(
     private var currentCategory: String? = null
     private var currentShowFavorites: Boolean = false
     private var currentSortOption: SortOption = SortOption.TITLE_ASC
+    private var currentLetter: String? = null
 
     init {
         loadRecipes()
@@ -136,6 +139,7 @@ class RecipeListViewModel @Inject constructor(
             is RecipeListEvent.Search -> search(event.query)
             is RecipeListEvent.FilterByCategory -> filterByCategory(event.category)
             is RecipeListEvent.FilterByFavorites -> filterByFavorites(event.showFavorites)
+            is RecipeListEvent.FilterByLetter -> filterByLetter(event.letter)
             is RecipeListEvent.ToggleFavorite -> toggleRecipeFavorite(event.recipeId)
             is RecipeListEvent.DeleteRecipe -> deleteRecipe(event.recipeId)
             is RecipeListEvent.LoadMore -> loadMore()
@@ -257,6 +261,13 @@ class RecipeListViewModel @Inject constructor(
         }
     }
 
+    private fun filterByLetter(letter: String?) {
+        currentLetter = letter
+        currentPage = 1
+        filteredRecipes = applyFiltersAndSort(allRecipes)
+        updateStateWithPagination()
+    }
+
     private fun sortBy(sortOption: SortOption) {
         viewModelScope.launch {
             currentSortOption = sortOption
@@ -307,6 +318,21 @@ class RecipeListViewModel @Inject constructor(
         if (currentShowFavorites) {
             result = result.filter { it.isFavorite }
         }
+
+        // Apply A-Z letter filter
+        if (currentLetter != null) {
+            val letter = currentLetter!!
+            result = result.filter { recipe ->
+                val first = recipe.title.firstOrNull() ?: return@filter false
+                when (letter) {
+                    "#" -> first.isDigit()
+                    "Å" -> first.equals('Å', ignoreCase = true)
+                    "Ä" -> first.equals('Ä', ignoreCase = true)
+                    "Ö" -> first.equals('Ö', ignoreCase = true)
+                    else -> first.equals(letter.first(), ignoreCase = true)
+                }
+            }
+        }
         
         // Apply sorting
         result = when (currentSortOption) {
@@ -350,7 +376,8 @@ class RecipeListViewModel @Inject constructor(
                 sortOption = currentSortOption,
                 filterCategory = currentCategory,
                 showFavoritesOnly = currentShowFavorites,
-                searchQuery = currentQuery
+                searchQuery = currentQuery,
+                selectedLetter = currentLetter
             )
         }
     }

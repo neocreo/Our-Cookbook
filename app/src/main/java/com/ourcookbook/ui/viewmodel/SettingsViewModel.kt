@@ -52,7 +52,13 @@ class SettingsViewModel @Inject constructor(
 
     private var currentDeviceId: String = UUID.randomUUID().toString()
 
+    private fun readPersistedDeviceId(): String {
+        return context.getSharedPreferences("auth_prefs", Context.MODE_PRIVATE)
+            .getString("device_id", null) ?: currentDeviceId
+    }
+
     init {
+        currentDeviceId = readPersistedDeviceId()
         initializeDeviceInfo()
         loadSettings()
     }

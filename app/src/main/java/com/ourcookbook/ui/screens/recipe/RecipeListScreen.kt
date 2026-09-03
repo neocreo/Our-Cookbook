@@ -3,6 +3,7 @@
 package com.ourcookbook.ui.screens.recipe
 
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,6 +12,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -287,6 +289,10 @@ fun RecipeListScreen(
                         isLoadingMore = currentState.isLoadingMore,
                         hasMore = currentState.hasMore,
                         onLoadMore = { viewModel.handleEvent(RecipeListEvent.LoadMore) },
+                        selectedLetter = currentState.selectedLetter,
+                        onLetterSelected = { letter ->
+                            viewModel.handleEvent(RecipeListEvent.FilterByLetter(letter))
+                        },
                         modifier = Modifier.padding(paddingValues)
                     )
                 }
@@ -552,9 +558,16 @@ fun RecipeListContent(
     isLoadingMore: Boolean,
     hasMore: Boolean,
     onLoadMore: () -> Unit,
+    selectedLetter: String? = null,
+    onLetterSelected: (String?) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val listState = rememberLazyListState()
+
+    val indexLetters = listOf(
+        "#", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M",
+        "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "Å", "Ä", "Ö"
+    )
     
     // Trigger load more when user scrolls near the end
     LaunchedEffect(listState) {
@@ -572,7 +585,32 @@ fun RecipeListContent(
             }
     }
     
-    if (gridView) {
+    Row(modifier = modifier.fillMaxSize()) {
+        // A-Z vertical index on the left
+        LazyColumn(
+            modifier = Modifier
+                .width(32.dp)
+                .fillMaxHeight(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            contentPadding = PaddingValues(vertical = 4.dp)
+        ) {
+            items(indexLetters) { letter ->
+                val isSelected = selectedLetter == letter
+                Text(
+                    text = letter,
+                    style = CookbookTypography.labelMedium,
+                    fontWeight = if (isSelected) androidx.compose.ui.text.font.FontWeight.Bold else androidx.compose.ui.text.font.FontWeight.Normal,
+                    color = if (isSelected) MaterialTheme.colorScheme.primary
+                           else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                    modifier = Modifier
+                        .padding(vertical = 2.dp)
+                        .clickable { onLetterSelected(if (isSelected) null else letter) }
+                )
+            }
+        }
+
+        // Recipe list
+        if (gridView) {
         // Grid view
         LazyColumn(
             modifier = modifier.fillMaxSize(),
@@ -636,6 +674,7 @@ fun RecipeListContent(
             }
         }
     }
+    } // end Row
 }
 
 @Composable

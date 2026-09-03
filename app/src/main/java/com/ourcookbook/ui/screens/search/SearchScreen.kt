@@ -76,6 +76,7 @@ import com.ourcookbook.ui.components.LoadingState
 import com.ourcookbook.ui.components.RecipeCard
 import com.ourcookbook.ui.navigation.Route
 import com.ourcookbook.ui.theme.CookbookTheme
+import com.ourcookbook.ui.theme.CookbookTypography
 import com.ourcookbook.ui.viewmodel.SearchEvent
 import com.ourcookbook.ui.viewmodel.SearchSortOption
 import com.ourcookbook.ui.viewmodel.SearchState
@@ -218,6 +219,22 @@ fun SearchScreen(
                     Divider(modifier = Modifier.padding(horizontal = 16.dp))
                 }
                 
+                // Discovery section: shown when no search query and no results yet.
+                if (searchQuery.isBlank() && state.recipes.isEmpty() && !state.hasActiveFilters) {
+                    SearchDiscoverySection(
+                        state = state,
+                        onCategoryClick = { category ->
+                            viewModel.handleEvent(SearchEvent.SelectCategory(category))
+                            viewModel.performSearch()
+                        },
+                        onTagClick = { tag ->
+                            viewModel.handleEvent(SearchEvent.SelectTag(tag))
+                            viewModel.performSearch()
+                        },
+                        modifier = Modifier.padding(horizontal = 16.dp)
+                    )
+                }
+
                 // Search results or states
                 when {
                     state.isLoading && state.recipes.isEmpty() -> {
@@ -336,7 +353,9 @@ fun SearchTopAppBar(
                 onValueChange = onQueryChange,
                 placeholder = "Search recipes...",
                 onClear = onClear,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(48.dp)
             )
         },
         navigationIcon = {
@@ -873,5 +892,84 @@ fun SearchScreenPreview() {
             viewModel = androidx.lifecycle.viewmodel.compose.viewModel(),
             navController = rememberNavController()
         )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class, androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
+@Composable
+fun SearchDiscoverySection(
+    state: SearchState,
+    onCategoryClick: (String) -> Unit,
+    onTagClick: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    var showAllTags by remember { mutableStateOf(false) }
+    val visibleTags = if (showAllTags) state.availableTags else state.availableTags.take(10)
+
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        Text(
+            text = "Search for recipes",
+            style = CookbookTypography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurface
+        )
+        Text(
+            text = "Enter a search term, browse by tag, or pick a category.",
+            style = CookbookTypography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+        )
+
+        if (state.availableTags.isNotEmpty()) {
+            Text(
+                text = "Recipe tags",
+                style = CookbookTypography.titleSmall,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.padding(top = 4.dp)
+            )
+            androidx.compose.foundation.layout.FlowRow(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                visibleTags.forEach { tag ->
+                    com.ourcookbook.ui.components.CookbookFilterChip(
+                        label = tag,
+                        isSelected = state.selectedTags.contains(tag),
+                        onClick = { onTagClick(tag) }
+                    )
+                }
+                if (state.availableTags.size > 10) {
+                    com.ourcookbook.ui.components.CookbookFilterChip(
+                        label = if (showAllTags) "Show less" else "Show more",
+                        isSelected = false,
+                        onClick = { showAllTags = !showAllTags }
+                    )
+                }
+            }
+        }
+
+        if (state.categories.isNotEmpty()) {
+            Text(
+                text = "Categories",
+                style = CookbookTypography.titleSmall,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.padding(top = 4.dp)
+            )
+            androidx.compose.foundation.layout.FlowRow(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                state.categories.forEach { category ->
+                    com.ourcookbook.ui.components.CookbookFilterChip(
+                        label = category,
+                        isSelected = state.selectedCategories.contains(category),
+                        onClick = { onCategoryClick(category) }
+                    )
+                }
+            }
+        }
     }
 }

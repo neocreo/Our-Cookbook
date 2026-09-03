@@ -122,20 +122,7 @@ object ViewModelModule {
         getRecipeById, toggleFavorite, updateRecipe, deleteRecipe
     )
 
-    // Recipe Edit ViewModel
-    @Provides
-    fun provideRecipeEditViewModel(
-        getRecipeById: GetRecipeById,
-        createRecipe: CreateRecipe,
-        updateRecipe: UpdateRecipe,
-        createIngredient: CreateIngredient,
-        updateIngredient: UpdateIngredient,
-        deleteIngredient: DeleteIngredient,
-        getIngredientsByRecipe: GetIngredientsByRecipe
-    ): RecipeEditViewModel = RecipeEditViewModel(
-        getRecipeById, createRecipe, updateRecipe, createIngredient, 
-        updateIngredient, deleteIngredient, getIngredientsByRecipe
-    )
+    // Recipe Edit ViewModel - provided via @HiltViewModel constructor injection
 
     // Search ViewModel
     @Provides
@@ -175,25 +162,7 @@ object ViewModelModule {
         updateSyncInProgress, updateLastSyncTimestamp, syncRecipe, getRecipesNeedingSync
     )
 
-    // Sync Status ViewModel
-    @Provides
-    fun provideSyncStatusViewModel(
-        getSyncStatus: GetSyncStatus,
-        getPendingConflictCount: GetPendingConflictCount,
-        getAllConflicts: GetAllConflicts,
-        getAllSyncMetadata: GetAllSyncMetadata,
-        updateSyncInProgress: UpdateSyncInProgress,
-        updateLastSyncTimestamp: UpdateLastSyncTimestamp,
-        syncRecipe: SyncRecipe,
-        getRecipesNeedingSync: GetRecipesNeedingSync,
-        resolveSyncConflict: ResolveSyncConflict,
-        getAllDevices: GetAllDevices,
-        syncLogRepository: SyncLogRepository
-    ): SyncStatusViewModel = SyncStatusViewModel(
-        getSyncStatus, getPendingConflictCount, getAllConflicts, getAllSyncMetadata,
-        updateSyncInProgress, updateLastSyncTimestamp, syncRecipe, getRecipesNeedingSync,
-        resolveSyncConflict, getAllDevices, syncLogRepository
-    )
+    // Sync Status ViewModel - provided via @HiltViewModel constructor injection
 
     // Cookbook Management ViewModel
     @Provides

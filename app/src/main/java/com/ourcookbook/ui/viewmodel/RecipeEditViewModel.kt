@@ -1,5 +1,6 @@
 package com.ourcookbook.ui.viewmodel
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ourcookbook.domain.model.Ingredient
@@ -12,6 +13,7 @@ import com.ourcookbook.domain.usecase.ingredient.UpdateIngredient
 import com.ourcookbook.domain.usecase.ingredient.DeleteIngredient
 import com.ourcookbook.domain.usecase.ingredient.GetIngredientsByRecipe
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -90,6 +92,7 @@ sealed class RecipeEditAction {
  */
 @HiltViewModel
 class RecipeEditViewModel @Inject constructor(
+    @ApplicationContext private val context: Context,
     private val getRecipeById: GetRecipeById,
     private val createRecipe: CreateRecipe,
     private val updateRecipe: UpdateRecipe,
@@ -98,6 +101,11 @@ class RecipeEditViewModel @Inject constructor(
     private val deleteIngredientUseCase: DeleteIngredient,
     private val getIngredientsByRecipe: GetIngredientsByRecipe
 ) : ViewModel() {
+
+    private fun readPersistedDeviceId(): String {
+        return context.getSharedPreferences("auth_prefs", Context.MODE_PRIVATE)
+            .getString("device_id", null) ?: "local-device"
+    }
 
     private val _state = MutableStateFlow(RecipeEditState())
     val state: StateFlow<RecipeEditState> = _state.asStateFlow()
@@ -320,22 +328,29 @@ class RecipeEditViewModel @Inject constructor(
         viewModelScope.launch {
             val currentState = _state.value
             val recipe = currentState.recipe ?: return@launch
-            
-            // Validate first
-            validateRecipe()
-            
-            if (currentState.error != null) {
+
+            // Validate inline so invalid fields show red outlines (state.error
+            // drives isError on the fields).
+            val errors = mutableListOf<String>()
+            if (recipe.title.isBlank()) errors.add("Title is required")
+            if (recipe.category.isBlank()) errors.add("Category is required")
+            if (currentState.ingredients.isEmpty()) errors.add("At least one ingredient is required")
+            if (recipe.instructions.isEmpty()) errors.add("At least one instruction is required")
+            if (errors.isNotEmpty()) {
+                _state.value = currentState.copy(error = errors.joinToString(", "))
+                _actions.value = RecipeEditAction.ShowValidationError(errors)
                 return@launch
             }
 
             _state.value = currentState.copy(isSaving = true, error = null)
-            
+
             try {
+                val deviceId = readPersistedDeviceId()
                 val recipeToSave = recipe.copy(
                     ingredients = currentState.ingredients,
-                    deviceId = "current_device_id" // Will be set properly in production
+                    deviceId = deviceId
                 )
-                
+
                 val result = if (recipeToSave.id.isBlank()) {
                     // New recipe
                     createRecipe(recipeToSave)
@@ -344,7 +359,7 @@ class RecipeEditViewModel @Inject constructor(
                     updateRecipe(recipeToSave)
                     Result.success(recipeToSave.id)
                 }
-                
+
                 result.onSuccess { recipeId ->
                     _state.value = currentState.copy(
                         isSaving = false,

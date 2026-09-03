@@ -201,8 +201,7 @@ fun RecipeEditScreen(
             RecipeEditTopAppBar(
                 state = state,
                 onBackClick = { navController.popBackStack() },
-                onSaveClick = { viewModel.handleEvent(RecipeEditEvent.SaveRecipe) },
-                onValidateClick = { viewModel.handleEvent(RecipeEditEvent.ValidateRecipe) }
+                onSaveClick = { viewModel.handleEvent(RecipeEditEvent.SaveRecipe) }
             )
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },
@@ -216,6 +215,7 @@ fun RecipeEditScreen(
                 RecipeEditContent(
                     state = state,
                     onEvent = { event -> viewModel.handleEvent(event) },
+                    onScan = { navController.navigate(Route.OCR_SCANNER) },
                     modifier = Modifier.padding(paddingValues),
                     context = context
                 )
@@ -229,8 +229,7 @@ fun RecipeEditScreen(
 fun RecipeEditTopAppBar(
     state: RecipeEditState,
     onBackClick: () -> Unit,
-    onSaveClick: () -> Unit,
-    onValidateClick: () -> Unit
+    onSaveClick: () -> Unit
 ) {
     TopAppBar(
         title = { 
@@ -254,18 +253,6 @@ fun RecipeEditTopAppBar(
                     strokeWidth = 2.dp,
                     modifier = Modifier.size(24.dp)
                 )
-            } else {
-                CookbookTextButton(
-                    text = "Validate",
-                    onClick = onValidateClick,
-                    modifier = Modifier.padding(end = CookbookSpacing.small)
-                )
-                CookbookPrimaryButton(
-                    text = "Save",
-                    onClick = onSaveClick,
-                    enabled = !state.isSaving,
-                    modifier = Modifier.padding(end = CookbookSpacing.small)
-                )
             }
         }
     )
@@ -276,6 +263,7 @@ fun RecipeEditTopAppBar(
 fun RecipeEditContent(
     state: RecipeEditState,
     onEvent: (RecipeEditEvent) -> Unit,
+    onScan: () -> Unit,
     modifier: Modifier = Modifier,
     context: Context
 ) {
@@ -302,7 +290,7 @@ fun RecipeEditContent(
         item {
             RecipeSectionHeader(
                 title = "Basic Information",
-                icon = Icons.Default.Info
+                icon = Icons.Default.Edit
             )
             
             Column(
@@ -312,7 +300,7 @@ fun RecipeEditContent(
                 CookbookTextField(
                     value = state.title,
                     onValueChange = { onEvent(RecipeEditEvent.UpdateTitle(it)) },
-                    label = "Recipe Title",
+                    label = "Recipe Title *",
                     placeholder = "Enter recipe title",
                     isError = state.error != null && state.title.isBlank(),
                     errorMessage = if (state.title.isBlank()) "Title is required" else null,
@@ -338,6 +326,14 @@ fun RecipeEditContent(
                     },
                     isError = state.error != null && state.category.isBlank(),
                     errorMessage = if (state.category.isBlank()) "Category is required" else null
+                )
+
+                // Tags (moved under Category)
+                TagsSection(
+                    tags = state.tags,
+                    onTagsChange = { tags ->
+                        onEvent(RecipeEditEvent.UpdateTags(tags))
+                    }
                 )
             }
         }
@@ -386,51 +382,16 @@ fun RecipeEditContent(
                 ) {
                     CookbookNumberField(
                         value = state.cookTime?.toString() ?: "",
-                        onValueChange = { 
-                            onEvent(RecipeEditEvent.UpdateCookTime(it.toIntOrNull())) 
+                        onValueChange = {
+                            onEvent(RecipeEditEvent.UpdateCookTime(it.toIntOrNull()))
                         },
                         label = "Cook Time",
                         placeholder = "Cooking time",
                         suffix = "min",
                         modifier = Modifier.weight(1f)
                     )
-                    
-                    // Favorite toggle
-                    Column(
-                        modifier = Modifier
-                            .weight(1f)
-                            .height(72.dp),
-                        verticalArrangement = Arrangement.Center,
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Text(
-                            text = "Favorite",
-                            style = CookbookTypography.labelMedium,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
-                        )
-                        Spacer(modifier = Modifier.height(CookbookSpacing.xSmall))
-                        IconButton(
-                            onClick = { onEvent(RecipeEditEvent.UpdateFavorite(!state.isFavorite)) },
-                            modifier = Modifier
-                                .size(40.dp)
-                                .background(
-                                    color = if (state.isFavorite) 
-                                        MaterialTheme.colorScheme.error.copy(alpha = 0.2f)
-                                    else 
-                                        MaterialTheme.colorScheme.surfaceVariant,
-                                    shape = CircleShape
-                                )
-                        ) {
-                        Icon(
-                            imageVector = if (state.isFavorite) Icons.Default.Favorite else Icons.Outlined.FavoriteBorder,
-                            contentDescription = "Toggle Favorite",
-                            tint = if (state.isFavorite) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface,
-                            modifier = Modifier.size(20.dp)
-                        )
-                        }
-                    }
                 }
-                
+
                 // Source
                 CookbookTextField(
                     value = state.source ?: "",
@@ -473,33 +434,9 @@ fun RecipeEditContent(
             )
         }
         
-        // Tags Section
-        item {
-            TagsSection(
-                tags = state.tags,
-                onTagsChange = { tags ->
-                    onEvent(RecipeEditEvent.UpdateTags(tags))
-                }
-            )
-        }
-        
-        // Additional Information Section
-        item {
-            RecipeSectionHeader(
-                title = "Additional Information",
-                icon = Icons.Default.Info
-            )
-            
-            CookbookMultilineTextField(
-                value = state.notes ?: "",
-                onValueChange = { onEvent(RecipeEditEvent.UpdateNotes(it)) },
-                label = "Notes",
-                placeholder = "Additional notes about the recipe, variations, or tips",
-                minLines = 3,
-                maxLines = 5
-            )
-        }
-        
+        // Additional Information section removed per design (notes belong on the
+        // recipe detail view, not the edit form).
+
         // Validation Summary
         if (state.error != null) {
             item {
@@ -509,13 +446,36 @@ fun RecipeEditContent(
                 )
             }
         }
-        
+
         // Save Success Message
         if (state.saveSuccess) {
             item {
                 SuccessMessage(
                     message = "Recipe saved successfully!",
                     modifier = Modifier.padding(vertical = CookbookSpacing.medium)
+                )
+            }
+        }
+
+        // Save + Scan buttons at the bottom of the page
+        item {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = CookbookSpacing.medium),
+                horizontalArrangement = Arrangement.spacedBy(CookbookSpacing.medium)
+            ) {
+                CookbookPrimaryButton(
+                    text = "Save",
+                    onClick = { onEvent(RecipeEditEvent.SaveRecipe) },
+                    enabled = !state.isSaving,
+                    modifier = Modifier.weight(1f)
+                )
+                CookbookSecondaryButton(
+                    text = "Scan Recipe",
+                    onClick = onScan,
+                    enabled = !state.isSaving,
+                    modifier = Modifier.weight(1f)
                 )
             }
         }
@@ -785,7 +745,7 @@ fun CategorySelectionSection(
         OutlinedTextField(
             value = selectedCategory,
             onValueChange = {},
-            label = { Text("Category") },
+            label = { Text("Category *") },
             placeholder = { Text("Select category") },
             trailingIcon = {
                 IconButton(onClick = { expanded = !expanded }) {
@@ -1020,16 +980,15 @@ fun IngredientDialog(
     var name by remember { mutableStateOf(ingredient?.name ?: "") }
     var amount by remember { mutableStateOf(ingredient?.amount ?: "") }
     var unit by remember { mutableStateOf(ingredient?.unit ?: "") }
-    var notes by remember { mutableStateOf(ingredient?.notes ?: "") }
-    var order by remember { mutableStateOf(ingredient?.order?.toString() ?: "0") }
-    
+
+    // Imperial first, Metric second, then common extras.
     val commonUnits = listOf(
-        "", "cup", "cups", "tbsp", "tsp", "oz", "lb", "g", "kg", 
-        "ml", "L", "piece", "pieces", "slice", "slices", "can", "bunch"
+        "", "cup", "cups", "tbsp", "tsp", "fl oz", "oz", "lb", "pint", "quart", "gallon",
+        "ml", "L", "g", "kg", "piece", "pieces", "slice", "slices", "can", "bunch", "pinch"
     )
-    
+
     var unitExpanded by remember { mutableStateOf(false) }
-    
+
     AlertDialog(
         onDismissRequest = onDismiss,
         title = {
@@ -1047,8 +1006,7 @@ fun IngredientDialog(
                         name = name,
                         amount = amount.ifBlank { null },
                         unit = unit.ifBlank { null },
-                        notes = notes.ifBlank { null },
-                        order = order.toIntOrNull() ?: 0
+                        order = ingredient?.order ?: 0
                     )
                     onSave(newIngredient)
                 },
@@ -1080,7 +1038,7 @@ fun IngredientDialog(
                 keyboardType = KeyboardType.Text,
                 imeAction = ImeAction.Next
             )
-            
+
             // Amount and Unit Row
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -1094,7 +1052,7 @@ fun IngredientDialog(
                     keyboardType = KeyboardType.Number,
                     modifier = Modifier.weight(1f)
                 )
-                
+
                 // Unit Dropdown
                 Box(modifier = Modifier.weight(1f)) {
                     OutlinedTextField(
@@ -1113,7 +1071,7 @@ fun IngredientDialog(
                         modifier = Modifier.fillMaxWidth(),
                         readOnly = true
                     )
-                    
+
                     DropdownMenu(
                         expanded = unitExpanded,
                         onDismissRequest = { unitExpanded = false },
@@ -1131,24 +1089,6 @@ fun IngredientDialog(
                     }
                 }
             }
-            
-            // Notes
-            CookbookTextField(
-                value = notes,
-                onValueChange = { notes = it },
-                label = "Notes",
-                placeholder = "e.g., optional, for garnish, divided",
-                keyboardType = KeyboardType.Text,
-                imeAction = ImeAction.Done
-            )
-            
-            // Order
-            CookbookNumberField(
-                value = order,
-                onValueChange = { order = it },
-                label = "Order",
-                placeholder = "Display order"
-            )
         }
         }
     )
@@ -1161,9 +1101,6 @@ fun InstructionsSection(
     isError: Boolean = false,
     errorMessage: String? = null
 ) {
-    var editingIndex by remember { mutableStateOf<Int?>(null) }
-    var editingText by remember { mutableStateOf("") }
-    
     Column(
         verticalArrangement = Arrangement.spacedBy(CookbookSpacing.small)
     ) {
@@ -1171,7 +1108,7 @@ fun InstructionsSection(
             title = "Instructions",
             icon = Icons.Default.Edit
         )
-        
+
         // Error message
         if (isError && errorMessage != null) {
             Text(
@@ -1181,80 +1118,19 @@ fun InstructionsSection(
                 modifier = Modifier.padding(start = CookbookSpacing.small, top = CookbookSpacing.xSmall)
             )
         }
-        
-        // Instructions List
-        if (instructions.isEmpty()) {
-            EmptyState(
-                icon = Icons.Default.Info,
-                title = "No instructions added yet",
-                message = "Add step-by-step instructions",
-                modifier = Modifier.fillMaxWidth()
-            )
-        } else {
-            Column(
-                verticalArrangement = Arrangement.spacedBy(CookbookSpacing.xSmall),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                instructions.forEachIndexed { index, instruction ->
-                    InstructionItem(
-                        number = index + 1,
-                        instruction = instruction,
-                        isEditing = editingIndex == index,
-                        editingText = editingText,
-                        onEditClick = {
-                            editingIndex = index
-                            editingText = instruction
-                        },
-                        onEditTextChange = { editingText = it },
-                        onEditSave = {
-                            val updatedInstructions = instructions.toMutableList()
-                            updatedInstructions[index] = editingText
-                            onInstructionsChange(updatedInstructions)
-                            editingIndex = null
-                            editingText = ""
-                        },
-                        onEditCancel = {
-                            editingIndex = null
-                            editingText = ""
-                        },
-                        onDelete = {
-                            val updatedInstructions = instructions.toMutableList()
-                            updatedInstructions.removeAt(index)
-                            onInstructionsChange(updatedInstructions)
-                        },
-                        onMoveUp = {
-                            if (index > 0) {
-                                val updatedInstructions = instructions.toMutableList()
-                                val temp = updatedInstructions[index]
-                                updatedInstructions[index] = updatedInstructions[index - 1]
-                                updatedInstructions[index - 1] = temp
-                                onInstructionsChange(updatedInstructions)
-                            }
-                        },
-                        onMoveDown = {
-                            if (index < instructions.size - 1) {
-                                val updatedInstructions = instructions.toMutableList()
-                                val temp = updatedInstructions[index]
-                                updatedInstructions[index] = updatedInstructions[index + 1]
-                                updatedInstructions[index + 1] = temp
-                                onInstructionsChange(updatedInstructions)
-                            }
-                        },
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                }
-            }
-        }
-        
-        // Add Instruction Button
-        CookbookPrimaryButton(
-            text = "Add Instruction",
-            onClick = {
-                val updatedInstructions = instructions.toMutableList()
-                updatedInstructions.add("")
-                onInstructionsChange(updatedInstructions)
+
+        // Single free-text area that preserves newlines. Each non-empty line
+        // becomes one instruction step when saved.
+        val textValue = instructions.joinToString("\n")
+        CookbookMultilineTextField(
+            value = textValue,
+            onValueChange = { newText ->
+                onInstructionsChange(newText.split("\n").filter { it.isNotBlank() })
             },
-            modifier = Modifier.fillMaxWidth()
+            label = "Instructions",
+            placeholder = "One step per line. e.g.\nPreheat oven to 180C.\nMix dry ingredients.\nBake for 25 minutes.",
+            minLines = 4,
+            maxLines = 10
         )
     }
 }
@@ -1686,6 +1562,7 @@ fun RecipeEditScreenPreview() {
             RecipeEditContent(
                 state = mockState,
                 onEvent = {},
+                onScan = {},
                 context = LocalContext.current
             )
         }

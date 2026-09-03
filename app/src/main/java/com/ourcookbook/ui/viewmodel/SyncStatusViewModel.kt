@@ -1,5 +1,6 @@
 package com.ourcookbook.ui.viewmodel
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ourcookbook.domain.model.ConflictResolution
@@ -27,6 +28,7 @@ import com.ourcookbook.ui.screens.sync.SyncHistoryItem
 import com.ourcookbook.ui.screens.sync.SyncStatistics
 import com.ourcookbook.ui.screens.sync.SyncStatusDisplay
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -179,6 +181,7 @@ sealed class SyncStatusAction {
  */
 @HiltViewModel
 class SyncStatusViewModel @Inject constructor(
+    @ApplicationContext private val context: Context,
     private val getSyncStatus: GetSyncStatus,
     private val getPendingConflictCount: GetPendingConflictCount,
     private val getAllConflicts: GetAllConflicts,
@@ -202,6 +205,8 @@ class SyncStatusViewModel @Inject constructor(
     private var currentDeviceName: String = ""
 
     init {
+        currentDeviceId = context.getSharedPreferences("auth_prefs", Context.MODE_PRIVATE)
+            .getString("device_id", null) ?: ""
         loadInitialData()
     }
 
