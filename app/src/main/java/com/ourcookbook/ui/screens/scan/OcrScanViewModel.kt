@@ -1,5 +1,6 @@
 package com.ourcookbook.ui.screens.scan
 
+import android.content.Context
 import android.graphics.Bitmap
 import android.net.Uri
 import androidx.lifecycle.ViewModel
@@ -13,6 +14,7 @@ import com.ourcookbook.domain.model.Recipe
 import com.ourcookbook.domain.usecase.recipe.CreateRecipe
 import com.ourcookbook.domain.usecase.recipeimage.CreateRecipeImage
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -31,6 +33,7 @@ import javax.inject.Inject
  */
 @HiltViewModel
 class OcrScanViewModel @Inject constructor(
+    @ApplicationContext private val context: Context,
     private val createRecipe: CreateRecipe,
     private val createRecipeImage: CreateRecipeImage
 ) : ViewModel() {
@@ -79,6 +82,7 @@ class OcrScanViewModel @Inject constructor(
             is OcrScanEvent.SelectFromGallery -> selectFromGallery(event.uri)
             is OcrScanEvent.ProcessImage -> processImage(event.bitmap)
             is OcrScanEvent.RetryScan -> retryScan()
+            is OcrScanEvent.ScanError -> { _state.value = OcrScanState.Error(event.message) }
             is OcrScanEvent.SaveRecipe -> saveRecipe()
             is OcrScanEvent.DiscardRecipe -> discardRecipe()
             is OcrScanEvent.EditText -> editText(event.text)
@@ -294,7 +298,7 @@ class OcrScanViewModel @Inject constructor(
      */
     private fun saveBitmapToFile(bitmap: Bitmap): String? {
         return try {
-            val file = File.createTempFile("ocr_${System.currentTimeMillis()}", ".jpg")
+            val file = File(context.cacheDir, "ocr_${System.currentTimeMillis()}.jpg")
             FileOutputStream(file).use { out ->
                 bitmap.compress(Bitmap.CompressFormat.JPEG, 90, out)
             }
@@ -636,6 +640,7 @@ sealed class OcrScanEvent {
     data class SelectFromGallery(val uri: Uri) : OcrScanEvent()
     data class ProcessImage(val bitmap: Bitmap) : OcrScanEvent()
     object RetryScan : OcrScanEvent()
+    data class ScanError(val message: String) : OcrScanEvent()
     object SaveRecipe : OcrScanEvent()
     object DiscardRecipe : OcrScanEvent()
     data class EditText(val text: String) : OcrScanEvent()

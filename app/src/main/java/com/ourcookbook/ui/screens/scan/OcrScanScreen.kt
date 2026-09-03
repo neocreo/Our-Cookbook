@@ -1305,15 +1305,23 @@ private fun capturePhoto(
         object : ImageCapture.OnImageCapturedCallback() {
             override fun onCaptureSuccess(imageProxy: ImageProxy) {
                 super.onCaptureSuccess(imageProxy)
-                
-                // Convert ImageProxy to Bitmap
-                val bitmap = imageProxy.toBitmap()
-                
-                // Pass bitmap to ViewModel for OCR processing
-                viewModel.onImageCaptured(bitmap)
-                
-                // Close the image proxy
-                imageProxy.close()
+
+                try {
+                    // Convert ImageProxy to Bitmap — the built-in toBitmap()
+                    // handles rotation correctly. Wrap in try/catch because
+                    // decodeByteArray can return null for malformed data.
+                    val bitmap = imageProxy.toBitmap()
+
+                    if (bitmap != null) {
+                        viewModel.onImageCaptured(bitmap)
+                    } else {
+                        viewModel.handleEvent(OcrScanEvent.ScanError("Failed to decode captured image"))
+                    }
+                } catch (e: Exception) {
+                    viewModel.handleEvent(OcrScanEvent.ScanError("Camera capture failed: ${e.message}"))
+                } finally {
+                    imageProxy.close()
+                }
             }
             
             override fun onError(exception: ImageCaptureException) {
@@ -1324,11 +1332,7 @@ private fun capturePhoto(
     )
 }
 
-// Extension function to convert ImageProxy to Bitmap
-private fun ImageProxy.toBitmap(): Bitmap {
-    val plane = planes[0]
-    val buffer: ByteBuffer = plane.buffer
-    val bytes = ByteArray(buffer.remaining())
-    buffer.get(bytes)
-    return BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
-}
+// Note: ImageProxy.toBitmap() is provided by CameraX 1.3.0 and handles
+// rotation correctly. The custom extension that was here shadowed it
+// and decoded raw JPEG bytes without rotation, which could crash on
+// certain devices. Rely on the built-in extension instead.
