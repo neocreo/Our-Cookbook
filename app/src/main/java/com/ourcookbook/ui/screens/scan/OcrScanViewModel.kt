@@ -42,6 +42,9 @@ class OcrScanViewModel @Inject constructor(
     private val _state = MutableStateFlow<OcrScanState>(OcrScanState.Idle)
     val state: StateFlow<OcrScanState> = _state.asStateFlow()
 
+    // Track the current OCR processing job so it can be cancelled
+    private var ocrJob: kotlinx.coroutines.Job? = null
+
     // Actions for navigation and UI updates
     private val _actions = MutableStateFlow<OcrScanAction?>(null)
     val actions: StateFlow<OcrScanAction?> = _actions.asStateFlow()
@@ -83,6 +86,7 @@ class OcrScanViewModel @Inject constructor(
             is OcrScanEvent.ProcessImage -> processImage(event.bitmap)
             is OcrScanEvent.RetryScan -> retryScan()
             is OcrScanEvent.ScanError -> { _state.value = OcrScanState.Error(event.message) }
+            is OcrScanEvent.CancelScan -> cancelScan()
             is OcrScanEvent.SaveRecipe -> saveRecipe()
             is OcrScanEvent.DiscardRecipe -> discardRecipe()
             is OcrScanEvent.EditText -> editText(event.text)
@@ -163,25 +167,26 @@ class OcrScanViewModel @Inject constructor(
      * Capture image from camera - called from UI with the captured bitmap
      */
     fun onImageCaptured(bitmap: Bitmap) {
-        viewModelScope.launch {
+        ocrJob?.cancel()
+        ocrJob = viewModelScope.launch {
             _state.value = OcrScanState.ProcessingImage
             currentBitmap = bitmap
-            
+
             try {
                 // Save the bitmap to a temporary file
                 currentImagePath = saveBitmapToFile(bitmap)
-                
-                // Perform OCR on the image
+
+                // Perform OCR on the image (with timeout so it never hangs forever)
                 val text = performOCR(bitmap)
-                
+
                 if (text.isNotBlank()) {
                     currentExtractedText = text
-                    
+
                     // Parse the text into a recipe
                     val recipe = textParser.parseRecipeFromText(text)
                     currentRecipe = recipe
                     currentConfidence = textParser.calculateConfidence(text, recipe)
-                    
+
                     _state.value = OcrScanState.TextExtracted(
                         text = text,
                         recipe = recipe,
@@ -190,6 +195,9 @@ class OcrScanViewModel @Inject constructor(
                 } else {
                     _state.value = OcrScanState.Error("No text found in the image. Please try again with a clearer photo.")
                 }
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                // User cancelled — state already reset by cancelScan()
+                throw e
             } catch (e: Exception) {
                 _state.value = OcrScanState.Error("Failed to process image: ${e.message}")
             }
@@ -219,25 +227,19 @@ class OcrScanViewModel @Inject constructor(
      * Process the captured or selected image
      */
     fun processImage(bitmap: Bitmap) {
-        viewModelScope.launch {
+        ocrJob?.cancel()
+        ocrJob = viewModelScope.launch {
             currentBitmap = bitmap
             _state.value = OcrScanState.ProcessingImage
-            
+
             try {
-                // Save the bitmap to a temporary file
                 currentImagePath = saveBitmapToFile(bitmap)
-                
-                // Perform OCR on the image
                 val text = performOCR(bitmap)
-                
                 if (text.isNotBlank()) {
                     currentExtractedText = text
-                    
-                    // Parse the text into a recipe
                     val recipe = textParser.parseRecipeFromText(text)
                     currentRecipe = recipe
                     currentConfidence = textParser.calculateConfidence(text, recipe)
-                    
                     _state.value = OcrScanState.TextExtracted(
                         text = text,
                         recipe = recipe,
@@ -246,6 +248,8 @@ class OcrScanViewModel @Inject constructor(
                 } else {
                     _state.value = OcrScanState.Error("No text found in the image. Please try again with a clearer photo.")
                 }
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
             } catch (e: Exception) {
                 _state.value = OcrScanState.Error("Failed to process image: ${e.message}")
             }
@@ -256,19 +260,40 @@ class OcrScanViewModel @Inject constructor(
      * Process image from URI
      */
     fun processImageFromUri(uri: Uri) {
-        viewModelScope.launch {
+        ocrJob?.cancel()
+        ocrJob = viewModelScope.launch {
             _state.value = OcrScanState.ProcessingImage
-            
+
             try {
-                // Load bitmap from URI using context
-                // Note: This requires a Context parameter, which we'll need to add
-                _state.value = OcrScanState.ImageSelected(uri)
-                
-                // For now, simulate OCR processing
-                // In a real implementation, we would:
-                // 1. Load the bitmap from the URI
-                // 2. Call onImageCaptured(bitmap)
-                simulateOCRProcessing()
+                // Load bitmap from the URI
+                val bitmap = withContext(Dispatchers.IO) {
+                    android.provider.MediaStore.Images.Media.getBitmap(context.contentResolver, uri)
+                }
+
+                if (bitmap != null) {
+                    currentImageUri = uri
+                    currentBitmap = bitmap
+                    currentImagePath = saveBitmapToFile(bitmap)
+
+                    val text = performOCR(bitmap)
+                    if (text.isNotBlank()) {
+                        currentExtractedText = text
+                        val recipe = textParser.parseRecipeFromText(text)
+                        currentRecipe = recipe
+                        currentConfidence = textParser.calculateConfidence(text, recipe)
+                        _state.value = OcrScanState.TextExtracted(
+                            text = text,
+                            recipe = recipe,
+                            confidence = currentConfidence
+                        )
+                    } else {
+                        _state.value = OcrScanState.Error("No text found in the image. Please try again with a clearer photo.")
+                    }
+                } else {
+                    _state.value = OcrScanState.Error("Failed to load image from gallery")
+                }
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
             } catch (e: Exception) {
                 _state.value = OcrScanState.Error("Failed to process image: ${e.message}")
             }
@@ -283,7 +308,11 @@ class OcrScanViewModel @Inject constructor(
             val inputImage = InputImage.fromBitmap(bitmap, 0)
             val result = textRecognizer.process(inputImage)
 
-            val recognizedText = Tasks.await(result).text
+            // 30 second timeout — ML Kit may need to download the recognition
+            // model on first use, but it shouldn't hang forever.
+            val recognizedText = kotlinx.coroutines.withTimeoutOrNull(30_000L) {
+                Tasks.await(result).text
+            } ?: throw java.util.concurrent.TimeoutException("OCR timed out")
 
             // Preprocess the text
             textParser.preprocessOcrText(recognizedText)
@@ -435,9 +464,20 @@ class OcrScanViewModel @Inject constructor(
             currentExtractedText = null
             currentRecipe = null
             currentConfidence = 0f
-            
+
             _state.value = OcrScanState.Idle
         }
+    }
+
+    private fun cancelScan() {
+        ocrJob?.cancel()
+        ocrJob = null
+        currentImagePath = null
+        currentBitmap = null
+        currentExtractedText = null
+        currentRecipe = null
+        currentConfidence = 0f
+        _state.value = OcrScanState.Idle
     }
 
     /**
@@ -641,6 +681,7 @@ sealed class OcrScanEvent {
     data class ProcessImage(val bitmap: Bitmap) : OcrScanEvent()
     object RetryScan : OcrScanEvent()
     data class ScanError(val message: String) : OcrScanEvent()
+    object CancelScan : OcrScanEvent()
     object SaveRecipe : OcrScanEvent()
     object DiscardRecipe : OcrScanEvent()
     data class EditText(val text: String) : OcrScanEvent()

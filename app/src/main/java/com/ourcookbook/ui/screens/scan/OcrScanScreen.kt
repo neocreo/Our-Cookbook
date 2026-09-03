@@ -272,7 +272,9 @@ fun OcrScanScreen(
                     )
                 }
                 is OcrScanState.ProcessingImage -> {
-                    ProcessingContent()
+                    ProcessingContent(
+                        onCancel = { viewModel.handleEvent(OcrScanEvent.CancelScan) }
+                    )
                 }
                 is OcrScanState.TextExtracted -> {
                     TextExtractedContent(
@@ -669,7 +671,9 @@ fun ImagePreviewContent(
  * Processing Content
  */
 @Composable
-fun ProcessingContent() {
+fun ProcessingContent(
+    onCancel: () -> Unit = {}
+) {
     Column(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.Center,
@@ -689,9 +693,11 @@ fun ProcessingContent() {
         )
 
         Text(
-            text = "Extracting text from the captured image",
+            text = "Extracting text from the captured image. This may take a moment on first use while the text recognition model loads.",
             style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+            modifier = Modifier.padding(horizontal = 32.dp)
         )
 
         Spacer(modifier = Modifier.height(24.dp))
@@ -699,6 +705,13 @@ fun ProcessingContent() {
         LinearProgressIndicator(
             modifier = Modifier.fillMaxWidth(0.8f),
             color = MaterialTheme.colorScheme.primary
+        )
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        com.ourcookbook.ui.components.CookbookSecondaryButton(
+            text = "Cancel",
+            onClick = onCancel
         )
     }
 }
