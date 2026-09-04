@@ -85,6 +85,7 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.ourcookbook.domain.model.Recipe
 import com.ourcookbook.ui.components.CompactRecipeCard
+import com.ourcookbook.ui.components.CookbookBottomNavigation
 import com.ourcookbook.ui.components.CookbookFilterChip
 import com.ourcookbook.ui.components.CookbookSearchField
 import com.ourcookbook.ui.components.EmptyState
@@ -235,6 +236,17 @@ fun RecipeListScreen(
                     contentDescription = "Add Recipe"
                 )
             }
+        },
+        bottomBar = {
+            CookbookBottomNavigation(
+                currentRoute = navController.currentDestination?.route ?: Route.RECIPE_LIST,
+                onNavigate = { route ->
+                    navController.navigate(route) {
+                        launchSingleTop = true
+                        restoreState = true
+                    }
+                }
+            )
         },
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { paddingValues ->

@@ -9,7 +9,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.rememberNavController
 import com.ourcookbook.ui.navigation.CookbookNavHost
-import com.ourcookbook.ui.theme.CookbookTheme
+import com.ourcookbook.ui.theme.CookbookThemeWithPreferences
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -17,7 +17,9 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            CookbookTheme {
+            CookbookThemeWithPreferences(
+                dynamicColor = false
+            ) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background

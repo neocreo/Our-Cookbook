@@ -82,10 +82,11 @@ fun CookbookBottomNavigation(
         contentColor = MaterialTheme.colorScheme.onSurface
     ) {
         items.forEach { item ->
+            val isSelected = currentRoute == item.route || currentRoute.startsWith(item.route + "?")
             NavigationBarItem(
-                selected = currentRoute == item.route,
+                selected = isSelected,
                 onClick = {
-                    if (currentRoute != item.route) onNavigate(item.route)
+                    if (!isSelected) onNavigate(item.route)
                 },
                 icon = {
                     Icon(

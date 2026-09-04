@@ -30,6 +30,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.AddAPhoto
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Clear
@@ -39,6 +40,7 @@ import androidx.compose.material.icons.filled.TextFields
 import androidx.compose.material.icons.filled.PictureAsPdf
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Link
@@ -58,8 +60,12 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -112,7 +118,7 @@ fun CookbookCreationDialog(
     var description by remember { mutableStateOf(defaultDescription) }
     var imageUri by remember { mutableStateOf<String?>(null) }
     var nameError by remember { mutableStateOf<String?>(null) }
-    
+
     val context = LocalContext.current
     val imagePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
@@ -124,124 +130,115 @@ fun CookbookCreationDialog(
         onDismissRequest = onDismiss,
         properties = DialogProperties(
             dismissOnBackPress = true,
-            dismissOnClickOutside = true
+            dismissOnClickOutside = false,
+            usePlatformDefaultWidth = false
         )
     ) {
-        ElevatedCard(
-            modifier = Modifier
-                .padding(CookbookSpacing.medium)
-                .fillMaxWidth(0.9f),
-            shape = MaterialTheme.shapes.large,
-            colors = androidx.compose.material3.CardDefaults.elevatedCardColors(
-                containerColor = MaterialTheme.colorScheme.surface
-            )
+        Surface(
+            modifier = Modifier.fillMaxSize(),
+            color = MaterialTheme.colorScheme.background
         ) {
-            Column(
-                modifier = Modifier
-                    .padding(CookbookSpacing.large)
-                    .verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(CookbookSpacing.medium)
-            ) {
-                Text(
-                    text = "Create New Cookbook",
-                    style = CookbookTypography.headlineSmall,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-
-                // Image selection
-                Box(
+            Scaffold(
+                topBar = {
+                    TopAppBar(
+                        title = { Text("Create New Cookbook", style = CookbookTypography.headlineSmall) },
+                        navigationIcon = {
+                            IconButton(onClick = onDismiss) {
+                                Icon(
+                                    imageVector = Icons.Default.ArrowBack,
+                                    contentDescription = "Close"
+                                )
+                            }
+                        }
+                    )
+                }
+            ) { paddingValues ->
+                Column(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .height(120.dp)
-                        .background(
-                            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
-                            shape = RoundedCornerShape(CookbookSpacing.medium)
-                        )
-                        .border(
-                            width = 2.dp,
-                            color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
-                            shape = RoundedCornerShape(CookbookSpacing.medium)
-                        )
-                        .clickable { imagePickerLauncher.launch("image/*") },
-                    contentAlignment = Alignment.Center
+                        .fillMaxSize()
+                        .padding(paddingValues)
+                        .verticalScroll(rememberScrollState())
+                        .padding(CookbookSpacing.large),
+                    verticalArrangement = Arrangement.spacedBy(CookbookSpacing.medium)
                 ) {
-                    if (imageUri != null) {
-                        // In production, this would display the actual image
-                        Icon(
-                            imageVector = Icons.Default.Image,
-                            contentDescription = "Cookbook Image",
-                            modifier = Modifier.size(48.dp),
-                            tint = MaterialTheme.colorScheme.primary
-                        )
-                    } else {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.spacedBy(CookbookSpacing.small)
-                        ) {
+                    // Image selection
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(120.dp)
+                            .background(
+                                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+                                shape = RoundedCornerShape(CookbookSpacing.medium)
+                            )
+                            .border(
+                                width = 2.dp,
+                                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
+                                shape = RoundedCornerShape(CookbookSpacing.medium)
+                            )
+                            .clickable { imagePickerLauncher.launch("image/*") },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        if (imageUri != null) {
                             Icon(
-                                imageVector = Icons.Default.AddAPhoto,
-                                contentDescription = "Add Image",
-                                modifier = Modifier.size(32.dp),
-                                tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                                imageVector = Icons.Default.Image,
+                                contentDescription = "Cookbook Image",
+                                modifier = Modifier.size(48.dp),
+                                tint = MaterialTheme.colorScheme.primary
                             )
-                            Text(
-                                text = "Add Cover Image",
-                                style = CookbookTypography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                            )
+                        } else {
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.spacedBy(CookbookSpacing.small)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.AddAPhoto,
+                                    contentDescription = "Add Image",
+                                    modifier = Modifier.size(32.dp),
+                                    tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                                )
+                                Text(
+                                    text = "Add Cover Image",
+                                    style = CookbookTypography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                                )
+                            }
                         }
                     }
-                }
 
-                // Name field
-                CookbookTextField(
-                    value = name,
-                    onValueChange = { 
-                        name = it
-                        nameError = if (it.isBlank()) "Cookbook name is required" else null
-                    },
-                    label = "Cookbook Name",
-                    placeholder = "Enter cookbook name",
-                    isError = nameError != null,
-                    errorMessage = nameError,
-                    imeAction = ImeAction.Next
-                )
-
-                // Description field
-                OutlinedTextField(
-                    value = description,
-                    onValueChange = { description = it },
-                    label = { Text("Description") },
-                    placeholder = { Text("Enter cookbook description (optional)") },
-                    modifier = Modifier.fillMaxWidth(),
-                    minLines = 3,
-                    maxLines = 5,
-                    keyboardOptions = KeyboardOptions(
-                        imeAction = ImeAction.Done
-                    ),
-                    shape = MaterialTheme.shapes.small,
-                    colors = androidx.compose.material3.OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = MaterialTheme.colorScheme.primary,
-                        unfocusedBorderColor = MaterialTheme.colorScheme.outline
+                    // Name field
+                    CookbookTextField(
+                        value = name,
+                        onValueChange = {
+                            name = it
+                            nameError = if (it.isBlank()) "Cookbook name is required" else null
+                        },
+                        label = "Cookbook Name",
+                        placeholder = "Enter cookbook name",
+                        isError = nameError != null,
+                        errorMessage = nameError,
+                        imeAction = ImeAction.Next
                     )
-                )
 
-                Spacer(modifier = Modifier.height(CookbookSpacing.medium))
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    TextButton(onClick = onDismiss) {
-                        Text(
-                            text = "CANCEL",
-                            style = CookbookTypography.labelLarge,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                    // Description field
+                    OutlinedTextField(
+                        value = description,
+                        onValueChange = { description = it },
+                        label = { Text("Description") },
+                        placeholder = { Text("Enter cookbook description (optional)") },
+                        modifier = Modifier.fillMaxWidth(),
+                        minLines = 3,
+                        maxLines = 5,
+                        keyboardOptions = KeyboardOptions(
+                            imeAction = ImeAction.Done
+                        ),
+                        shape = MaterialTheme.shapes.small,
+                        colors = androidx.compose.material3.OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = MaterialTheme.colorScheme.primary,
+                            unfocusedBorderColor = MaterialTheme.colorScheme.outline
                         )
-                    }
+                    )
 
-                    Spacer(modifier = Modifier.width(CookbookSpacing.medium))
+                    Spacer(modifier = Modifier.height(CookbookSpacing.medium))
 
                     Button(
                         onClick = {
@@ -258,7 +255,8 @@ fun CookbookCreationDialog(
                             disabledContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
                             disabledContentColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.5f)
                         ),
-                        shape = MaterialTheme.shapes.medium
+                        shape = MaterialTheme.shapes.medium,
+                        modifier = Modifier.fillMaxWidth()
                     ) {
                         Text(
                             text = "CREATE",
@@ -587,7 +585,7 @@ fun BulkDeleteConfirmationDialog(
 }
 
 /**
- * Share Cookbook Dialog
+ * Share Cookbook Dialog — full screen
  */
 @Composable
 fun ShareCookbookDialog(
@@ -596,199 +594,216 @@ fun ShareCookbookDialog(
     onShareWithUsers: (userIds: List<String>, permissions: Set<Permission>) -> Unit,
     onGenerateLink: () -> Unit
 ) {
-    var selectedPermissions by remember { mutableStateOf(setOf(Permission.VIEW)) }
-    var userIds by remember { mutableStateOf(listOf<String>()) }
-    var newUserId by remember { mutableStateOf("") }
+    // Single-choice permission: View OR Edit (Edit implies viewable)
+    var selectedPermission by remember { mutableStateOf(Permission.VIEW) }
+    var emails by remember { mutableStateOf(listOf<String>()) }
+    var newEmail by remember { mutableStateOf("") }
+    var emailError by remember { mutableStateOf<String?>(null) }
 
     Dialog(
         onDismissRequest = onDismiss,
         properties = DialogProperties(
             dismissOnBackPress = true,
-            dismissOnClickOutside = true
+            dismissOnClickOutside = false,
+            usePlatformDefaultWidth = false
         )
     ) {
-        ElevatedCard(
-            modifier = Modifier
-                .padding(CookbookSpacing.medium)
-                .fillMaxWidth(0.9f),
-            shape = MaterialTheme.shapes.large,
-            colors = androidx.compose.material3.CardDefaults.elevatedCardColors(
-                containerColor = MaterialTheme.colorScheme.surface
-            )
+        Surface(
+            modifier = Modifier.fillMaxSize(),
+            color = MaterialTheme.colorScheme.background
         ) {
-            Column(
-                modifier = Modifier
-                    .padding(CookbookSpacing.large)
-                    .verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(CookbookSpacing.medium)
-            ) {
-                Text(
-                    text = "Share Cookbook",
-                    style = CookbookTypography.headlineSmall,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-
-                Text(
-                    text = "Share \"${cookbook.name}\" with other users or generate a sharing link.",
-                    style = CookbookTypography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
-                )
-
-                // Permission selection
-                Text(
-                    text = "Permissions",
-                    style = CookbookTypography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(CookbookSpacing.medium)
-                ) {
-                    PermissionChip(
-                        permission = Permission.VIEW,
-                        isSelected = Permission.VIEW in selectedPermissions,
-                        onSelected = { 
-                            selectedPermissions = if (Permission.VIEW in selectedPermissions) {
-                                selectedPermissions - Permission.VIEW
-                            } else {
-                                selectedPermissions + Permission.VIEW
-                            }
-                        }
-                    )
-                    
-                    PermissionChip(
-                        permission = Permission.EDIT,
-                        isSelected = Permission.EDIT in selectedPermissions,
-                        onSelected = { 
-                            selectedPermissions = if (Permission.EDIT in selectedPermissions) {
-                                selectedPermissions - Permission.EDIT
-                            } else {
-                                selectedPermissions + Permission.EDIT
+            Scaffold(
+                topBar = {
+                    TopAppBar(
+                        title = { Text("Share Cookbook", style = CookbookTypography.headlineSmall) },
+                        navigationIcon = {
+                            IconButton(onClick = onDismiss) {
+                                Icon(
+                                    imageVector = Icons.Default.ArrowBack,
+                                    contentDescription = "Close"
+                                )
                             }
                         }
                     )
                 }
+            ) { paddingValues ->
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues)
+                        .verticalScroll(rememberScrollState())
+                        .padding(CookbookSpacing.large),
+                    verticalArrangement = Arrangement.spacedBy(CookbookSpacing.medium)
+                ) {
+                    Text(
+                        text = "Share \"${cookbook.name}\" with other users or generate a sharing link.",
+                        style = CookbookTypography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
+                    )
 
-                Spacer(modifier = Modifier.height(CookbookSpacing.medium))
+                    // Permission selection — single choice
+                    Text(
+                        text = "Permissions",
+                        style = CookbookTypography.titleMedium,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
 
-                // User selection (simplified for now)
-                Text(
-                    text = "Share with users",
-                    style = CookbookTypography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-
-                OutlinedTextField(
-                    value = newUserId,
-                    onValueChange = { newUserId = it },
-                    label = { Text("User ID or Email") },
-                    placeholder = { Text("Enter user ID or email") },
-                    modifier = Modifier.fillMaxWidth(),
-                    trailingIcon = {
-                        if (newUserId.isNotBlank()) {
-                            IconButton(onClick = { 
-                                if (newUserId.isNotBlank() && !userIds.contains(newUserId)) {
-                                    userIds = userIds + newUserId
-                                    newUserId = ""
-                                }
-                            }) {
-                                Icon(
-                                    imageVector = Icons.Default.Add,
-                                    contentDescription = "Add User"
-                                )
-                            }
-                        }
-                    },
-                    keyboardOptions = KeyboardOptions(
-                        imeAction = ImeAction.Done
-                    ),
-                    shape = MaterialTheme.shapes.small
-                )
-
-                // Selected users
-                if (userIds.isNotEmpty()) {
-                    Column(
+                    Row(
                         modifier = Modifier.fillMaxWidth(),
-                        verticalArrangement = Arrangement.spacedBy(CookbookSpacing.small)
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(CookbookSpacing.medium)
                     ) {
-                        Text(
-                            text = "Selected Users:",
-                            style = CookbookTypography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                        RadioButton(
+                            selected = selectedPermission == Permission.VIEW,
+                            onClick = { selectedPermission = Permission.VIEW }
                         )
-                        
-                        userIds.forEach { userId ->
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.SpaceBetween
-                            ) {
-                                Text(
-                                    text = userId,
-                                    style = CookbookTypography.bodyMedium
-                                )
-                                IconButton(onClick = { userIds = userIds - userId }) {
+                        Text(
+                            text = "View",
+                            style = CookbookTypography.bodyMedium
+                        )
+
+                        Spacer(modifier = Modifier.width(CookbookSpacing.medium))
+
+                        RadioButton(
+                            selected = selectedPermission == Permission.EDIT,
+                            onClick = { selectedPermission = Permission.EDIT }
+                        )
+                        Text(
+                            text = "Edit (includes view)",
+                            style = CookbookTypography.bodyMedium
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(CookbookSpacing.medium))
+
+                    // Share with users — email only
+                    Text(
+                        text = "Share with users",
+                        style = CookbookTypography.titleMedium,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+
+                    OutlinedTextField(
+                        value = newEmail,
+                        onValueChange = {
+                            newEmail = it
+                            emailError = null
+                        },
+                        label = { Text("Email") },
+                        placeholder = { Text("Enter email address") },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Default.Email,
+                                contentDescription = "Email"
+                            )
+                        },
+                        trailingIcon = {
+                            if (newEmail.isNotBlank()) {
+                                IconButton(onClick = {
+                                    if (android.util.Patterns.EMAIL_ADDRESS.matcher(newEmail).matches()
+                                        && !emails.contains(newEmail)
+                                    ) {
+                                        emails = emails + newEmail
+                                        newEmail = ""
+                                        emailError = null
+                                    } else {
+                                        emailError = "Enter a valid email address"
+                                    }
+                                }) {
                                     Icon(
-                                        imageVector = Icons.Default.Clear,
-                                        contentDescription = "Remove User",
-                                        tint = MaterialTheme.colorScheme.error
+                                        imageVector = Icons.Default.Add,
+                                        contentDescription = "Add Email"
                                     )
                                 }
                             }
+                        },
+                        isError = emailError != null,
+                        supportingText = emailError?.let { error ->
+                            { Text(error, color = MaterialTheme.colorScheme.error) }
+                        },
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Email,
+                            imeAction = ImeAction.Done
+                        ),
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = MaterialTheme.shapes.small
+                    )
+
+                    // Selected emails
+                    if (emails.isNotEmpty()) {
+                        Column(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalArrangement = Arrangement.spacedBy(CookbookSpacing.small)
+                        ) {
+                            Text(
+                                text = "Selected recipients:",
+                                style = CookbookTypography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                            )
+
+                            emails.forEach { email ->
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    Text(
+                                        text = email,
+                                        style = CookbookTypography.bodyMedium
+                                    )
+                                    IconButton(onClick = { emails = emails - email }) {
+                                        Icon(
+                                            imageVector = Icons.Default.Clear,
+                                            contentDescription = "Remove Email",
+                                            tint = MaterialTheme.colorScheme.error
+                                        )
+                                    }
+                                }
+                            }
                         }
                     }
-                }
 
-                Spacer(modifier = Modifier.height(CookbookSpacing.medium))
+                    Spacer(modifier = Modifier.height(CookbookSpacing.medium))
 
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(CookbookSpacing.medium)
-                ) {
-                    OutlinedButton(
-                        onClick = { 
-                            if (userIds.isNotEmpty()) {
-                                onShareWithUsers(userIds, selectedPermissions)
-                            }
-                        },
-                        enabled = userIds.isNotEmpty(),
-                        modifier = Modifier.weight(1f)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(CookbookSpacing.medium)
                     ) {
-                        Text(
-                            text = "Share with Users",
-                            style = CookbookTypography.labelLarge
-                        )
+                        OutlinedButton(
+                            onClick = {
+                                if (emails.isNotEmpty()) {
+                                    onShareWithUsers(emails, setOf(selectedPermission))
+                                }
+                            },
+                            enabled = emails.isNotEmpty(),
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text(
+                                text = "Share with Users",
+                                style = CookbookTypography.labelLarge
+                            )
+                        }
+
+                        Button(
+                            onClick = onGenerateLink,
+                            modifier = Modifier.weight(1f),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.secondary,
+                                contentColor = MaterialTheme.colorScheme.onSecondary
+                            )
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Link,
+                                contentDescription = "Generate Link",
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Spacer(modifier = Modifier.width(CookbookSpacing.xSmall))
+                            Text(
+                                text = "Generate Link",
+                                style = CookbookTypography.labelLarge
+                            )
+                        }
                     }
-
-                    Button(
-                        onClick = onGenerateLink,
-                        modifier = Modifier.weight(1f),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.secondary,
-                            contentColor = MaterialTheme.colorScheme.onSecondary
-                        )
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Link,
-                            contentDescription = "Generate Link",
-                            modifier = Modifier.size(18.dp)
-                        )
-                        Spacer(modifier = Modifier.width(CookbookSpacing.xSmall))
-                        Text(
-                            text = "Generate Link",
-                            style = CookbookTypography.labelLarge
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(CookbookSpacing.small))
-
-                TextButton(onClick = onDismiss) {
-                    Text(
-                        text = "CANCEL",
-                        style = CookbookTypography.labelLarge
-                    )
                 }
             }
         }

@@ -189,9 +189,12 @@ object ViewModelModule {
         getSyncStatus: GetSyncStatus,
         updateSyncInProgress: UpdateSyncInProgress,
         updateLastSyncTimestamp: UpdateLastSyncTimestamp,
+        getCookbooksByOwner: GetCookbooksByOwner,
+        themePreferencesManager: com.ourcookbook.ui.theme.ThemePreferencesManager,
         @ApplicationContext context: Context
     ): SettingsViewModel = SettingsViewModel(
         getDevicePreferencesByDevice, updateDevicePreferences, createDevicePreferences,
-        getSyncStatus, updateSyncInProgress, updateLastSyncTimestamp, context
+        getSyncStatus, updateSyncInProgress, updateLastSyncTimestamp,
+        getCookbooksByOwner, themePreferencesManager, context
     )
 }

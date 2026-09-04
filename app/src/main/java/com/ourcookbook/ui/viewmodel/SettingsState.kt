@@ -1,5 +1,6 @@
 package com.ourcookbook.ui.viewmodel
 
+import com.ourcookbook.domain.model.Cookbook
 import com.ourcookbook.domain.model.DevicePreferences
 import java.time.LocalDateTime
 
@@ -7,6 +8,22 @@ import java.time.LocalDateTime
  * Settings State Classes
  * Contains all state management for the Settings Screen
  */
+
+/**
+ * Default categories pre-populated for new users
+ */
+val DEFAULT_CATEGORIES = listOf(
+    "Breakfast & Brunch",
+    "Appetizers",
+    "Soups & Stews",
+    "Salads",
+    "Sides",
+    "Main Dishes",
+    "Desserts",
+    "Snacks",
+    "Beverages",
+    "Condiments"
+)
 
 /**
  * Main Settings State
@@ -83,7 +100,11 @@ data class SettingsState(
     // Default cookbook selection
     val defaultCookbookId: String? = null,
     val defaultCookbookName: String = "Personal",
-    
+    val cookbooks: List<Cookbook> = emptyList(),
+
+    // Categories (editable)
+    val categories: List<String> = DEFAULT_CATEGORIES,
+
     // Language selection
     val language: String = "en", // ISO 639-1 language code
     
@@ -181,6 +202,7 @@ data class SettingsState(
     val languageDisplayName: String
         get() = when (language) {
             "en" -> "English"
+            "sv" -> "Svenska"
             "es" -> "Español"
             "fr" -> "Français"
             "de" -> "Deutsch"
@@ -292,7 +314,11 @@ sealed class SettingsEvent {
     
     // Default cookbook settings
     data class UpdateDefaultCookbook(val cookbookId: String?) : SettingsEvent()
-    
+
+    // Category management
+    data class AddCategory(val name: String) : SettingsEvent()
+    data class RemoveCategory(val name: String) : SettingsEvent()
+
     // Language settings
     data class UpdateLanguage(val language: String) : SettingsEvent()
     

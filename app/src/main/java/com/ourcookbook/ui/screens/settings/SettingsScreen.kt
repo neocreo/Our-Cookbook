@@ -2,6 +2,7 @@
 
 package com.ourcookbook.ui.screens.settings
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -16,6 +17,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.BugReport
@@ -110,6 +112,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.ourcookbook.domain.model.Cookbook
+import com.ourcookbook.ui.components.CookbookBottomNavigation
 import com.ourcookbook.ui.components.CookbookPrimaryButton
 import com.ourcookbook.ui.components.LoadingState
 import com.ourcookbook.ui.navigation.Route
@@ -206,6 +210,17 @@ fun SettingsScreen(
                 }
             )
         },
+        bottomBar = {
+            CookbookBottomNavigation(
+                currentRoute = navController.currentDestination?.route ?: Route.SETTINGS,
+                onNavigate = { route ->
+                    navController.navigate(route) {
+                        launchSingleTop = true
+                        restoreState = true
+                    }
+                }
+            )
+        },
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { paddingValues ->
         when {
@@ -264,7 +279,7 @@ fun SettingsContent(
             state = state,
             onEvent = onEvent
         )
-        
+
         // ====================================================================
         // 4. NOTIFICATION SETTINGS
         // ====================================================================
@@ -273,27 +288,18 @@ fun SettingsContent(
             state = state,
             onEvent = onEvent
         )
-        
+
         // ====================================================================
-        // 5. ACCESSIBILITY SETTINGS
-        // ====================================================================
-        SettingsCategorySection(
-            category = SettingsCategory.ACCESSIBILITY,
-            state = state,
-            onEvent = onEvent
-        )
-        
-        // ====================================================================
-        // 6. ABOUT SECTION
+        // 5. ABOUT SECTION
         // ====================================================================
         SettingsCategorySection(
             category = SettingsCategory.ABOUT,
             state = state,
             onEvent = onEvent
         )
-        
+
         // ====================================================================
-        // 7. ADVANCED SETTINGS
+        // 6. ADVANCED SETTINGS
         // ====================================================================
         SettingsCategorySection(
             category = SettingsCategory.ADVANCED,
@@ -350,7 +356,6 @@ fun SettingsCategorySection(
         SettingsCategory.ACCOUNT -> AccountAndDeviceSettingsSection(state, onEvent)
         SettingsCategory.PRIVACY -> PrivacyAndSecuritySection(state, onEvent)
         SettingsCategory.NOTIFICATIONS -> NotificationSettingsSection(state, onEvent)
-        SettingsCategory.ACCESSIBILITY -> AccessibilitySettingsSection(state, onEvent)
         SettingsCategory.ABOUT -> AboutSection(state, onEvent)
         SettingsCategory.ADVANCED -> AdvancedSettingsSection(state, onEvent)
         else -> {}
@@ -366,6 +371,9 @@ fun AppSettingsSection(
     state: SettingsState,
     onEvent: (SettingsEvent) -> Unit
 ) {
+    var showCookbookPicker by remember { mutableStateOf(false) }
+    var newCategory by remember { mutableStateOf("") }
+
     SettingsSectionCard(title = "App Settings", icon = Icons.Default.Tune) {
         // Theme selection
         SettingsItemWithDropdown(
@@ -383,16 +391,17 @@ fun AppSettingsSection(
                 onEvent(SettingsEvent.UpdateTheme(theme))
             }
         )
-        
+
         // Language selection
         SettingsItemWithDropdown(
             icon = Icons.Default.Language,
             title = "Language",
             subtitle = state.languageDisplayName,
-            options = listOf("English", "Español", "Français", "Deutsch", "Italiano"),
+            options = listOf("English", "Svenska", "Español", "Français", "Deutsch", "Italiano"),
             selectedOption = state.languageDisplayName,
             onOptionSelected = { option ->
                 val language = when (option) {
+                    "Svenska" -> "sv"
                     "Español" -> "es"
                     "Français" -> "fr"
                     "Deutsch" -> "de"
@@ -402,7 +411,7 @@ fun AppSettingsSection(
                 onEvent(SettingsEvent.UpdateLanguage(language))
             }
         )
-        
+
         // Font size adjustment
         SettingsItemWithDropdown(
             icon = Icons.Default.FontDownload,
@@ -419,45 +428,85 @@ fun AppSettingsSection(
                 onEvent(SettingsEvent.UpdateFontSize(fontSize))
             }
         )
-        
-        // Sync settings
-        SettingsItemWithDropdown(
-            icon = Icons.Default.Sync,
-            title = "Sync Frequency",
-            subtitle = state.syncFrequencyDisplayName,
-            options = listOf("Auto", "Manual", "Hourly", "Daily", "Weekly"),
-            selectedOption = state.syncFrequencyDisplayName,
-            onOptionSelected = { option ->
-                val frequency = when (option) {
-                    "Manual" -> "MANUAL"
-                    "Hourly" -> "HOURLY"
-                    "Daily" -> "DAILY"
-                    "Weekly" -> "WEEKLY"
-                    else -> "AUTO"
-                }
-                onEvent(SettingsEvent.UpdateSyncFrequency(frequency))
-            }
-        )
-        
-        // Offline mode toggle
-        SettingsToggle(
-            icon = if (state.offlineMode) Icons.Default.CloudOff else Icons.Default.Cloud,
-            title = "Offline Mode",
-            subtitle = "Use app without internet connection",
-            checked = state.offlineMode,
-            onCheckedChange = { onEvent(SettingsEvent.UpdateOfflineMode(it)) }
-        )
-        
-        // Default cookbook selection
+
+        // Default cookbook selection — picker showing user's cookbooks
         SettingsItem(
             icon = Icons.Default.Storage,
             title = "Default Cookbook",
             subtitle = state.defaultCookbookName,
-            onClick = { 
-                // Show cookbook selection dialog
-                onEvent(SettingsEvent.UpdateDefaultCookbook("personal"))
+            onClick = { showCookbookPicker = true }
+        )
+    }
+
+    // Default cookbook picker dialog
+    if (showCookbookPicker) {
+        CookbookPickerDialog(
+            cookbooks = state.cookbooks,
+            selectedId = state.defaultCookbookId,
+            onDismiss = { showCookbookPicker = false },
+            onSelect = { cookbookId ->
+                onEvent(SettingsEvent.UpdateDefaultCookbook(cookbookId))
+                showCookbookPicker = false
             }
         )
+    }
+
+    // Categories section
+    SettingsSectionCard(title = "Categories", icon = Icons.Default.Tune) {
+        state.categories.forEach { category ->
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 4.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = category,
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.weight(1f)
+                )
+                IconButton(onClick = { onEvent(SettingsEvent.RemoveCategory(category)) }) {
+                    Icon(
+                        imageVector = Icons.Default.Clear,
+                        contentDescription = "Remove $category",
+                        tint = MaterialTheme.colorScheme.error
+                    )
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            OutlinedTextField(
+                value = newCategory,
+                onValueChange = { newCategory = it },
+                label = { Text("Add category") },
+                modifier = Modifier.weight(1f),
+                shape = MaterialTheme.shapes.small,
+                colors = androidx.compose.material3.OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outline
+                )
+            )
+            IconButton(onClick = {
+                if (newCategory.isNotBlank()) {
+                    onEvent(SettingsEvent.AddCategory(newCategory))
+                    newCategory = ""
+                }
+            }) {
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = "Add Category",
+                    tint = MaterialTheme.colorScheme.primary
+                )
+            }
+        }
     }
 }
 
@@ -471,70 +520,94 @@ fun AccountAndDeviceSettingsSection(
     onEvent: (SettingsEvent) -> Unit
 ) {
     SettingsSectionCard(title = "Account & Device", icon = Icons.Default.AccountCircle) {
-        // User profile information
-        SettingsItem(
-            icon = Icons.Default.Person,
-            title = "User Profile",
-            subtitle = state.userName ?: "Not logged in",
-            onClick = { }
-        )
-        
-        // Device name and ID
-        SettingsItem(
-            icon = Icons.Default.PhoneAndroid,
-            title = "Device Name",
-            subtitle = state.deviceName.ifEmpty { "My Device" },
-            onClick = { /* Show device name edit dialog */ }
-        )
-        
-        SettingsItem(
-            icon = Icons.Default.Dns,
-            title = "Device ID",
-            subtitle = state.deviceId,
-            onClick = { /* Copy device ID to clipboard */ }
-        )
-        
-        // Linked Google Drive account
-        SettingsItem(
-            icon = Icons.Default.Cloud,
-            title = "Google Drive Account",
-            subtitle = state.linkedGoogleDriveAccount ?: "Not connected",
-            onClick = { onEvent(SettingsEvent.TriggerSync) }
-        )
-        
-        // Sync status and last sync time
-        SettingsItem(
-            icon = when (state.syncStatus) {
-                "SYNCING" -> Icons.Default.Sync
-                "ERROR" -> Icons.Default.Warning
-                else -> Icons.Default.Check
-            },
-            title = "Sync Status",
-            subtitle = "${state.syncStatus} • ${state.lastSyncTimeDisplay}",
-            onClick = { onEvent(SettingsEvent.CheckSyncStatus) }
-        )
-        
-        // Storage usage statistics
-        SettingsItem(
-            icon = Icons.Default.Storage,
-            title = "Storage Usage",
-            subtitle = state.storageUsageDisplay,
-            onClick = { /* Show storage details */ }
-        )
-        
-        // Storage usage progress bar
-        if (state.maxStorage > 0) {
-            LinearProgressIndicator(
-                progress = state.storageUsagePercentage / 100f,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(4.dp)
-                    .padding(vertical = 8.dp),
-                color = when {
-                    state.storageUsagePercentage > 90 -> MaterialTheme.colorScheme.error
-                    state.storageUsagePercentage > 70 -> MaterialTheme.colorScheme.error
-                    else -> MaterialTheme.colorScheme.primary
+        if (!state.isLoggedIn) {
+            // Logged out — show only "Connect to Google"
+            SettingsItem(
+                icon = Icons.Default.Cloud,
+                title = "Connect to Google",
+                subtitle = "Link your Google Drive account for sync",
+                onClick = { onEvent(SettingsEvent.TriggerSync) }
+            )
+        } else {
+            // Logged in — show account details and device settings
+            SettingsItem(
+                icon = Icons.Default.Person,
+                title = "Account",
+                subtitle = state.userName ?: state.userEmail ?: "Connected",
+                onClick = { }
+            )
+
+            // Offline Mode (moved from App Settings)
+            SettingsToggle(
+                icon = if (state.offlineMode) Icons.Default.CloudOff else Icons.Default.Cloud,
+                title = "Offline Mode",
+                subtitle = "Use app without internet connection",
+                checked = state.offlineMode,
+                onCheckedChange = { onEvent(SettingsEvent.UpdateOfflineMode(it)) }
+            )
+
+            // Sync Frequency (moved from App Settings)
+            SettingsItemWithDropdown(
+                icon = Icons.Default.Sync,
+                title = "Sync Frequency",
+                subtitle = state.syncFrequencyDisplayName,
+                options = listOf("Auto", "Manual", "Hourly", "Daily", "Weekly"),
+                selectedOption = state.syncFrequencyDisplayName,
+                onOptionSelected = { option ->
+                    val frequency = when (option) {
+                        "Manual" -> "MANUAL"
+                        "Hourly" -> "HOURLY"
+                        "Daily" -> "DAILY"
+                        "Weekly" -> "WEEKLY"
+                        else -> "AUTO"
+                    }
+                    onEvent(SettingsEvent.UpdateSyncFrequency(frequency))
                 }
+            )
+
+            // Sync Status
+            SettingsItem(
+                icon = when (state.syncStatus) {
+                    "SYNCING" -> Icons.Default.Sync
+                    "ERROR" -> Icons.Default.Warning
+                    else -> Icons.Default.Check
+                },
+                title = "Sync Status",
+                subtitle = "${state.syncStatus} • ${state.lastSyncTimeDisplay}",
+                onClick = { onEvent(SettingsEvent.CheckSyncStatus) }
+            )
+
+            // Storage usage
+            SettingsItem(
+                icon = Icons.Default.Storage,
+                title = "Storage Used",
+                subtitle = state.storageUsageDisplay,
+                onClick = { }
+            )
+
+            // Storage usage progress bar
+            if (state.maxStorage > 0) {
+                LinearProgressIndicator(
+                    progress = state.storageUsagePercentage / 100f,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(4.dp)
+                        .padding(vertical = 8.dp),
+                    color = when {
+                        state.storageUsagePercentage > 90 -> MaterialTheme.colorScheme.error
+                        state.storageUsagePercentage > 70 -> MaterialTheme.colorScheme.error
+                        else -> MaterialTheme.colorScheme.primary
+                    }
+                )
+            }
+
+            // Disconnect
+            SettingsItem(
+                icon = Icons.Default.CloudOff,
+                title = "Disconnect",
+                subtitle = "Remove Google Drive connection",
+                isDestructive = true,
+                onClick = { onEvent(SettingsEvent.TriggerSync) }
             )
         }
     }
@@ -550,24 +623,13 @@ fun PrivacyAndSecuritySection(
     onEvent: (SettingsEvent) -> Unit
 ) {
     SettingsSectionCard(title = "Privacy & Security", icon = Icons.Default.Security) {
-        // App lock (PIN/biometric)
-        SettingsToggle(
-            icon = if (state.appLockEnabled) Icons.Default.Lock else Icons.Default.LockOpen,
-            title = "App Lock",
-            subtitle = "Protect app with ${state.appLockTypeDisplayName}",
-            checked = state.appLockEnabled,
-            onCheckedChange = { onEvent(SettingsEvent.UpdateAppLockEnabled(it)) }
-        )
-        
-        // Data encryption status
-        SettingsToggle(
+        // Data encryption status — enabled by default (SQLCipher), documented
+        SettingsInfoItem(
             icon = Icons.Default.VerifiedUser,
             title = "Data Encryption",
-            subtitle = if (state.dataEncryptionEnabled) "All data is encrypted" else "Data encryption disabled",
-            checked = state.dataEncryptionEnabled,
-            onCheckedChange = { onEvent(SettingsEvent.UpdateDataEncryptionEnabled(it)) }
+            subtitle = "All local data is encrypted at rest (SQLCipher)"
         )
-        
+
         // Privacy policy link
         SettingsItem(
             icon = Icons.Default.PrivacyTip,
@@ -576,29 +638,20 @@ fun PrivacyAndSecuritySection(
             onClick = { }
         )
 
-        // Data export option
+        // Data export option — creates file in Downloads
         SettingsItem(
             icon = Icons.Default.FileUpload,
             title = "Export Data",
-            subtitle = "Export your recipes to a file",
+            subtitle = "Export your recipes to a file in Downloads",
             onClick = { onEvent(SettingsEvent.ExportData) }
         )
-        
-        // Data import option
+
+        // Data import option — opens file from Downloads
         SettingsItem(
             icon = Icons.Default.FileDownload,
             title = "Import Data",
             subtitle = "Import recipes from a file",
             onClick = { onEvent(SettingsEvent.ImportData) }
-        )
-        
-        // Delete account option (destructive)
-        SettingsItem(
-            icon = Icons.Default.Delete,
-            title = "Delete Account",
-            subtitle = "Permanently delete your account and data",
-            isDestructive = true,
-            onClick = { onEvent(SettingsEvent.DeleteAccount) }
         )
     }
 }
@@ -613,42 +666,24 @@ fun NotificationSettingsSection(
     onEvent: (SettingsEvent) -> Unit
 ) {
     SettingsSectionCard(title = "Notifications", icon = Icons.Default.Notifications) {
-        // Master notifications toggle
-        SettingsToggle(
-            icon = if (state.notificationsEnabled) Icons.Default.NotificationsActive else Icons.Default.NotificationsOff,
-            title = "Notifications",
-            subtitle = "Enable or disable all notifications",
-            checked = state.notificationsEnabled,
-            onCheckedChange = { onEvent(SettingsEvent.UpdateNotificationsEnabled(it)) }
-        )
-        
-        // Recipe reminders
-        SettingsToggle(
-            icon = Icons.Default.Timer,
-            title = "Recipe Reminders",
-            subtitle = "Get reminders for your recipes",
-            checked = state.recipeRemindersEnabled,
-            onCheckedChange = { onEvent(SettingsEvent.UpdateRecipeRemindersEnabled(it)) }
-        )
-        
-        // Sync notifications
-        SettingsToggle(
-            icon = Icons.Default.Sync,
-            title = "Sync Notifications",
-            subtitle = "Get notified when sync completes",
-            checked = state.syncNotificationsEnabled,
-            onCheckedChange = { onEvent(SettingsEvent.UpdateSyncNotificationsEnabled(it)) }
-        )
-        
-        // Update notifications
+        // Updated recipe — sync-driven notification
         SettingsToggle(
             icon = Icons.Default.SystemUpdateAlt,
-            title = "Update Notifications",
-            subtitle = "Get notified about app updates",
+            title = "Updated Recipe",
+            subtitle = "Get notified when a synced recipe is updated",
             checked = state.updateNotificationsEnabled,
             onCheckedChange = { onEvent(SettingsEvent.UpdateUpdateNotificationsEnabled(it)) }
         )
-        
+
+        // New recipe — sync-driven notification
+        SettingsToggle(
+            icon = Icons.Default.Notifications,
+            title = "New Recipe",
+            subtitle = "Get notified when a new recipe is added via sync",
+            checked = state.syncNotificationsEnabled,
+            onCheckedChange = { onEvent(SettingsEvent.UpdateSyncNotificationsEnabled(it)) }
+        )
+
         // Sound settings
         SettingsToggle(
             icon = Icons.Default.VolumeUp,
@@ -657,11 +692,11 @@ fun NotificationSettingsSection(
             checked = state.notificationSoundEnabled,
             onCheckedChange = { onEvent(SettingsEvent.UpdateNotificationSound(it)) }
         )
-        
+
         // Vibration settings
         SettingsToggle(
             icon = Icons.Default.Power,
-            title = "Vibration",
+            title = "Notification Vibration",
             subtitle = "Vibrate for notifications",
             checked = state.notificationVibrationEnabled,
             onCheckedChange = { onEvent(SettingsEvent.UpdateNotificationVibration(it)) }
@@ -747,22 +782,20 @@ fun AboutSection(
     onEvent: (SettingsEvent) -> Unit
 ) {
     SettingsSectionCard(title = "About", icon = Icons.Default.Info) {
-        // App version information
-        SettingsItem(
+        // App version information (no link, no arrow)
+        SettingsInfoItem(
             icon = Icons.Default.SystemUpdateAlt,
             title = "App Version",
-            subtitle = state.appVersion,
-            onClick = { /* No action */ }
+            subtitle = state.appVersion
         )
-        
-        // Build number
-        SettingsItem(
+
+        // Build number (no link, no arrow)
+        SettingsInfoItem(
             icon = Icons.Default.BugReport,
             title = "Build Number",
-            subtitle = state.buildNumber,
-            onClick = { /* No action */ }
+            subtitle = state.buildNumber
         )
-        
+
         // Changelog
         SettingsItem(
             icon = Icons.Default.History,
@@ -770,7 +803,7 @@ fun AboutSection(
             subtitle = "View what's new in recent versions",
             onClick = { }
         )
-        
+
         // Open source licenses
         SettingsItem(
             icon = Icons.Default.DeviceHub,
@@ -778,7 +811,7 @@ fun AboutSection(
             subtitle = "View third-party licenses",
             onClick = { }
         )
-        
+
         // Contact information
         SettingsItem(
             icon = Icons.Default.Help,
@@ -786,7 +819,7 @@ fun AboutSection(
             subtitle = "Get help and support",
             onClick = { }
         )
-        
+
         // Rate the app option
         SettingsItem(
             icon = Icons.Default.WbSunny,
@@ -806,61 +839,71 @@ fun AdvancedSettingsSection(
     state: SettingsState,
     onEvent: (SettingsEvent) -> Unit
 ) {
-    SettingsSectionCard(title = "Advanced", icon = Icons.Default.Settings) {
-        // Debug mode toggle
-        SettingsToggle(
-            icon = Icons.Default.BugReport,
-            title = "Debug Mode",
-            subtitle = "Enable debug features and logging",
-            checked = state.debugModeEnabled,
-            onCheckedChange = { onEvent(SettingsEvent.UpdateDebugModeEnabled(it)) }
-        )
-        
-        // Log level selection
-        SettingsItemWithDropdown(
-            icon = Icons.Default.History,
-            title = "Log Level",
-            subtitle = state.logLevelDisplayName,
-            options = listOf("Verbose", "Debug", "Info", "Warn", "Error"),
-            selectedOption = state.logLevelDisplayName,
-            onOptionSelected = { option ->
-                val level = when (option) {
-                    "Verbose" -> "VERBOSE"
-                    "Debug" -> "DEBUG"
-                    "Info" -> "INFO"
-                    "Warn" -> "WARN"
-                    "Error" -> "ERROR"
-                    else -> "INFO"
+    var isExpanded by remember { mutableStateOf(false) }
+
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.medium
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            // Collapsible header — collapsed by default
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { isExpanded = !isExpanded }
+                    .padding(vertical = 4.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Settings,
+                        contentDescription = "Advanced",
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Text(
+                        text = "Advanced",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.primary
+                    )
                 }
-                onEvent(SettingsEvent.UpdateLogLevel(level))
+                Icon(
+                    imageVector = if (isExpanded) Icons.Default.Clear else Icons.Default.ArrowForward,
+                    contentDescription = if (isExpanded) "Collapse" else "Expand",
+                    tint = MaterialTheme.colorScheme.primary
+                )
             }
-        )
-        
-        // Clear cache
-        SettingsItem(
-            icon = Icons.Default.Cached,
-            title = "Clear Cache",
-            subtitle = "Clear temporary app data",
-            onClick = { onEvent(SettingsEvent.ClearCache) }
-        )
-        
-        // Reset app data
-        SettingsItem(
-            icon = Icons.Default.Refresh,
-            title = "Reset App Data",
-            subtitle = "Reset all app data and settings",
-            isDestructive = true,
-            onClick = { onEvent(SettingsEvent.ResetAppData) }
-        )
-        
-        // Developer options
-        SettingsToggle(
-            icon = Icons.Default.Tune,
-            title = "Developer Options",
-            subtitle = "Enable developer features",
-            checked = state.developerOptionsEnabled,
-            onCheckedChange = { onEvent(SettingsEvent.UpdateDeveloperOptionsEnabled(it)) }
-        )
+
+            if (isExpanded) {
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // Clear cache
+                SettingsItem(
+                    icon = Icons.Default.Cached,
+                    title = "Clear Cache",
+                    subtitle = "Clear temporary app data",
+                    onClick = { onEvent(SettingsEvent.ClearCache) }
+                )
+
+                // Reset app data
+                SettingsItem(
+                    icon = Icons.Default.Refresh,
+                    title = "Reset App Data",
+                    subtitle = "Reset all app data and settings",
+                    isDestructive = true,
+                    onClick = { onEvent(SettingsEvent.ResetAppData) }
+                )
+            }
+        }
     }
 }
 
@@ -933,7 +976,7 @@ fun SettingsItem(
                 tint = if (isDestructive) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
                 modifier = Modifier.size(20.dp)
             )
-            
+
             Column(
                 verticalArrangement = Arrangement.spacedBy(2.dp)
             ) {
@@ -941,7 +984,7 @@ fun SettingsItem(
                     text = title,
                     style = MaterialTheme.typography.bodyMedium
                 )
-                
+
                 Text(
                     text = subtitle,
                     style = MaterialTheme.typography.bodySmall,
@@ -949,7 +992,7 @@ fun SettingsItem(
                 )
             }
         }
-        
+
         IconButton(onClick = onClick) {
             Icon(
                 imageVector = Icons.Default.ArrowForward,
@@ -958,6 +1001,110 @@ fun SettingsItem(
             )
         }
     }
+}
+
+@Composable
+fun SettingsInfoItem(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    title: String,
+    subtitle: String
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = title,
+            tint = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.size(20.dp)
+        )
+
+        Column(
+            verticalArrangement = Arrangement.spacedBy(2.dp)
+        ) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.bodyMedium
+            )
+
+            Text(
+                text = subtitle,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+            )
+        }
+    }
+}
+
+@Composable
+fun CookbookPickerDialog(
+    cookbooks: List<Cookbook>,
+    selectedId: String?,
+    onDismiss: () -> Unit,
+    onSelect: (String?) -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Select Default Cookbook") },
+        text = {
+            Column {
+                // "Personal" / no default option
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onSelect(null) }
+                        .padding(vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    androidx.compose.material3.RadioButton(
+                        selected = selectedId == null,
+                        onClick = { onSelect(null) }
+                    )
+                    Text(
+                        text = "Personal (no default)",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
+
+                cookbooks.forEach { cookbook ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { onSelect(cookbook.id) }
+                            .padding(vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        androidx.compose.material3.RadioButton(
+                            selected = selectedId == cookbook.id,
+                            onClick = { onSelect(cookbook.id) }
+                        )
+                        Text(
+                            text = cookbook.name,
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
+                }
+
+                if (cookbooks.isEmpty()) {
+                    Text(
+                        text = "No cookbooks available. Create a cookbook first.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                        modifier = Modifier.padding(vertical = 8.dp)
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Done")
+            }
+        }
+    )
 }
 
 @Composable

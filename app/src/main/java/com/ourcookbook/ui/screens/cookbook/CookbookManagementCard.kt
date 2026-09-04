@@ -18,15 +18,17 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Article
 import androidx.compose.material.icons.filled.Book
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.People
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material.icons.filled.SyncDisabled
+import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
@@ -119,13 +121,13 @@ fun CookbookManagementCard(
                 .padding(CookbookSpacing.medium),
             verticalArrangement = Arrangement.spacedBy(CookbookSpacing.small)
         ) {
-            // Header with image and actions
+            // Header with image, info, and three-dot menu
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.Top
             ) {
-                // Cookbook image
+                // Cookbook image (or generic Book icon if no thumbnail)
                 Box(
                     modifier = Modifier
                         .width(80.dp)
@@ -161,7 +163,7 @@ fun CookbookManagementCard(
 
                 Spacer(modifier = Modifier.width(CookbookSpacing.medium))
 
-                // Cookbook info
+                // Cookbook info: name + description + recipe count
                 Column(
                     modifier = Modifier.weight(1f),
                     verticalArrangement = Arrangement.spacedBy(CookbookSpacing.xxSmall)
@@ -178,63 +180,46 @@ fun CookbookManagementCard(
                             text = cookbook.description,
                             style = CookbookTypography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                            maxLines = 1,
+                            maxLines = 2,
                             overflow = TextOverflow.Ellipsis
                         )
                     }
 
-                    // Metadata row
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(CookbookSpacing.medium)
-                    ) {
-                        CookbookMetadataItem(
-                            icon = Icons.Default.Book,
-                            text = "${cookbook.recipeCount} recipes",
-                            modifier = Modifier.weight(1f)
-                        )
-
-                        CookbookMetadataItem(
-                            icon = Icons.Default.DateRange,
-                            text = formatDate(cookbook.updatedAt),
-                            modifier = Modifier.weight(1f)
-                        )
-
-                        // Sync status indicator
-                        SyncStatusIndicator(status = syncStatus)
-                    }
+                    // Recipe count under description with recipe-card icon
+                    CookbookMetadataItem(
+                        icon = Icons.Default.Article,
+                        text = "${cookbook.recipeCount} recipes",
+                        modifier = Modifier.padding(top = CookbookSpacing.xxSmall)
+                    )
                 }
 
-                // Action buttons
-                Column(
-                    horizontalAlignment = Alignment.End,
-                    verticalArrangement = Arrangement.spacedBy(CookbookSpacing.xxSmall)
-                ) {
-                    IconButton(
-                        onClick = { showMenu = true },
-                        modifier = Modifier.size(32.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.MoreVert,
-                            contentDescription = "More Actions"
-                        )
-                    }
-                }
-            }
-
-            // Quick actions row
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(CookbookSpacing.xSmall, Alignment.End)
-            ) {
+                // Three-dot menu
                 IconButton(
-                    onClick = onShare,
+                    onClick = { showMenu = true },
                     modifier = Modifier.size(32.dp)
                 ) {
                     Icon(
-                        imageVector = Icons.Default.Share,
-                        contentDescription = "Share"
+                        imageVector = Icons.Default.MoreVert,
+                        contentDescription = "More Actions"
                     )
+                }
+            }
+
+            // Bottom row: left = date + sync icon, right = edit
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(CookbookSpacing.small)
+                ) {
+                    CookbookMetadataItem(
+                        icon = Icons.Default.DateRange,
+                        text = formatDate(cookbook.updatedAt)
+                    )
+                    SyncStatusIndicator(status = syncStatus)
                 }
 
                 IconButton(
@@ -246,20 +231,9 @@ fun CookbookManagementCard(
                         contentDescription = "Edit"
                     )
                 }
-
-                IconButton(
-                    onClick = onDelete,
-                    modifier = Modifier.size(32.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Delete,
-                        contentDescription = "Delete",
-                        tint = MaterialTheme.colorScheme.error
-                    )
-                }
             }
 
-            // Dropdown menu for additional actions
+            // Dropdown menu: Export, Share, Sync Now, View, Delete
             DropdownMenu(
                 expanded = showMenu,
                 onDismissRequest = { showMenu = false },
@@ -273,8 +247,22 @@ fun CookbookManagementCard(
                     },
                     leadingIcon = {
                         Icon(
-                            imageVector = Icons.Default.Share,
+                            imageVector = Icons.Default.Download,
                             contentDescription = "Export"
+                        )
+                    }
+                )
+
+                DropdownMenuItem(
+                    text = { Text("Share") },
+                    onClick = {
+                        showMenu = false
+                        onShare()
+                    },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Default.Share,
+                            contentDescription = "Share"
                         )
                     }
                 )
@@ -294,15 +282,30 @@ fun CookbookManagementCard(
                 )
 
                 DropdownMenuItem(
-                    text = { Text("View Details") },
+                    text = { Text("View") },
                     onClick = {
                         showMenu = false
                         onClick()
                     },
                     leadingIcon = {
                         Icon(
-                            imageVector = Icons.Default.Book,
-                            contentDescription = "Details"
+                            imageVector = Icons.Default.Visibility,
+                            contentDescription = "View"
+                        )
+                    }
+                )
+
+                DropdownMenuItem(
+                    text = { Text("Delete") },
+                    onClick = {
+                        showMenu = false
+                        onDelete()
+                    },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Default.Delete,
+                            contentDescription = "Delete",
+                            tint = MaterialTheme.colorScheme.error
                         )
                     }
                 )

@@ -173,9 +173,13 @@ class CookbookRepositoryImpl @Inject constructor(
     
     override suspend fun generateSharingLink(cookbookId: String): String {
         val cookbook = getCookbookById(cookbookId) ?: throw NoSuchElementException("Cookbook not found")
-        // Implementation would generate a sharing link for the cookbook
-        // This is a placeholder implementation
-        return "https://ourcookbook.com/share/$cookbookId"
+        // Return the Google Drive folder URL for this cookbook.
+        // Once Drive API integration is wired (OAuth credentials), this will use the
+        // actual Drive folder ID stored on the cookbook. Until then, a placeholder
+        // folder ID derived from the cookbook ID is used so the link format is correct.
+        val folderId = cookbook.sharingLink?.substringAfterLast("/")
+            ?: "drive_folder_$cookbookId"
+        return "https://drive.google.com/drive/folders/$folderId"
     }
     
     override fun getSharingInfo(cookbookId: String): kotlinx.coroutines.flow.Flow<com.ourcookbook.ui.viewmodel.CookbookSharingInfo> {
@@ -184,7 +188,7 @@ class CookbookRepositoryImpl @Inject constructor(
         return kotlinx.coroutines.flow.flow {
             emit(com.ourcookbook.ui.viewmodel.CookbookSharingInfo(
                 cookbookId = cookbookId,
-                sharingLink = "https://ourcookbook.com/share/$cookbookId",
+                sharingLink = "https://drive.google.com/drive/folders/drive_folder_$cookbookId",
                 sharedWithUsers = emptyList(),
                 permissions = emptyMap()
             ))

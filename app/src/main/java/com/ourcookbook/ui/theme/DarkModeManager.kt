@@ -91,7 +91,7 @@ class ThemePreferencesManager @Inject constructor(
     
     // Default values
     private val defaultTheme = ThemePreference.SYSTEM
-    private val defaultDynamicColors = true
+    private val defaultDynamicColors = false
     private val defaultAutoDarkMode = false
     private val defaultDarkModeStart = "20:00" // 8 PM
     private val defaultDarkModeEnd = "07:00" // 7 AM

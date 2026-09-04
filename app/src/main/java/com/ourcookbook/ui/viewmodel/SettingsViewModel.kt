@@ -5,17 +5,22 @@ import android.os.Build
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ourcookbook.domain.model.DevicePreferences
+import com.ourcookbook.domain.usecase.cookbook.GetCookbooksByOwner
 import com.ourcookbook.domain.usecase.devicepreferences.GetDevicePreferencesByDevice
 import com.ourcookbook.domain.usecase.devicepreferences.UpdateDevicePreferences
 import com.ourcookbook.domain.usecase.devicepreferences.CreateDevicePreferences
 import com.ourcookbook.domain.usecase.sync.GetSyncStatus
 import com.ourcookbook.domain.usecase.sync.UpdateSyncInProgress
 import com.ourcookbook.domain.usecase.sync.UpdateLastSyncTimestamp
+import com.ourcookbook.ui.theme.ThemePreferencesManager
+import com.ourcookbook.ui.theme.ThemePreference
+import com.ourcookbook.ui.theme.toDeviceTheme
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import java.time.LocalDateTime
 import java.util.UUID
@@ -41,6 +46,8 @@ class SettingsViewModel @Inject constructor(
     private val getSyncStatus: GetSyncStatus,
     private val updateSyncInProgress: UpdateSyncInProgress,
     private val updateLastSyncTimestamp: UpdateLastSyncTimestamp,
+    private val getCookbooksByOwner: GetCookbooksByOwner,
+    private val themePreferencesManager: ThemePreferencesManager,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
 
@@ -158,7 +165,11 @@ class SettingsViewModel @Inject constructor(
             
             // Default cookbook settings
             is SettingsEvent.UpdateDefaultCookbook -> updateDefaultCookbook(event.cookbookId)
-            
+
+            // Category management
+            is SettingsEvent.AddCategory -> addCategory(event.name)
+            is SettingsEvent.RemoveCategory -> removeCategory(event.name)
+
             // Language settings
             is SettingsEvent.UpdateLanguage -> updateLanguage(event.language)
             
@@ -193,28 +204,43 @@ class SettingsViewModel @Inject constructor(
                 // Load sync status
                 val syncStatusResult = getSyncStatus(currentDeviceId)
                 val syncStatus = syncStatusResult.getOrDefault("IDLE").toString()
-                
+
+                // Load theme from DataStore (source of truth for applied theme)
+                val persistedTheme = themePreferencesManager.themePreference.first().toDeviceTheme()
+
                 // Load storage info (mock for now)
                 val storageUsage = 128L * 1024 * 1024 // 128MB
                 val maxStorage = 1L * 1024 * 1024 * 1024 // 1GB
-                
+
+                // Load user's cookbooks for the default cookbook picker
+                val cookbooks = getCookbooksByOwner(currentDeviceId).first()
+
+                // Load categories from SharedPreferences
+                val savedCategories = context.getSharedPreferences("settings_prefs", Context.MODE_PRIVATE)
+                    .getStringSet("categories", null)?.toList()
+                    ?: DEFAULT_CATEGORIES
+
+                val syncedPreferences = preferences.copy(theme = persistedTheme)
+
                 _state.value = _state.value.copy(
                     isLoading = false,
-                    preferences = preferences,
+                    preferences = syncedPreferences,
                     syncStatus = syncStatus,
                     deviceId = currentDeviceId,
                     deviceName = _state.value.deviceName.ifEmpty { "My Device" },
                     storageUsage = storageUsage,
                     maxStorage = maxStorage,
                     recipeCount = 42, // Mock data
-                    cookbookCount = 3, // Mock data
-                    
+                    cookbookCount = cookbooks.size,
+                    cookbooks = cookbooks,
+                    categories = savedCategories,
+
                     // Set computed properties from preferences
-                    theme = preferences.theme,
-                    fontSize = preferences.fontSize,
-                    syncFrequency = preferences.syncFrequency,
-                    offlineMode = preferences.offlineMode,
-                    notificationsEnabled = preferences.notificationsEnabled
+                    theme = persistedTheme,
+                    fontSize = syncedPreferences.fontSize,
+                    syncFrequency = syncedPreferences.syncFrequency,
+                    offlineMode = syncedPreferences.offlineMode,
+                    notificationsEnabled = syncedPreferences.notificationsEnabled
                 )
                 
             } catch (e: Exception) {
@@ -257,14 +283,24 @@ class SettingsViewModel @Inject constructor(
         val currentState = _state.value
         val validThemes = listOf("LIGHT", "DARK", "SYSTEM")
         val newTheme = if (validThemes.contains(theme)) theme else "SYSTEM"
-        
+
         val updatedPreferences = currentState.preferences?.copy(theme = newTheme)
             ?: createDefaultPreferences().copy(theme = newTheme)
-        
+
         _state.value = currentState.copy(
             preferences = updatedPreferences,
             theme = newTheme
         )
+
+        // Persist to DataStore so the app theme applies dynamically
+        val themePref = when (newTheme) {
+            "LIGHT" -> ThemePreference.LIGHT
+            "DARK" -> ThemePreference.DARK
+            else -> ThemePreference.SYSTEM
+        }
+        viewModelScope.launch {
+            themePreferencesManager.setThemePreference(themePref)
+        }
     }
 
     // ========================================================================
@@ -508,10 +544,41 @@ class SettingsViewModel @Inject constructor(
     // ========================================================================
 
     private fun updateDefaultCookbook(cookbookId: String?) {
+        val cookbook = _state.value.cookbooks.find { it.id == cookbookId }
         _state.value = _state.value.copy(
             defaultCookbookId = cookbookId,
-            defaultCookbookName = if (cookbookId == null) "Personal" else "Cookbook $cookbookId"
+            defaultCookbookName = cookbook?.name ?: "Personal"
         )
+    }
+
+    // ========================================================================
+    // CATEGORY MANAGEMENT
+    // ========================================================================
+
+    private fun addCategory(name: String) {
+        val trimmed = name.trim()
+        if (trimmed.isBlank()) return
+        val current = _state.value.categories
+        if (current.any { it.equals(trimmed, ignoreCase = true) }) {
+            _actions.value = SettingsAction.ShowError("Category already exists")
+            return
+        }
+        val updated = current + trimmed
+        _state.value = _state.value.copy(categories = updated)
+        persistCategories(updated)
+    }
+
+    private fun removeCategory(name: String) {
+        val updated = _state.value.categories.filter { it != name }
+        _state.value = _state.value.copy(categories = updated)
+        persistCategories(updated)
+    }
+
+    private fun persistCategories(categories: List<String>) {
+        context.getSharedPreferences("settings_prefs", Context.MODE_PRIVATE)
+            .edit()
+            .putStringSet("categories", categories.toSet())
+            .apply()
     }
 
     // ========================================================================
@@ -519,7 +586,7 @@ class SettingsViewModel @Inject constructor(
     // ========================================================================
 
     private fun updateLanguage(language: String) {
-        val validLanguages = listOf("en", "es", "fr", "de", "it", "pt", "ru", "zh", "ja")
+        val validLanguages = listOf("en", "sv", "es", "fr", "de", "it", "pt", "ru", "zh", "ja")
         val newLanguage = if (validLanguages.contains(language)) language else "en"
         
         _state.value = _state.value.copy(

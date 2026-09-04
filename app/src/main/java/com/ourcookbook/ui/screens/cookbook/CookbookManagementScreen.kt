@@ -80,6 +80,7 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.ourcookbook.domain.model.Cookbook
 import com.ourcookbook.ui.components.CookbookCard
+import com.ourcookbook.ui.components.CookbookBottomNavigation
 import com.ourcookbook.ui.components.CookbookPrimaryButton
 import com.ourcookbook.ui.components.CookbookSecondaryButton
 import com.ourcookbook.ui.components.EmptyState
@@ -470,6 +471,16 @@ fun CookbookManagementScreen(
                     },
                     onShareSelected = {
                         // Share selected cookbooks
+                    }
+                )
+            } else {
+                CookbookBottomNavigation(
+                    currentRoute = navController.currentDestination?.route ?: Route.COOKBOOK_MANAGEMENT,
+                    onNavigate = { route ->
+                        navController.navigate(route) {
+                            launchSingleTop = true
+                            restoreState = true
+                        }
                     }
                 )
             }
