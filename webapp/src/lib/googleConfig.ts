@@ -1,22 +1,14 @@
-// Google OAuth client ID storage. The user provides their own Google Cloud
-// project client ID (Settings page), stored in localStorage. For development,
-// it can also be set via Vite env var VITE_GOOGLE_CLIENT_ID.
+// Google OAuth client ID — build-time configuration. The developer sets this
+// once in webapp/.env (VITE_GOOGLE_CLIENT_ID) after creating a Google Cloud
+// project. The end user never sees or touches it; they just click "Sign in
+// with Google" and approve.
 //
-// Required scopes for Drive sync: drive.file (read/write files created by
-// this app only).
-
-const CLIENT_ID_KEY = 'oc.google.clientId'
+// Required scope: drive.file (read/write files created by this app only).
 
 export function getGoogleClientId(): string | null {
-  const fromEnv = import.meta.env.VITE_GOOGLE_CLIENT_ID
-  if (fromEnv && typeof fromEnv === 'string' && fromEnv.trim()) return fromEnv.trim()
-  return localStorage.getItem(CLIENT_ID_KEY)
-}
-
-export function setGoogleClientId(id: string): void {
-  const trimmed = id.trim()
-  if (trimmed) localStorage.setItem(CLIENT_ID_KEY, trimmed)
-  else localStorage.removeItem(CLIENT_ID_KEY)
+  const id = import.meta.env.VITE_GOOGLE_CLIENT_ID
+  if (typeof id === 'string' && id.trim()) return id.trim()
+  return null
 }
 
 export const GOOGLE_SCOPES = 'https://www.googleapis.com/auth/drive.file'

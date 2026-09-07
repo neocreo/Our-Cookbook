@@ -1,35 +1,30 @@
-// SyncStatus — shows the current sync state: pending changes, last sync,
-// conflicts, and a manual sync button. Also lets the user configure their
-// Google Cloud client ID (required for Drive sign-in).
+// SyncStatus — the sync page. The user sees: sign in with Google, sync now,
+// and connection status. No developer-facing config — the client ID is baked
+// into the build.
 
 import { useState, useEffect } from 'react'
 import { Button } from '../components/Button'
 import { useRecipes } from '../hooks/useRecipes'
 import { getDeviceId } from '../lib/device'
-import { getGoogleClientId, setGoogleClientId } from '../lib/googleConfig'
+import { getGoogleClientId } from '../lib/googleConfig'
 import { getDriveSyncService, ensureGisLoaded } from '../features/sync/driveService'
-import { getPendingCount, getPendingSyncQueue, getSyncMetadata } from '../features/sync/repository'
+import { getPendingCount, getSyncMetadata } from '../features/sync/repository'
 import { saveRecipe } from '../features/recipe/repository'
 import type { SyncResult } from '../features/sync/syncEngine'
 
 export function SyncStatus() {
   const { recipes } = useRecipes()
-  const [clientId, setClientIdState] = useState(() => getGoogleClientId() ?? '')
   const [authenticated, setAuthenticated] = useState(false)
   const [syncing, setSyncing] = useState(false)
   const [syncResult, setSyncResult] = useState<SyncResult | null>(null)
   const [error, setError] = useState<string | null>(null)
   const pendingCount = getPendingCount()
   const metadata = getSyncMetadata()
+  const hasClientId = getGoogleClientId() != null
 
   useEffect(() => {
     getDriveSyncService().isAuthenticated().then(setAuthenticated)
   }, [])
-
-  async function onSaveClientId() {
-    setGoogleClientId(clientId)
-    setError(null)
-  }
 
   async function onSignIn() {
     setError(null)
@@ -38,7 +33,7 @@ export function SyncStatus() {
       await getDriveSyncService().signIn()
       setAuthenticated(true)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Sign-in failed')
+      setError(err instanceof Error ? err.message : 'Inloggning misslyckades')
     }
   }
 
@@ -51,10 +46,14 @@ export function SyncStatus() {
     setSyncing(true)
     setError(null)
     try {
-      const result = await getDriveSyncService().sync(recipes, getDeviceId(), async (r) => { await saveRecipe(r, getDeviceId()) })
+      const result = await getDriveSyncService().sync(
+        recipes,
+        getDeviceId(),
+        async (r) => { await saveRecipe(r, getDeviceId()) },
+      )
       setSyncResult(result)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Sync failed')
+      setError(err instanceof Error ? err.message : 'Synk misslyckades')
     } finally {
       setSyncing(false)
     }
@@ -66,63 +65,68 @@ export function SyncStatus() {
 
       <section className="recipe-section">
         <h3>Google Drive</h3>
-        <p className="text-muted">
-          {authenticated
-            ? 'Connected to Google Drive.'
-            : 'Not connected. Configure your client ID and sign in.'}
-        </p>
-
-        <div className="form-row">
-          <label htmlFor="clientId">Google Client ID</label>
-          <input
-            id="clientId"
-            className="input"
-            value={clientId}
-            onChange={(e) => setClientIdState(e.target.value)}
-            placeholder="xxxx.apps.googleusercontent.com"
-          />
-        </div>
-        <Button variant="secondary" onClick={onSaveClientId} disabled={!clientId.trim()}>
-          Save client ID
-        </Button>
-
-        <div className="form-actions">
-          {authenticated ? (
-            <Button variant="secondary" onClick={onSignOut}>
-              Sign out
-            </Button>
-          ) : (
-            <Button variant="primary" onClick={onSignIn} disabled={!clientId.trim()}>
-              Sign in to Drive
-            </Button>
-          )}
-          <Button variant="primary" onClick={onSync} disabled={!authenticated || syncing}>
-            {syncing ? 'Syncing…' : 'Sync now'}
-          </Button>
-        </div>
-      </section>
-
-      <section className="recipe-section">
-        <h3>Status</h3>
-        <p className="text-muted">
-          Pending changes: {pendingCount}
-        </p>
-        {metadata?.lastSyncTimestamp && (
-          <p className="text-muted">Last sync: {new Date(metadata.lastSyncTimestamp).toLocaleString()}</p>
+        {!hasClientId && (
+          <p className="text-muted" style={{ color: 'var(--color-accent-700)' }}>
+            Drive-sync har inte konfigurerats ännu. Det kräver en engångsinställning
+            av appens utvecklare.
+          </p>
         )}
-        {metadata?.syncInProgress && <p className="text-muted">Sync in progress…</p>}
+        {hasClientId && (
+          <>
+            <p className="text-muted">
+              {authenticated
+                ? 'Ansluten till Google Drive. Dina recept synkas till en privat mapp.'
+                : 'Logga in med ditt Google-konto för att synka recepten till din Drive.'}
+            </p>
+            <div className="form-actions">
+              {authenticated ? (
+                <Button variant="secondary" onClick={onSignOut}>
+                  Koppla bort
+                </Button>
+              ) : (
+                <Button variant="primary" onClick={onSignIn}>
+                  Logga in med Google
+                </Button>
+              )}
+              {authenticated && (
+                <Button variant="primary" onClick={onSync} disabled={syncing}>
+                  {syncing ? 'Synkar…' : 'Synka nu'}
+                </Button>
+              )}
+            </div>
+          </>
+        )}
       </section>
+
+      {hasClientId && (
+        <section className="recipe-section">
+          <h3>Status</h3>
+          <p className="text-muted">
+            Väntande ändringar: {pendingCount}
+          </p>
+          {metadata?.lastSyncTimestamp && (
+            <p className="text-muted">
+              Senaste synk: {new Date(metadata.lastSyncTimestamp).toLocaleString()}
+            </p>
+          )}
+          {metadata?.syncInProgress && <p className="text-muted">Synk pågår…</p>}
+        </section>
+      )}
 
       {syncResult && (
         <section className="recipe-section">
-          <h3>Last sync result</h3>
-          <p className="text-muted">Pushed: {syncResult.pushed} · Pulled: {syncResult.pulled}</p>
+          <h3>Senaste synk</h3>
+          <p className="text-muted">
+            Skickade: {syncResult.pushed} · Hämtade: {syncResult.pulled}
+          </p>
           {syncResult.conflicts.length > 0 && (
-            <p className="text-muted">Conflicts: {syncResult.conflicts.length} (auto-resolved)</p>
+            <p className="text-muted">
+              Konflikter: {syncResult.conflicts.length} (löstes automatiskt)
+            </p>
           )}
           {syncResult.errors.length > 0 && (
             <div>
-              <p className="text-muted" style={{ color: 'var(--color-accent-700)' }}>Errors:</p>
+              <p className="text-muted" style={{ color: 'var(--color-accent-700)' }}>Fel:</p>
               <ul className="ingredient-list">
                 {syncResult.errors.map((e, i) => (
                   <li key={i} style={{ fontSize: 13 }}>{e}</li>
@@ -136,20 +140,6 @@ export function SyncStatus() {
       {error && (
         <section className="recipe-section">
           <p className="text-muted" style={{ color: 'var(--color-accent-700)' }}>{error}</p>
-        </section>
-      )}
-
-      {pendingCount > 0 && (
-        <section className="recipe-section">
-          <h3>Pending queue</h3>
-          <ul className="ingredient-list">
-            {getPendingSyncQueue().slice(0, 10).map((p) => (
-              <li key={p.id} style={{ fontSize: 13 }}>
-                {p.operation} {p.entityType}: {p.entityId.slice(0, 8)}…
-                {p.lastError && <span style={{ color: 'var(--color-accent-700)' }}> ({p.lastError})</span>}
-              </li>
-            ))}
-          </ul>
         </section>
       )}
     </main>
