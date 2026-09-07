@@ -1,294 +1,145 @@
-# Our Cookbook Android App
+# Our Cookbook
 
-## 📱 Project Overview
+A cross-platform recipe app built with React, TypeScript, and Capacitor.
+Runs on Android, iOS, and the web as an installable PWA.
 
-**Our Cookbook** is an Android application for collecting, organizing, and discovering recipes across multiple devices. The app supports manual entry, OCR scanning from books/screens, ingredient-based search, and multiple export formats. Designed to work on Android phones, tablets, and Chromebooks.
+Gather your recipes in one warm, offline-first place. Scan recipes from
+photos with OCR, organize them into cookbooks, sync across devices via
+Google Drive, and export to Markdown or JSON.
 
-## 🎯 Key Features
+## Features
 
-### Multi-Device Support
-- Multiple users with separate Android devices can use the app
-- Shared cookbooks via Google Drive sync
-- Conflict detection to prevent overwrites when multiple people edit the same cookbook
-- Offline-first with sync on reconnect
+- **Recipe management** — create, edit, list, favorite, search recipes
+- **Cookbooks** — organize recipes into collections; auto-creates a
+  default cookbook on first save
+- **OCR scanning** — take a photo or upload an image, extract text with
+  tesseract.js, parse into a structured recipe, edit and save
+- **Search** — LIKE-based search over title, category, tags, and
+  ingredients, with category and tag filters
+- **Google Drive sync** — sign in with Google, sync recipes to a private
+  Drive folder, conflict resolution with version vectors
+- **Export/import** — Markdown (human-readable) and JSON (lossless,
+  round-trips all fields)
+- **Offline-first** — works fully offline; sync when you choose to
+- **PWA** — installable on mobile/desktop, service worker for offline
+- **Organic design system** — warm cream-and-terracotta theme with
+  Caprasimo + Figtree typography, over-rounded shapes, washed photography
 
-### Recipe Management
-- Manual recipe entry with full metadata (title, category, servings, times, etc.)
-- OCR scanning from books and screens using ML Kit
-- Ingredient-based search with smart matching
-- Multiple export formats: Markdown, PDF, DOCX
-- Categories: Breakfasts, Mains, Desserts & Snacks, Sides, Sauces and Spices
+## Tech stack
 
-### Data Organization
-- Multiple cookbook collections
-- Recipe favorites and ratings
-- Tag-based organization
-- Advanced search and filtering
+| Layer | Choice |
+|---|---|
+| Language | TypeScript 5.9 |
+| Build | Vite 8 |
+| UI | React 19 |
+| Design | Organic design system (ported from `_sources/`) |
+| State | Zustand |
+| Routing | React Router v7 |
+| App shell | Capacitor 7 |
+| Persistence | RxDB 17 with Dexie (IndexedDB), AJV-validated |
+| Sync | Google Drive API v3 via Google Identity Services |
+| OCR | tesseract.js (web + WebView); ML Kit on mobile when Capacitor 8 |
+| Camera | @capacitor/camera |
+| Icons | Lucide |
+| Test | Vitest + Testing Library |
+| Lint | ESLint 10 + typescript-eslint |
+| PWA | vite-plugin-pwa (Workbox service worker) |
 
-### Sharing & Collaboration
-- Google Drive sync for multi-device sharing
-- Export/import cookbooks for simple sharing
-- QR code sharing for easy device-to-device transfer
-- Permission system for cookbook access
-
-## 🏗️ Technical Architecture
-
-### Technology Stack
-- **Language**: Kotlin (primary)
-- **UI Framework**: Jetpack Compose with Material Design 3
-- **Architecture**: MVVM (Model-View-ViewModel) with Clean Architecture
-- **Database**: Room with SQLite (SQLCipher for encryption)
-- **Dependency Injection**: Hilt
-- **Background Processing**: WorkManager
-- **Camera & OCR**: CameraX + ML Kit Text Recognition
-- **Google Drive Integration**: Google Drive API v3
-- **PDF Generation**: iTextPDF 7
-- **QR Codes**: ZXing
-
-### Platform Support
-- **Minimum Android Version**: 8.0 (API 26+)
-- **Target Devices**: Android phones, tablets, Chromebooks
-- **Build System**: Gradle (Kotlin DSL)
-
-## 📁 Project Structure
+## Project structure
 
 ```
-Our Cookbook/
-├── app/                          # Android application
-│   ├── build.gradle              # App-level build configuration
-│   ├── src/
-│   │   ├── main/
-│   │   │   ├── AndroidManifest.xml
-│   │   │   ├── java/com/example/cookbook/
-│   │   │   │   ├── data/                # Data layer
-│   │   │   │   │   ├── model/           # Data models
-│   │   │   │   │   ├── repository/      # Repositories
-│   │   │   │   │   ├── datasource/      # Data sources
-│   │   │   │   │   │   ├── local/        # Local database
-│   │   │   │   │   │   ├── file/         # File operations
-│   │   │   │   │   │   └── sync/         # Sync operations
-│   │   │   │   │   └── db/             # Database
-│   │   │   │   ├── di/                 # Dependency injection
-│   │   │   │   ├── domain/             # Domain layer
-│   │   │   │   │   ├── usecase/        # Use cases
-│   │   │   │   │   └── model/          # Domain models
-│   │   │   │   ├── ui/                 # UI layer
-│   │   │   │   │   ├── theme/          # Theme and styling
-│   │   │   │   │   ├── components/     # Reusable components
-│   │   │   │   │   ├── screens/        # All app screens
-│   │   │   │   │   │   ├── home/        # Home screen
-│   │   │   │   │   │   ├── list/        # Recipe list
-│   │   │   │   │   │   ├── detail/      # Recipe detail
-│   │   │   │   │   │   ├── create/      # Create recipe
-│   │   │   │   │   │   ├── edit/        # Edit recipe
-│   │   │   │   │   │   ├── search/      # Search
-│   │   │   │   │   │   ├── scan/        # OCR scanning
-│   │   │   │   │   │   ├── import/      # Import
-│   │   │   │   │   │   ├── profile/     # User profile
-│   │   │   │   │   │   ├── cookbooks/   # Cookbook management
-│   │   │   │   │   │   └── sync/        # Sync management
-│   │   │   │   │   └── navigation/     # Navigation
-│   │   │   │   └── utils/              # Utilities
-│   │   │   └── assets/               # Static assets
-│   │   └── test/                   # Tests
-│   └── build/                     # Build outputs
-├── build.gradle                   # Project-level build
-├── settings.gradle                # Project settings
-├── gradle.properties              # Gradle properties
-├── project-specs/                # Project specifications
-│   └── cookbook-android-setup.md  # Main specification
-├── project-tasks/                # Task management
-│   └── cookbook-android-tasklist.md # Comprehensive task list
-├── project-docs/                 # Documentation
-│   ├── COOKBOOK_DEVELOPMENT_PLAN.md  # Development plan
-│   ├── TEAM_ASSEMBLY.md            # Team structure
-│   ├── PIPELINE_STATUS.md          # Pipeline status
-│   └── cookbook-architecture.md     # Technical architecture (TBD)
-└── README.md                      # This file
+webapp/
+├── src/
+│   ├── components/        Organic UI (Button, Card, TopBar, Tag, BottomNav, WashedImage)
+│   ├── pages/             Screens (Home, RecipeDetail, RecipeEdit, Cookbooks,
+│   │                      CookbookDetail, Search, Scan, Settings, SyncStatus, Onboarding)
+│   ├── features/
+│   │   ├── recipe/        Recipe repository (CRUD, search, filters)
+│   │   ├── cookbook/      Cookbook repository (create, rename, add/remove recipes)
+│   │   └── sync/          PendingSync queue, conflict resolver, sync engine,
+│   │                      Drive sync service
+│   ├── lib/               db.ts (RxDB), device.ts, seed.ts, store.ts,
+│   │                      driveClient.ts, googleConfig.ts, ocrParser.ts,
+│   │                      ocrService.ts, exportImport.ts
+│   ├── stores/            Zustand stores (appStore)
+│   ├── types/             Domain models (Recipe, Cookbook, Ingredient, Device,
+│   │                      VersionVector, Sync)
+│   ├── theme/             tokens.css, fonts.css, global.css (Organic design)
+│   ├── hooks/             useRecipes, useCookbooks
+│   └── test/              Vitest setup
+├── public/                favicon, app icons
+├── capacitor.config.ts
+├── vite.config.ts
+├── vitest.config.ts
+└── package.json
 ```
 
-## 🚀 Development Pipeline
-
-This project uses an **autonomous agent pipeline** managed by **AgentsOrchestrator** with the following workflow:
-
-### Pipeline Phases
-
-1. **Phase 1: Project Foundation** (Weeks 1-4)
-   - Project setup and configuration
-   - Technical architecture design
-   - Core data layer implementation
-   - Basic UI foundation
-
-2. **Phase 2: Enhanced Features** (Weeks 5-8)
-   - Advanced search and filtering
-   - Google Drive integration
-   - Sync system completion
-   - Export/import functionality
-
-3. **Phase 3: Advanced Features** (Weeks 9-12)
-   - OCR scanning implementation
-   - User management and profiles
-   - Cookbook management and sharing
-   - Polish and optimization
-
-4. **Phase 4: Testing & Production** (Weeks 13-16)
-   - Comprehensive testing
-   - Performance optimization
-   - Security implementation
-   - Final validation and deployment
-
-### Quality Assurance
-- **Continuous QA**: Every task must pass EvidenceQA validation
-- **Screenshot Evidence**: Required for all UI implementations
-- **Retry Logic**: Maximum 3 attempts per task with specific feedback
-- **Quality Gates**: No task advances without passing QA
-- **Final Validation**: testing-reality-checker performs comprehensive final testing
-
-### Team Composition
-| Role | Agent | Responsibilities |
-|------|-------|------------------|
-| Pipeline Manager | AgentsOrchestrator | Overall coordination and quality enforcement |
-| Project Manager | project-manager-senior | Task breakdown and milestone tracking |
-| Technical Architect | ArchitectUX | System architecture and UX design |
-| Backend Developer | Backend Architect | Database, sync, backend services |
-| Frontend Developer | Frontend Developer | UI, Compose, navigation |
-| Mobile Developer | Mobile App Builder | Android platform, camera, OCR |
-| DevOps Engineer | DevOps Automator | CI/CD, build, deployment |
-| QA Engineer | EvidenceQA | Continuous quality validation |
-| Integration Tester | testing-reality-checker | Final validation and production readiness |
-
-## 📊 Project Metrics
-
-- **Total Tasks**: 151
-- **Estimated Effort**: ~1,210 hours
-- **Timeline**: 16 weeks
-- **Target Platforms**: Android 8.0+, Chromebooks
-- **Quality Target**: > 80% first-pass success rate
-
-## 🛠️ Setup & Installation
+## Getting started
 
 ### Prerequisites
-- Android Studio (latest stable version)
-- Android SDK (API 26+)
-- Java JDK 17+
-- Kotlin 1.9+
-- Git
 
-### Clone the Repository
+- Node.js 20+
+- npm
+- (For Android builds) Android SDK + JDK 21
+
+### Install and run
+
 ```bash
-git clone https://github.com/your-username/Our-Cookbook.git
-cd Our-Cookbook
+cd webapp
+npm install
+npm run dev          # dev server at http://localhost:5173
 ```
 
-### Build the Project
+### Build
+
 ```bash
-# Sync Gradle
-./gradlew --refresh-dependencies
-
-# Build debug APK
-./gradlew assembleDebug
-
-# Run on device/emulator
-./gradlew installDebug
+npm run build        # tsc + vite build
+npm run lint         # eslint
+npm run test         # vitest
+npx cap sync         # sync web assets to native projects
 ```
 
-## 📋 Task Management
+### Android debug APK
 
-All development tasks are tracked in `project-tasks/cookbook-android-tasklist.md` with:
-- Task IDs and descriptions
-- Agent assignments
-- Priority levels (High, Medium, Low)
-- Dependencies
-- Time estimates
-- Status tracking
-
-## 🎯 Getting Started for Developers
-
-### For Backend Developers
-1. Review data models in `app/src/main/java/com/example/cookbook/data/model/`
-2. Implement repositories in `app/src/main/java/com/example/cookbook/data/repository/`
-3. Create data sources in `app/src/main/java/com/example/cookbook/data/datasource/`
-4. Follow the architecture patterns defined in `project-docs/cookbook-architecture.md`
-
-### For Frontend Developers
-1. Review UI components in `app/src/main/java/com/example/cookbook/ui/components/`
-2. Implement screens in `app/src/main/java/com/example/cookbook/ui/screens/`
-3. Create ViewModels in corresponding screen directories
-4. Use the design system defined in `app/src/main/java/com/example/cookbook/ui/theme/`
-
-### For Mobile Developers
-1. Configure platform-specific features in AndroidManifest.xml
-2. Implement CameraX and ML Kit integrations
-3. Handle permissions and device capabilities
-4. Optimize for Chromebook compatibility
-
-## 🔒 Security & Privacy
-
-### Data Protection
-- SQLite database encrypted with SQLCipher
-- Sensitive fields (notes, source) encrypted at rest
-- Secure credential storage using Android Credential Manager
-- Minimal Google Drive scope (drive.file only)
-
-### Privacy Compliance
-- GDPR compliance: Right to access, erasure, portability
-- Data validation for all imports
-- Privacy settings for users
-- Secure data handling practices
-
-## 📚 Documentation
-
-- **Project Specification**: `project-specs/cookbook-android-setup.md`
-- **Development Plan**: `project-docs/COOKBOOK_DEVELOPMENT_PLAN.md`
-- **Team Structure**: `project-docs/TEAM_ASSEMBLY.md`
-- **Pipeline Status**: `project-docs/PIPELINE_STATUS.md`
-- **Task List**: `project-tasks/cookbook-android-tasklist.md`
-
-## 🤝 Contributing
-
-This project uses an autonomous agent pipeline for development. To contribute:
-
-1. **For Agent Developers**: Follow the task assignments from AgentsOrchestrator
-2. **For Manual Contributors**: Coordinate with AgentsOrchestrator for task assignments
-3. **Quality Standards**: All contributions must pass EvidenceQA validation
-4. **Documentation**: Update relevant documentation for any changes
-
-## 📞 Support & Issues
-
-- **Pipeline Issues**: Report to AgentsOrchestrator
-- **Technical Issues**: Check pipeline status and task assignments
-- **Quality Issues**: Contact EvidenceQA for validation concerns
-
-## 📄 License
-
-This project is proprietary. All rights reserved.
-
-## 🏷️ Version Information
-
-- **Version**: 1.0.0 (Planning Phase)
-- **Last Updated**: August 8, 2026
-- **Status**: Development Pipeline Initialized
-- **Next Milestone**: Phase 1 Completion (Week 4)
-
----
-
-## 🚀 Launch the Pipeline
-
-To start the autonomous development pipeline:
-
-```
-Please spawn an agents-orchestrator to execute complete development pipeline 
-for project-specs/cookbook-android-setup.md. 
-
-Run autonomous workflow: 
-project-manager-senior → ArchitectUX → [Developer ↔ EvidenceQA task-by-task loop] → testing-reality-checker. 
-
-Each task must pass QA before advancing.
+```bash
+npm run build
+npx cap sync android
+cd android
+JAVA_HOME=/path/to/jdk21 ANDROID_HOME=~/android-sdk ./gradlew assembleDebug
+# APK at android/app/build/outputs/apk/debug/app-debug.apk
 ```
 
----
+### Google Drive sync setup
 
-**Maintained by**: AgentsOrchestrator  
-**Project Lead**: project-manager-senior  
-**Technical Lead**: ArchitectUX  
-**Status**: 🟢 Ready for Pipeline Execution
+The user never sees or touches OAuth config. As the developer, set your
+Google Cloud client ID once:
+
+1. Create a project at [console.cloud.google.com](https://console.cloud.google.com/)
+2. Enable the Google Drive API
+3. Create an OAuth client ID (Web application type)
+4. Add authorized origins:
+   - `http://localhost:5173` (dev)
+   - `https://localhost` (Android + iOS WebView)
+5. Set the client ID in `webapp/.env`:
+   ```
+   VITE_GOOGLE_CLIENT_ID=your-id.apps.googleusercontent.com
+   ```
+
+Users then just click "Logga in med Google" on the sync page and approve.
+
+## Design system
+
+The visual identity comes from the "Organic" design material in `_sources/`.
+It is a warm, rounded, left-aligned system with:
+
+- Colors: cream background (#f5ead8), terracotta accent (#c67139),
+  sage second accent (#7a8a5e), with 100-900 tonal ramps
+- Typography: Caprasimo (display) + Figtree (body)
+- Over-rounded shapes, pill buttons (999px radius), washed photography
+- Light and dark themes
+
+See `AGENTS.md` for the full design system guidelines.
+
+## License
+
+Proprietary. All rights reserved.
