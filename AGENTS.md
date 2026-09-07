@@ -4,15 +4,14 @@ This file instructs any AI agent working in the Our Cookbook repository.
 
 ## Project context
 
-Our Cookbook has **two surfaces** in this single repo:
+Our Cookbook is a cross-platform app (Android + iOS + web/PWA) built with
+React + TypeScript + Capacitor. All code lives in `webapp/`.
 
-- **`webapp/`** — the active codebase. A cross-platform app (Android + iOS +
-  web/PWA) built with React + TypeScript + Capacitor. All new feature work
-  happens here.
-- **`app/`** — the legacy Android-only Kotlin/Compose app, kept on `master`
-  as a frozen reference. **Do not modify it.** Port behaviour and field names
-  from it when reimplementing in `webapp/`; the Drive sync file format must
-  stay backwards-compatible with it.
+The legacy Kotlin/Compose app has been removed from the repo. The Drive sync
+file format was designed to be backwards-compatible with it — keep field
+names in the RxDB schemas and sync models aligned if you ever need
+interoperability. The old source is available in git history
+(`git show master:app/src/...`).
 
 ### Active stack — `webapp/`
 
@@ -52,7 +51,7 @@ pages/        Screens (Onboarding, Home, RecipeDetail, RecipeEdit, Settings, Sea
 features/     Bounded contexts: features/recipe/repository.ts is the data access point
 lib/          db.ts (RxDB), device.ts (silent device id), seed.ts (sample data)
 stores/       Zustand stores (appStore.ts)
-types/        Domain models ported from app/.../domain/model (Recipe, Cookbook, …)
+types/        Domain models (Recipe, Cookbook, Ingredient, Device, VersionVector, Sync)
 theme/        tokens.css + fonts.css + global.css — the Organic design system
 hooks/        useRecipes.ts (live subscription to the repository)
 ```
@@ -241,6 +240,4 @@ evidence collection, cold-start benchmarking, and QA pass/fail checks.
   `npm run build`, `npm run lint`, and `npx cap sync` must all be green.
   State clearly if a check could not be run (e.g. no browser available for a
   visual runtime check).
-- `app/` (Kotlin) is read-only reference. Do not edit it when working on the
-  webapp.
 - Do not add author/license headers unless asked.
