@@ -5,6 +5,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import { ArrowLeft, Pencil, Star, Trash2 } from 'lucide-react'
 import { Button } from '../components/Button'
 import { Tag } from '../components/Tag'
+import { WashedImage } from '../components/WashedImage'
 import { getRecipe, deleteRecipe, toggleFavorite } from '../features/recipe/repository'
 import { getDeviceId } from '../lib/device'
 import { totalRecipeTime } from '../types/recipe'
@@ -43,7 +44,7 @@ export function RecipeDetail() {
   async function onDelete() {
     if (!recipe) return
     if (!window.confirm(`Delete "${recipe.title}"? This cannot be undone.`)) return
-    await deleteRecipe(recipe.id)
+    await deleteRecipe(recipe.id, getDeviceId())
     navigate('/')
   }
 
@@ -58,6 +59,11 @@ export function RecipeDetail() {
       </div>
 
       <div className="recipe-hero">
+        {recipe.imageUrl && (
+          <figure style={{ margin: '0 0 16px' }}>
+            <WashedImage src={recipe.imageUrl} alt={recipe.title} />
+          </figure>
+        )}
         <h1>{recipe.title}</h1>
         {recipe.description && <p className="text-muted">{recipe.description}</p>}
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 8 }}>

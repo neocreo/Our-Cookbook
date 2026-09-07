@@ -12,6 +12,7 @@ import type { Cookbook } from '../../types/cookbook'
 import { createRecipe, withRecipeUpdate } from '../../types/recipe'
 import { withRemovedRecipe, createCookbook } from '../../types/cookbook'
 import { initStore, getMode, getDb, getMemRecipes, getMemCookbooks } from '../../lib/store'
+import { enqueueSync } from '../sync/repository'
 
 type RecipeListener = (recipes: Recipe[]) => void
 
@@ -73,6 +74,7 @@ export async function saveRecipe(
       getMemRecipes().set(updated.id, updated)
       notifyRecipes()
     }
+    enqueueSync('UPDATE', 'RECIPE', updated.id, JSON.stringify(updated), deviceId)
     return updated
   }
 
@@ -85,10 +87,11 @@ export async function saveRecipe(
     await ensureDefaultCookbook(deviceId, created.id)
     notifyRecipes()
   }
+  enqueueSync('CREATE', 'RECIPE', created.id, JSON.stringify(created), deviceId)
   return created
 }
 
-export async function deleteRecipe(id: string): Promise<void> {
+export async function deleteRecipe(id: string, deviceId?: string): Promise<void> {
   if (getMode() === 'rxdb' && getDb()) {
     const doc = await getDb()!.recipes.findOne(id).exec()
     if (doc) await doc.remove()
@@ -98,6 +101,7 @@ export async function deleteRecipe(id: string): Promise<void> {
     removeFromCookbooks(id)
     notifyRecipes()
   }
+  if (deviceId) enqueueSync('DELETE', 'RECIPE', id, '', deviceId)
 }
 
 export async function toggleFavorite(id: string, deviceId: string): Promise<void> {

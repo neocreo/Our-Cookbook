@@ -33,6 +33,7 @@ export function RecipeEdit() {
   const [cookTime, setCookTime] = useState('')
   const [tags, setTags] = useState('')
   const [notes, setNotes] = useState('')
+  const [imageUrl, setImageUrl] = useState('')
   const [ingredients, setIngredients] = useState<IngredientRow[]>([{ id: crypto.randomUUID(), amount: '', unit: '', name: '' }])
   const [instructions, setInstructions] = useState<string[]>([''])
   const [loading, setLoading] = useState(isEdit)
@@ -52,6 +53,7 @@ export function RecipeEdit() {
       setCookTime(r.cookTime != null ? String(r.cookTime) : '')
       setTags(r.tags.join(', '))
       setNotes(r.notes ?? '')
+      setImageUrl(r.imageUrl ?? '')
       setIngredients(
         r.ingredients.length
           ? r.ingredients.map((i) => ({ id: i.id, amount: i.amount ?? '', unit: i.unit ?? '', name: i.name }))
@@ -107,6 +109,7 @@ export function RecipeEdit() {
       cookTime: cookTime.trim() ? Number(cookTime) : null,
       tags: tags.split(',').map((t) => t.trim()).filter(Boolean),
       notes: notes.trim() || null,
+      imageUrl: imageUrl.trim() || null,
       ingredients: builtIngredients,
       instructions: builtInstructions,
     }
@@ -229,6 +232,16 @@ export function RecipeEdit() {
       <div className="form-row">
         <label htmlFor="notes">Notes</label>
         <textarea id="notes" className="input" value={notes} onChange={(e) => setNotes(e.target.value)} />
+      </div>
+      <div className="form-row">
+        <label htmlFor="imageUrl">Image URL</label>
+        <input
+          id="imageUrl"
+          className="input"
+          value={imageUrl}
+          onChange={(e) => setImageUrl(e.target.value)}
+          placeholder="https://… (optional)"
+        />
       </div>
 
       <div className="form-actions">

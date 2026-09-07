@@ -8,6 +8,8 @@ import { useRecipes } from '../hooks/useRecipes'
 import { getRepositoryMode, saveRecipe } from '../features/recipe/repository'
 import { getDeviceId } from '../lib/device'
 import { recipesToMarkdown, recipesToJSON, parseRecipesJSON, downloadFile, readFileText } from '../lib/exportImport'
+import { getPendingCount } from '../features/sync/repository'
+import { getDriveSyncService } from '../features/sync/driveService'
 
 const themes: { value: ThemePref; label: string }[] = [
   { value: 'light', label: 'Light' },
@@ -90,6 +92,22 @@ export function Settings() {
             Google Drive
           </Button>
         </div>
+        {syncMode === 'drive' && (
+          <>
+            <Button
+              variant="secondary"
+              onClick={async () => { await getDriveSyncService().signIn() }}
+              style={{ marginTop: 8 }}
+            >
+              Sign in to Drive
+            </Button>
+            <p className="text-muted" style={{ marginTop: 8 }}>
+              {getPendingCount() > 0
+                ? `${getPendingCount()} change${getPendingCount() === 1 ? '' : 's'} queued for sync.`
+                : 'No pending changes.'}
+            </p>
+          </>
+        )}
       </section>
 
       <section className="recipe-section">

@@ -2,10 +2,10 @@
 // NavLink so the active item gets aria-current="page".
 
 import { NavLink } from 'react-router-dom'
-import { BookOpen, Search, Library, Settings } from 'lucide-react'
+import { Home, Search, Library, Settings } from 'lucide-react'
 
 const items = [
-  { to: '/', label: 'Recipes', Icon: BookOpen, end: true },
+  { to: '/', label: 'Home', Icon: Home, end: true },
   { to: '/cookbooks', label: 'Cookbooks', Icon: Library, end: false },
   { to: '/search', label: 'Search', Icon: Search, end: false },
   { to: '/settings', label: 'Settings', Icon: Settings, end: false },

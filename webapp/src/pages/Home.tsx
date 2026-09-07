@@ -1,6 +1,8 @@
 // Home — the recipe list. Live-subscribes to the repository and renders a
-// card per recipe. A FAB opens the new-recipe form.
+// card per recipe. A FAB opens the new-recipe form. A favorites toggle
+// filters to starred recipes.
 
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Plus, Star } from 'lucide-react'
 import { Card } from '../components/Card'
@@ -17,22 +19,39 @@ function formatTime(minutes: number | null): string | null {
 
 export function Home() {
   const { recipes, loading, error } = useRecipes()
+  const [favoritesOnly, setFavoritesOnly] = useState(false)
+
+  const shown = favoritesOnly ? recipes.filter((r) => r.isFavorite) : recipes
 
   return (
     <main className="page">
-      <h1 className="page-title">Recipes</h1>
+      <h1 className="page-title">Home</h1>
+
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
+        <button
+          type="button"
+          className={`btn ${favoritesOnly ? 'btn-primary' : 'btn-secondary'}`}
+          onClick={() => setFavoritesOnly((v) => !v)}
+          aria-pressed={favoritesOnly}
+        >
+          <Star size={16} fill={favoritesOnly ? 'currentColor' : 'none'} strokeWidth={2.75} />
+          Favorites
+        </button>
+      </div>
 
       {loading && <p className="text-muted">Loading recipes…</p>}
       {error && <p className="text-muted">Could not load recipes: {error}</p>}
 
-      {!loading && recipes.length === 0 && (
-        <div className="stack">
-          <p className="text-muted">No recipes yet. Tap the + button to add your first one.</p>
-        </div>
+      {!loading && shown.length === 0 && (
+        <p className="text-muted">
+          {favoritesOnly
+            ? 'No favorite recipes yet. Tap the star on a recipe to add it here.'
+            : 'No recipes yet. Tap the + button to add your first one.'}
+        </p>
       )}
 
       <div className="stack">
-        {recipes.map((r) => {
+        {shown.map((r) => {
           const time = formatTime(totalRecipeTime(r))
           const meta = [time, r.servingSize ? `${r.servingSize} servings` : null]
             .filter(Boolean)
