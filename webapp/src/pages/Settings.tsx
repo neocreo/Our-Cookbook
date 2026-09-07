@@ -1,7 +1,8 @@
-// Settings — theme, sync mode, and export/import. Drive connect is a stub
-// (full sync lands in Phase 2).
+// Settings — theme, sync mode, and export/import. Drive sync settings live
+// on the dedicated Sync page (/sync).
 
 import { useRef, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { Button } from '../components/Button'
 import { useAppStore, effectiveTheme, type ThemePref, type SyncMode } from '../stores/appStore'
 import { useRecipes } from '../hooks/useRecipes'
@@ -9,7 +10,6 @@ import { getRepositoryMode, saveRecipe } from '../features/recipe/repository'
 import { getDeviceId } from '../lib/device'
 import { recipesToMarkdown, recipesToJSON, parseRecipesJSON, downloadFile, readFileText } from '../lib/exportImport'
 import { getPendingCount } from '../features/sync/repository'
-import { getDriveSyncService } from '../features/sync/driveService'
 
 const themes: { value: ThemePref; label: string }[] = [
   { value: 'light', label: 'Light' },
@@ -75,7 +75,7 @@ export function Settings() {
         <h3>Sync</h3>
         <p className="text-muted">
           {syncMode === 'drive'
-            ? 'Google Drive is selected. Sign-in and sync are wired in Phase 2.'
+            ? 'Google Drive sync is enabled.'
             : 'Offline mode — recipes are stored on this device only.'}
         </p>
         <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
@@ -91,22 +91,16 @@ export function Settings() {
           >
             Google Drive
           </Button>
+          <Link to="/sync" className="btn btn-secondary">
+            Sync settings
+          </Link>
         </div>
         {syncMode === 'drive' && (
-          <>
-            <Button
-              variant="secondary"
-              onClick={async () => { await getDriveSyncService().signIn() }}
-              style={{ marginTop: 8 }}
-            >
-              Sign in to Drive
-            </Button>
-            <p className="text-muted" style={{ marginTop: 8 }}>
-              {getPendingCount() > 0
-                ? `${getPendingCount()} change${getPendingCount() === 1 ? '' : 's'} queued for sync.`
-                : 'No pending changes.'}
-            </p>
-          </>
+          <p className="text-muted" style={{ marginTop: 8 }}>
+            {getPendingCount() > 0
+              ? `${getPendingCount()} change${getPendingCount() === 1 ? '' : 's'} queued for sync.`
+              : 'No pending changes.'}
+          </p>
         )}
       </section>
 

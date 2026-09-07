@@ -14,6 +14,7 @@ import { Scan } from './pages/Scan'
 import { Settings } from './pages/Settings'
 import { Cookbooks } from './pages/Cookbooks'
 import { CookbookDetail } from './pages/CookbookDetail'
+import { SyncStatus } from './pages/SyncStatus'
 import { useAppStore, effectiveTheme } from './stores/appStore'
 
 function useTheme() {
@@ -48,6 +49,7 @@ export function App() {
         <Route path="/cookbooks" element={<Cookbooks />} />
         <Route path="/cookbooks/:id" element={<CookbookDetail />} />
         <Route path="/search" element={<Search />} />
+        <Route path="/sync" element={<SyncStatus />} />
         <Route path="/scan" element={<Scan />} />
         <Route path="/settings" element={<Settings />} />
         <Route path="*" element={<Navigate to="/" replace />} />
