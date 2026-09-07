@@ -159,10 +159,7 @@ fun OcrScanScreen(
                 viewModel.clearAction()
             }
             is OcrScanAction.NavigateToRecipeEdit -> {
-                // Navigate to recipe edit with the parsed recipe
-                // This would require a way to pass the recipe to the edit screen
-                // For now, we'll just navigate to the create screen
-                navController.navigate(Route.RECIPE_CREATE) {
+                navController.navigate(Route.recipeEdit(action.recipeId)) {
                     popUpTo(Route.OCR_SCANNER) { inclusive = true }
                 }
                 viewModel.clearAction()

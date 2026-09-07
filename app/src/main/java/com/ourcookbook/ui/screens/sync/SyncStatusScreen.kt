@@ -206,13 +206,14 @@ fun SyncStatusScreen(
                 .padding(paddingValues),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+            val syncError = state.error
             when {
                 state.isLoading -> {
                     LoadingState()
                 }
-                state.error != null -> {
+                syncError != null -> {
                     ErrorState(
-                        message = state.error!!,
+                        message = syncError,
                         onRetry = { viewModel.handleEvent(SyncStatusEvent.RefreshAll) }
                     )
                 }

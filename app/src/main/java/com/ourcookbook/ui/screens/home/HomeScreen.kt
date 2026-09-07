@@ -95,10 +95,11 @@ fun HomeScreen(
             }
         }
     ) { paddingValues ->
+        val errorMessage = state.error
         when {
             state.isLoading -> LoadingState()
-            state.error != null -> ErrorState(
-                message = state.error!!,
+            errorMessage != null -> ErrorState(
+                message = errorMessage,
                 onRetry = { viewModel.loadData() }
             )
             else -> HomeContent(

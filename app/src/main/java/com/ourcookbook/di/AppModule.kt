@@ -1,18 +1,12 @@
 package com.ourcookbook.di
 
 import android.content.Context
-import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.preferencesDataStore
 import com.ourcookbook.data.repository.DevicePreferencesRepositoryImpl
 import com.ourcookbook.data.repository.SettingsRepository
 import com.ourcookbook.domain.repository.DevicePreferencesRepository
 import com.ourcookbook.domain.usecase.devicepreferences.CreateDevicePreferences
 import com.ourcookbook.domain.usecase.devicepreferences.GetDevicePreferencesByDevice
 import com.ourcookbook.domain.usecase.devicepreferences.UpdateDevicePreferences
-import com.ourcookbook.domain.usecase.sync.GetSyncStatus
-import com.ourcookbook.domain.usecase.sync.UpdateLastSyncTimestamp
-import com.ourcookbook.domain.usecase.sync.UpdateSyncInProgress
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -27,16 +21,6 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 object AppModule {
-
-    // ========================================================================
-    // DATASTORE
-    // ========================================================================
-
-    @Provides
-    @Singleton
-    fun provideDataStore(@ApplicationContext context: Context): DataStore<Preferences> {
-        return context.dataStore
-    }
 
     // ========================================================================
     // REPOSITORIES
@@ -83,9 +67,3 @@ object AppModule {
     // ========================================================================
 
 }
-
-// ============================================================================
-// DATASTORE EXTENSION
-// ============================================================================
-
-private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")

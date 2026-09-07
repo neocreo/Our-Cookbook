@@ -391,8 +391,11 @@ class RecipeListViewModel @Inject constructor(
                 // Simulate loading more (in real implementation, this would fetch more data)
                 currentPage++
                 updateStateWithPagination()
-                
-                _state.value = currentState.copy(isLoadingMore = false)
+
+                val newState = _state.value
+                if (newState is RecipeListState.Success) {
+                    _state.value = newState.copy(isLoadingMore = false)
+                }
             }
         }
     }

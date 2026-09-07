@@ -236,6 +236,7 @@ fun SearchScreen(
                 }
 
                 // Search results or states
+                val searchError = state.error
                 when {
                     state.isLoading && state.recipes.isEmpty() -> {
                         LoadingState(
@@ -243,9 +244,9 @@ fun SearchScreen(
                             modifier = Modifier.weight(1f)
                         )
                     }
-                    state.error != null -> {
+                    searchError != null -> {
                         ErrorState(
-                            message = state.error!!,
+                            message = searchError,
                             onRetry = { viewModel.refresh() },
                             modifier = Modifier.weight(1f)
                         )

@@ -3,6 +3,7 @@ package com.ourcookbook.di
 import android.content.Context
 import androidx.room.Room
 import com.ourcookbook.data.db.AppDatabase
+import com.ourcookbook.data.db.AppDatabase.Companion.MIGRATION_1_2
 import com.ourcookbook.data.db.dao.*
 import com.ourcookbook.data.repository.*
 import com.ourcookbook.data.service.*
@@ -48,6 +49,8 @@ object DatabaseModule {
             "cookbook-db"
         )
             .openHelperFactory(factory)
+            .addMigrations(MIGRATION_1_2)
+            .fallbackToDestructiveMigration(dropAllTables = true)
             .build()
     }
     

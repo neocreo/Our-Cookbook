@@ -60,6 +60,11 @@ class OcrScanViewModel @Inject constructor(
     // OCR Text Parser
     private val textParser = OcrTextParser()
 
+    private fun readPersistedDeviceId(): String {
+        return context.getSharedPreferences("auth_prefs", Context.MODE_PRIVATE)
+            .getString("device_id", null) ?: "local-device"
+    }
+
     // Text Recognizer
     private val textRecognizer: TextRecognizer by lazy {
         TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
@@ -491,9 +496,10 @@ class OcrScanViewModel @Inject constructor(
             }
             
             _state.value = OcrScanState.SavingRecipe
-            
+
             try {
-                val result = createRecipe(recipe)
+                val recipeToSave = recipe.copy(deviceId = readPersistedDeviceId())
+                val result = createRecipe(recipeToSave)
                 result.onSuccess { recipeId ->
                     // Save the image if we have one
                     currentImagePath?.let { imagePath ->
@@ -622,12 +628,31 @@ class OcrScanViewModel @Inject constructor(
     fun getCurrentConfidence(): Float = currentConfidence
 
     /**
-     * Navigate to recipe edit screen
+     * Save the scanned recipe and navigate to the edit screen so the user can
+     * refine the OCR-parsed fields. Persisting first means the OCR data is never
+     * lost and the standard edit-by-id flow is reused.
      */
     fun navigateToRecipeEdit() {
         viewModelScope.launch {
-            currentRecipe?.let { recipe ->
-                _actions.value = OcrScanAction.NavigateToRecipeEdit(recipe)
+            val recipe = currentRecipe ?: run {
+                _state.value = OcrScanState.Error("No recipe to edit")
+                return@launch
+            }
+
+            _state.value = OcrScanState.SavingRecipe
+
+            try {
+                val recipeToSave = recipe.copy(deviceId = readPersistedDeviceId())
+                createRecipe(recipeToSave).onSuccess { recipeId ->
+                    currentImagePath?.let { imagePath ->
+                        saveRecipeImage(recipeId, imagePath)
+                    }
+                    _actions.value = OcrScanAction.NavigateToRecipeEdit(recipeId)
+                }.onFailure { e ->
+                    _state.value = OcrScanState.Error("Failed to save recipe: ${e.message}")
+                }
+            } catch (e: Exception) {
+                _state.value = OcrScanState.Error("Failed to save recipe: ${e.message}")
             }
         }
     }
@@ -696,7 +721,7 @@ sealed class OcrScanEvent {
  */
 sealed class OcrScanAction {
     data class NavigateToRecipeDetail(val recipeId: String) : OcrScanAction()
-    data class NavigateToRecipeEdit(val recipe: Recipe) : OcrScanAction()
+    data class NavigateToRecipeEdit(val recipeId: String) : OcrScanAction()
     object NavigateBack : OcrScanAction()
     data class RequestPermission(val permission: String, val rationale: String) : OcrScanAction()
     data class PermissionGranted(val permission: String) : OcrScanAction()

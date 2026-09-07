@@ -1,8 +1,6 @@
 package com.ourcookbook.data.db
 
-import android.content.Context
 import androidx.room.Database
-import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import androidx.room.migration.Migration
@@ -11,7 +9,6 @@ import com.ourcookbook.data.db.dao.*
 import com.ourcookbook.data.db.entity.*
 import com.ourcookbook.data.model.SearchHistoryEntity
 import com.ourcookbook.data.model.SavedSearchEntity
-import net.sqlcipher.database.SupportFactory
 
 /**
  * Main database class for the Cookbook app
@@ -59,30 +56,7 @@ abstract class AppDatabase : RoomDatabase() {
     
     companion object {
         private const val DATABASE_NAME = "cookbook-db"
-        
-        @Volatile
-        private var INSTANCE: AppDatabase? = null
-        
-         fun getInstance(context: Context, passphrase: String): AppDatabase {
-            return INSTANCE ?: synchronized(this) {
-                val instance = Room.databaseBuilder(
-                    context.applicationContext,
-                    AppDatabase::class.java,
-                    DATABASE_NAME
-                )
-                    .openHelperFactory(SupportFactory(passphrase.toByteArray()))
-                    .addMigrations(MIGRATION_1_2)
-                    .fallbackToDestructiveMigrationOnDowngrade(true)
-                    .build()
-                INSTANCE = instance
-                instance
-            }
-        }
-        
-        fun destroyInstance() {
-            INSTANCE = null
-        }
-        
+
         // Migration for adding FTS4 table
         val MIGRATION_1_2 = object : Migration(1, 2) {
             override fun migrate(database: SupportSQLiteDatabase) {

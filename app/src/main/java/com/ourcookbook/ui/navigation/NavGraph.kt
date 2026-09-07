@@ -676,8 +676,7 @@ composable(Route.FAVORITES) {
                         viewModel.clearAction()
                     }
                     is OcrScanAction.NavigateToRecipeEdit -> {
-                        // For now, navigate to recipe create screen
-                        navController.navigate(Route.RECIPE_CREATE) {
+                        navController.navigate(Route.recipeEdit(action.recipeId)) {
                             popUpTo(Route.OCR_SCANNER) { inclusive = true }
                         }
                         viewModel.clearAction()

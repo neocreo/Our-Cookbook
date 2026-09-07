@@ -19,6 +19,7 @@ import com.ourcookbook.domain.usecase.cookbook.ImportCookbook
 import com.ourcookbook.domain.usecase.cookbook.ShareCookbook
 import com.ourcookbook.domain.usecase.cookbook.GenerateSharingLink
 import com.ourcookbook.domain.usecase.cookbook.GetSharingInfo
+import com.ourcookbook.domain.usecase.recipe.GetRecipesByIds
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -193,7 +194,8 @@ class CookbookManagementViewModel @Inject constructor(
     private val importCookbookUseCase: ImportCookbook,
     private val shareCookbookUseCase: ShareCookbook,
     private val generateSharingLinkUseCase: GenerateSharingLink,
-    private val getSharingInfo: GetSharingInfo
+    private val getSharingInfo: GetSharingInfo,
+    private val getRecipesByIds: GetRecipesByIds
 ) : ViewModel() {
 
     private val _state = MutableStateFlow<CookbookManagementState>(CookbookManagementState.Loading)
@@ -340,7 +342,16 @@ class CookbookManagementViewModel @Inject constructor(
                     ?: currentState.sharedCookbooks.find { it.id == cookbookId }
                 
                 if (cookbook != null) {
-                    _state.value = currentState.copy(selectedCookbook = cookbook)
+                    // Resolve the actual recipe objects for the cookbook's recipe IDs
+                    val recipes = if (cookbook.recipeIds.isEmpty()) {
+                        emptyList()
+                    } else {
+                        getRecipesByIds(cookbook.recipeIds).getOrDefault(emptyList())
+                    }
+                    _state.value = currentState.copy(
+                        selectedCookbook = cookbook,
+                        recipesInSelectedCookbook = recipes
+                    )
                     _actions.value = CookbookManagementAction.ShowCookbookDetail(cookbookId)
                 }
             } else {
