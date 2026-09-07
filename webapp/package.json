@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@capacitor/android": "7.6.9",
+    "@capacitor/camera": "^7.0.5",
     "@capacitor/core": "7.6.9",
     "@capacitor/ios": "7.6.9",
     "@react-oauth/google": "^0.13.5",
@@ -21,6 +22,7 @@
     "react-dom": "19.2.8",
     "react-router-dom": "7.18.3",
     "rxdb": "17.5.0",
+    "tesseract.js": "^6.0.1",
     "zustand": "5.0.15"
   },
   "devDependencies": {
