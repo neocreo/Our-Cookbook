@@ -1,4 +1,4 @@
-# Our Cookbook
+# Our Open Cookbook
 
 A cross-platform recipe app built with React, TypeScript, and Capacitor.
 Runs on Android, iOS, and the web as an installable PWA.

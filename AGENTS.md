@@ -1,10 +1,10 @@
-# AGENTS.md — Our Cookbook
+# AGENTS.md — Our Open Cookbook
 
-This file instructs any AI agent working in the Our Cookbook repository.
+This file instructs any AI agent working in the Our Open Cookbook repository.
 
 ## Project context
 
-Our Cookbook is a cross-platform app (Android + iOS + web/PWA) built with
+Our Open Cookbook is a cross-platform app (Android + iOS + web/PWA) built with
 React + TypeScript + Capacitor. All code lives in `webapp/`.
 
 The legacy Kotlin/Compose app has been removed from the repo. The Drive sync
@@ -27,7 +27,7 @@ interoperability. The old source is available in git history
 - **Routing**: React Router v7 (`react-router-dom`), component API
   (`<BrowserRouter>`, `<Routes>`, `<NavLink>`). Works in the Capacitor WebView.
 - **App shell**: Capacitor 7 (`@capacitor/core|cli|android|ios`).
-  `capacitor.config.ts` → `appId: com.ourcookbook`, `appName: Our Cookbook`,
+  `capacitor.config.ts` → `appId: com.ourcookbook`, `appName: Our Open Cookbook`,
   `webDir: dist`. Native platforms are added later with `npx cap add`.
 - **Persistence**: RxDB 17 with the Dexie storage (`rxdb/plugins/storage-dexie`,
   IndexedDB) on web. Native will swap to `rxdb/plugins/storage-sqlite` over
@@ -72,7 +72,7 @@ The old "register your device" gate is **gone**. The first-run flow is exactly:
 - **Auto-cookbook**: if `cookbooks` is empty when the user saves their first
   recipe, the repository creates "Mina recept" automatically and adds the
   recipe to it. The user can rename it later.
-- App name in the UI is **"Our Cookbook"** (the design source's "The Kitchen
+- App name in the UI is **"Our Open Cookbook"** (the design source's "The Kitchen
   Table" is not used).
 
 ## Design system — "Organic" (binding)

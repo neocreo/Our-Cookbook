@@ -135,7 +135,7 @@ export function Settings() {
 
       <section className="recipe-section">
         <h3>About</h3>
-        <p className="text-muted">Our Cookbook · Phase 1</p>
+        <p className="text-muted">Our Open Cookbook · Phase 1</p>
         <p className="text-muted">Storage: {getRepositoryMode() === 'rxdb' ? 'RxDB (IndexedDB)' : 'Session (memory fallback)'}</p>
       </section>
     </main>

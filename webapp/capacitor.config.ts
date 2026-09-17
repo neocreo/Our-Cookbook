@@ -2,7 +2,7 @@ import type { CapacitorConfig } from '@capacitor/cli'
 
 const config: CapacitorConfig = {
   appId: 'com.ourcookbook',
-  appName: 'Our Cookbook',
+  appName: 'Our Open Cookbook',
   webDir: 'dist',
   server: {
     androidScheme: 'https',

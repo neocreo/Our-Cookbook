@@ -27,7 +27,7 @@ export function Onboarding() {
         <BookOpen strokeWidth={2.75} />
       </div>
       <div>
-        <h1>Our Cookbook</h1>
+        <h1>Our Open Cookbook</h1>
         <p className="text-muted">
           Gather your recipes in one warm, offline-first place. Choose how you want to start —
           you can change this later.

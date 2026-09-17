@@ -10,8 +10,8 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg'],
       manifest: {
-        name: 'Our Cookbook',
-        short_name: 'Cookbook',
+        name: 'Our Open Cookbook',
+        short_name: 'Open Cookbook',
         description: 'Gather your recipes in one warm, offline-first place.',
         theme_color: '#c67139',
         background_color: '#f5ead8',
