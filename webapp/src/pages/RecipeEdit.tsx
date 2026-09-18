@@ -1,28 +1,28 @@
-// RecipeEdit — create or edit a recipe. Edits an existing recipe when an id is
-// present in the route, otherwise creates a new one. On save the repository
-// creates an auto-cookbook ("Mina recept") if the user has none yet.
+// RecipeEdit — create or edit a recipe with edit-in-place layout.
+// Supports drag-and-drop reordering of ingredients, multiple image uploads,
+// and pre-selecting a cookbook.
 
 import { useEffect, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeft, Plus, X } from 'lucide-react'
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import { ArrowLeft, Plus, X, GripVertical } from 'lucide-react'
 import { Button } from '../components/Button'
+import { WashedImage } from '../components/WashedImage'
 import { getRecipe, saveRecipe } from '../features/recipe/repository'
 import { getDeviceId } from '../lib/device'
 import { createIngredient } from '../types/ingredient'
+import { resizeImageToDataURI } from '../lib/imageUtils'
+import { useCookbooks } from '../hooks/useCookbooks'
 import type { Ingredient } from '../types/ingredient'
 import type { Recipe, RecipeInput } from '../types/recipe'
 
-interface IngredientRow {
-  id: string
-  amount: string
-  unit: string
-  name: string
-}
+const UNITS = ['', 'tsp', 'tbsp', 'cup', 'cups', 'oz', 'lb', 'g', 'kg', 'ml', 'l', 'cloves', 'cans', 'slices', 'pieces', 'bunches', 'sticks']
 
 export function RecipeEdit() {
   const { id } = useParams<{ id: string }>()
+  const [searchParams] = useSearchParams()
   const navigate = useNavigate()
   const isEdit = Boolean(id)
+  const { cookbooks } = useCookbooks()
 
   const [title, setTitle] = useState('')
   const [category, setCategory] = useState('')
@@ -31,14 +31,23 @@ export function RecipeEdit() {
   const [servings, setServings] = useState('')
   const [prepTime, setPrepTime] = useState('')
   const [cookTime, setCookTime] = useState('')
-  const [tags, setTags] = useState('')
+  const [tags, setTags] = useState<string[]>([])
+  const [tagInput, setTagInput] = useState('')
   const [notes, setNotes] = useState('')
-  const [imageUrl, setImageUrl] = useState('')
-  const [ingredients, setIngredients] = useState<IngredientRow[]>([{ id: crypto.randomUUID(), amount: '', unit: '', name: '' }])
-  const [instructions, setInstructions] = useState<string[]>([''])
+  const [imageUrls, setImageUrls] = useState<string[]>([])
+  // Get initial cookbook from URL if present (for new recipes)
+  const initialCookbookId = !isEdit && cookbooks.length > 0 
+    ? searchParams.get('cookbookId') || ''
+    : ''
+  
+  const [selectedCookbookId, setSelectedCookbookId] = useState<string>(initialCookbookId)
+  const [ingredients, setIngredients] = useState<Ingredient[]>(!isEdit ? [createIngredient('', null, null, null, 0)] : [])
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null)
+  const [instructions, setInstructions] = useState('')
   const [loading, setLoading] = useState(isEdit)
   const [saving, setSaving] = useState(false)
 
+  // Load recipe for edit
   useEffect(() => {
     if (!id) return
     let active = true
@@ -51,40 +60,87 @@ export function RecipeEdit() {
       setServings(r.servingSize != null ? String(r.servingSize) : '')
       setPrepTime(r.prepTime != null ? String(r.prepTime) : '')
       setCookTime(r.cookTime != null ? String(r.cookTime) : '')
-      setTags(r.tags.join(', '))
+      setTags(r.tags)
       setNotes(r.notes ?? '')
-      setImageUrl(r.imageUrl ?? '')
-      setIngredients(
-        r.ingredients.length
-          ? r.ingredients.map((i) => ({ id: i.id, amount: i.amount ?? '', unit: i.unit ?? '', name: i.name }))
-          : [{ id: crypto.randomUUID(), amount: '', unit: '', name: '' }],
-      )
-      setInstructions(r.instructions.length ? r.instructions : [''])
+      setImageUrls(r.imageUrls ?? [])
+      setIngredients(r.ingredients.length > 0 ? r.ingredients : [createIngredient('', null, null, null, 0)])
+      setInstructions(r.instructions.join('\n'))
       setLoading(false)
     })
-    return () => {
-      active = false
-    }
+    return () => { active = false }
   }, [id])
 
-  function updateIngredient(rowId: string, field: keyof IngredientRow, value: string) {
-    setIngredients((rows) => rows.map((r) => (r.id === rowId ? { ...r, [field]: value } : r)))
-  }
-  function addIngredient() {
-    setIngredients((rows) => [...rows, { id: crypto.randomUUID(), amount: '', unit: '', name: '' }])
-  }
-  function removeIngredient(rowId: string) {
-    setIngredients((rows) => (rows.length > 1 ? rows.filter((r) => r.id !== rowId) : rows))
+  function handleDragStart(index: number) {
+    setDraggedIndex(index)
   }
 
-  function updateInstruction(idx: number, value: string) {
-    setInstructions((lines) => lines.map((l, i) => (i === idx ? value : l)))
+  function handleDragOver(_index: number, e: React.DragEvent) {
+    e.preventDefault()
   }
-  function addInstruction() {
-    setInstructions((lines) => [...lines, ''])
+
+  function handleDrop(targetIndex: number, e: React.DragEvent) {
+    e.preventDefault()
+    if (draggedIndex === null || draggedIndex === targetIndex) return
+    setIngredients((prev) => {
+      const newIngredients = [...prev]
+      const [removed] = newIngredients.splice(draggedIndex, 1)
+      newIngredients.splice(targetIndex, 0, removed)
+      return newIngredients.map((ing, i) => ({ ...ing, order: i }))
+    })
+    setDraggedIndex(null)
   }
-  function removeInstruction(idx: number) {
-    setInstructions((lines) => (lines.length > 1 ? lines.filter((_, i) => i !== idx) : lines))
+
+  function handleDragEnd() {
+    setDraggedIndex(null)
+  }
+
+  function addIngredient() {
+    setIngredients((prev) => [...prev, createIngredient('', null, null, null, prev.length)])
+  }
+
+  function removeIngredient(ingredientId: string) {
+    setIngredients((prev) => {
+      if (prev.length <= 1) return prev
+      const filtered = prev.filter((ing) => ing.id !== ingredientId)
+      return filtered.map((ing, i) => ({ ...ing, order: i }))
+    })
+  }
+
+  function updateIngredient(id: string, field: keyof Ingredient, value: string | number | null) {
+    setIngredients((prev) => prev.map((ing) => ing.id === id ? { ...ing, [field]: value } : ing))
+  }
+
+  function addTag() {
+    if (!tagInput.trim()) return
+    const newTag = tagInput.trim()
+    if (!tags.includes(newTag)) {
+      setTags([...tags, newTag])
+    }
+    setTagInput('')
+  }
+
+  function removeTag(tag: string) {
+    setTags(tags.filter((t) => t !== tag))
+  }
+
+  function removeImage(index: number) {
+    setImageUrls(imageUrls.filter((_, i) => i !== index))
+  }
+
+  async function addImageFromFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    try {
+      const resized = await resizeImageToDataURI(file, 500)
+      setImageUrls([...imageUrls, resized])
+    } catch (error) {
+      console.error('Failed to process image:', error)
+    }
+    e.target.value = ''
+  }
+
+  function insertStepMarkup() {
+    setInstructions(`${instructions}\n[STEP]\n`)
   }
 
   async function onSave() {
@@ -93,32 +149,47 @@ export function RecipeEdit() {
       return
     }
     setSaving(true)
-    const builtIngredients: Ingredient[] = ingredients
-      .filter((r) => r.name.trim())
-      .map((r, i) =>
-        createIngredient(r.name.trim(), r.amount.trim() || null, r.unit.trim() || null, null, i),
-      )
-    const builtInstructions = instructions.map((s) => s.trim()).filter(Boolean)
+
+    const builtIngredients = ingredients
+      .filter((ing) => ing.name.trim())
+      .map((ing, i) => createIngredient(ing.name.trim(), ing.amount?.trim() || null, ing.unit?.trim() || null, ing.notes?.trim() || null, i))
+
+    const builtInstructions = instructions
+      .split('\n')
+      .map((s) => s.trim())
+      .filter(Boolean)
+
     const input: RecipeInput = {
       title: title.trim(),
       category: category.trim(),
       description: description.trim() || null,
       source: source.trim() || null,
-      servingSize: servings.trim() ? Number(servings) : null,
-      prepTime: prepTime.trim() ? Number(prepTime) : null,
-      cookTime: cookTime.trim() ? Number(cookTime) : null,
-      tags: tags.split(',').map((t) => t.trim()).filter(Boolean),
-      notes: notes.trim() || null,
-      imageUrl: imageUrl.trim() || null,
+      servingSize: servings ? Number(servings) : null,
+      prepTime: prepTime ? Number(prepTime) : null,
+      cookTime: cookTime ? Number(cookTime) : null,
+      imageUrls: imageUrls.length > 0 ? imageUrls : undefined,
       ingredients: builtIngredients,
       instructions: builtInstructions,
+      tags,
+      notes: notes.trim() || null,
     }
 
-    let existing: Recipe | null = null
-    if (id) existing = await getRecipe(id)
-    const saved = await saveRecipe(existing ?? input, getDeviceId())
-    setSaving(false)
-    navigate(`/recipes/${saved.id}`, { replace: true })
+    try {
+      let existing: Recipe | null = null
+      if (id) existing = await getRecipe(id)
+      const saved = await saveRecipe(existing ?? input, getDeviceId())
+      
+      if (selectedCookbookId && !isEdit) {
+        const { addRecipeToCookbook } = await import('../features/cookbook/repository')
+        await addRecipeToCookbook(selectedCookbookId, saved.id)
+      }
+      
+      setSaving(false)
+      navigate(`/recipes/${saved.id}`, { replace: true })
+    } catch (err) {
+      setSaving(false)
+      window.alert(err instanceof Error ? err.message : 'Failed to save recipe')
+    }
   }
 
   if (loading) return <main className="page"><p className="text-muted">Loading…</p></main>
@@ -126,131 +197,118 @@ export function RecipeEdit() {
   return (
     <main className="page">
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-        <button
-          type="button"
-          className="btn btn-ghost btn-icon"
-          onClick={() => navigate(-1)}
-          aria-label="Back"
-        >
+        <button type="button" className="btn btn-ghost btn-icon" onClick={() => navigate(-1)} aria-label="Back">
           <ArrowLeft strokeWidth={2.75} />
         </button>
       </div>
 
-      <h1 className="page-title">{isEdit ? 'Edit recipe' : 'New recipe'}</h1>
+      <h1 className="page-title" style={{ marginBottom: 16 }}>{isEdit ? 'Edit recipe' : 'New recipe'}</h1>
 
-      <div className="form-row">
-        <label htmlFor="title">Title</label>
-        <input id="title" className="input" value={title} onChange={(e) => setTitle(e.target.value)} />
-      </div>
-      <div className="form-row">
-        <label htmlFor="category">Category</label>
-        <input id="category" className="input" value={category} onChange={(e) => setCategory(e.target.value)} placeholder="e.g. Dinner" />
-      </div>
-      <div className="form-row">
-        <label htmlFor="description">Description</label>
-        <textarea id="description" className="input" value={description} onChange={(e) => setDescription(e.target.value)} />
+      <div className="form-row" style={{ marginBottom: 12 }}>
+        <input className="input" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Title" style={{ fontSize: 20, fontWeight: 600 }} />
       </div>
 
-      <div className="form-row">
+      <div className="form-row" style={{ marginBottom: 12 }}>
+        <input className="input" value={category} onChange={(e) => setCategory(e.target.value)} placeholder="Category" />
+      </div>
+
+      <div className="form-row" style={{ marginBottom: 12 }}>
+        <select className="input" value={selectedCookbookId} onChange={(e) => setSelectedCookbookId(e.target.value)} style={{ fontSize: 14 }}>
+          <option value="">Select a cookbook...</option>
+          {cookbooks.map((cb) => <option key={cb.id} value={cb.id}>{cb.name}</option>)}
+        </select>
+        <Button variant="secondary" onClick={() => navigate('/cookbooks/new')} style={{ marginTop: 8 }}>
+          <Plus size={16} strokeWidth={2.75} /> Create New
+        </Button>
+      </div>
+
+      <div className="form-row" style={{ marginBottom: 12 }}>
+        <textarea className="input" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Description" rows={3} />
+      </div>
+
+      <div className="form-row" style={{ marginBottom: 16 }}>
         <label>Ingredients</label>
         <div className="line-list">
-          {ingredients.map((row) => (
-            <div className="line-row" key={row.id}>
-              <input
-                className="input"
-                placeholder="amount"
-                value={row.amount}
-                onChange={(e) => updateIngredient(row.id, 'amount', e.target.value)}
-                style={{ maxWidth: 80 }}
-              />
-              <input
-                className="input"
-                placeholder="unit"
-                value={row.unit}
-                onChange={(e) => updateIngredient(row.id, 'unit', e.target.value)}
-                style={{ maxWidth: 80 }}
-              />
-              <input
-                className="input"
-                placeholder="name"
-                value={row.name}
-                onChange={(e) => updateIngredient(row.id, 'name', e.target.value)}
-              />
-              <button type="button" className="btn btn-ghost btn-icon" onClick={() => removeIngredient(row.id)} aria-label="Remove ingredient">
-                <X size={18} strokeWidth={2.75} />
+          {ingredients.map((ing, idx) => (
+            <div key={ing.id} className="line-row" draggable onDragStart={() => handleDragStart(idx)} onDragOver={(e) => handleDragOver(idx, e)} onDrop={(e) => handleDrop(idx, e)} onDragEnd={handleDragEnd} style={{ cursor: 'grab' }}>
+              <span style={{ cursor: 'grab', padding: '0 4px', opacity: 0.5 }}><GripVertical size={14} strokeWidth={2.75} /></span>
+              <input className="input" placeholder="amount" value={ing.amount ?? ''} onChange={(e) => updateIngredient(ing.id, 'amount', e.target.value)} style={{ maxWidth: 80, flexShrink: 0 }} />
+              <select className="input" value={ing.unit ?? ''} onChange={(e) => updateIngredient(ing.id, 'unit', e.target.value)} style={{ maxWidth: 100, flexShrink: 0 }}>
+                {UNITS.map((u) => <option key={u} value={u}>{u}</option>)}
+              </select>
+              <input className="input" placeholder="ingredient name" value={ing.name} onChange={(e) => updateIngredient(ing.id, 'name', e.target.value)} style={{ flex: 1 }} />
+              <button type="button" className="btn btn-ghost btn-icon" onClick={() => removeIngredient(ing.id)} aria-label="Remove"><X size={18} strokeWidth={2.75} /></button>
+            </div>
+          ))}
+        </div>
+        <Button variant="secondary" onClick={addIngredient} style={{ marginTop: 8 }}><Plus size={16} strokeWidth={2.75} /></Button>
+      </div>
+
+      <div className="form-row" style={{ marginBottom: 12 }}>
+        <textarea className="input" value={instructions} onChange={(e) => setInstructions(e.target.value)} placeholder="Instructions (one step per line)" rows={8} />
+        <Button variant="secondary" onClick={insertStepMarkup} style={{ marginTop: 8 }}><Plus size={16} strokeWidth={2.75} /> Insert Step</Button>
+      </div>
+
+      <div style={{ display: 'flex', gap: 12, marginBottom: 16 }}>
+        <div className="form-row" style={{ flex: 1 }}>
+          <label>Servings</label>
+          <input className="input" type="number" value={servings} onChange={(e) => setServings(e.target.value)} />
+        </div>
+        <div className="form-row" style={{ flex: 1 }}>
+          <label>Prep time (min)</label>
+          <input className="input" type="number" value={prepTime} onChange={(e) => setPrepTime(e.target.value)} />
+        </div>
+        <div className="form-row" style={{ flex: 1 }}>
+          <label>Cook time (min)</label>
+          <input className="input" type="number" value={cookTime} onChange={(e) => setCookTime(e.target.value)} />
+        </div>
+      </div>
+
+      <div className="form-row" style={{ marginBottom: 12 }}>
+        <label>Images</label>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 4 }}>
+          {imageUrls.map((url, idx) => (
+            <div key={idx} style={{ position: 'relative' }}>
+              <WashedImage src={url} alt={`Recipe ${idx + 1}`} style={{ width: 80, height: 80, borderRadius: 'var(--radius-md)' }} />
+              <button type="button" className="btn btn-ghost btn-icon" onClick={() => removeImage(idx)} style={{ position: 'absolute', top: 4, right: 4, background: 'rgba(0,0,0,0.5)' }} aria-label={`Remove ${idx + 1}`}>
+                <X size={14} strokeWidth={2.75} />
               </button>
             </div>
           ))}
         </div>
-        <Button variant="secondary" onClick={addIngredient}>
-          <Plus size={16} strokeWidth={2.75} /> Add ingredient
-        </Button>
+        <input type="file" accept="image/*" onChange={addImageFromFile} style={{ display: 'none' }} id="image-upload" />
+        <Button variant="secondary" onClick={() => document.getElementById('image-upload')?.click()}><Plus size={16} strokeWidth={2.75} /> Add image</Button>
       </div>
 
-      <div className="form-row">
-        <label>Instructions</label>
-        <div className="line-list">
-          {instructions.map((line, idx) => (
-            <div className="line-row" key={idx}>
-              <input
-                className="input"
-                placeholder={`Step ${idx + 1}`}
-                value={line}
-                onChange={(e) => updateInstruction(idx, e.target.value)}
-              />
-              <button type="button" className="btn btn-ghost btn-icon" onClick={() => removeInstruction(idx)} aria-label="Remove step">
-                <X size={18} strokeWidth={2.75} />
+      <div className="form-row" style={{ marginBottom: 12 }}>
+        <label>Tags</label>
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 4 }}>
+          {tags.map((tag) => (
+            <div key={tag} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, background: 'var(--color-surface-3)', padding: '4px 8px', borderRadius: 'var(--radius-md)' }}>
+              <span style={{ fontSize: 13 }}>{tag}</span>
+              <button type="button" className="btn btn-ghost btn-icon" onClick={() => removeTag(tag)} style={{ padding: 0, height: 16, width: 16 }} aria-label={`Remove ${tag}`}>
+                <X size={12} strokeWidth={2.75} />
               </button>
             </div>
           ))}
         </div>
-        <Button variant="secondary" onClick={addInstruction}>
-          <Plus size={16} strokeWidth={2.75} /> Add step
-        </Button>
+        <div style={{ display: 'flex', gap: 4, marginTop: 4 }}>
+          <input className="input" value={tagInput} onChange={(e) => setTagInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addTag())} placeholder="Add a tag" style={{ flex: 1 }} />
+          <Button variant="secondary" onClick={addTag}><Plus size={16} strokeWidth={2.75} /></Button>
+        </div>
       </div>
 
-      <div className="form-row">
-        <label htmlFor="servings">Servings</label>
-        <input id="servings" className="input" type="number" value={servings} onChange={(e) => setServings(e.target.value)} />
+      <div className="form-row" style={{ marginBottom: 12 }}>
+        <input className="input" value={source} onChange={(e) => setSource(e.target.value)} placeholder="Source" />
       </div>
-      <div className="form-row">
-        <label htmlFor="prep">Prep time (min)</label>
-        <input id="prep" className="input" type="number" value={prepTime} onChange={(e) => setPrepTime(e.target.value)} />
-      </div>
-      <div className="form-row">
-        <label htmlFor="cook">Cook time (min)</label>
-        <input id="cook" className="input" type="number" value={cookTime} onChange={(e) => setCookTime(e.target.value)} />
-      </div>
-      <div className="form-row">
-        <label htmlFor="tags">Tags (comma-separated)</label>
-        <input id="tags" className="input" value={tags} onChange={(e) => setTags(e.target.value)} />
-      </div>
-      <div className="form-row">
-        <label htmlFor="source">Source</label>
-        <input id="source" className="input" value={source} onChange={(e) => setSource(e.target.value)} />
-      </div>
-      <div className="form-row">
-        <label htmlFor="notes">Notes</label>
-        <textarea id="notes" className="input" value={notes} onChange={(e) => setNotes(e.target.value)} />
-      </div>
-      <div className="form-row">
-        <label htmlFor="imageUrl">Image URL</label>
-        <input
-          id="imageUrl"
-          className="input"
-          value={imageUrl}
-          onChange={(e) => setImageUrl(e.target.value)}
-          placeholder="https://… (optional)"
-        />
+
+      <div className="form-row" style={{ marginBottom: 16 }}>
+        <textarea className="input" value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Notes" rows={3} />
       </div>
 
       <div className="form-actions">
-        <Button variant="secondary" onClick={() => navigate(-1)} disabled={saving}>
-          Cancel
-        </Button>
-        <Button variant="primary" onClick={onSave} disabled={saving}>
-          {saving ? 'Saving…' : isEdit ? 'Save changes' : 'Add recipe'}
-        </Button>
+        <Button variant="secondary" onClick={() => navigate(-1)} disabled={saving}>Cancel</Button>
+        <Button variant="primary" onClick={onSave} disabled={saving}>{saving ? 'Saving…' : (isEdit ? 'Save changes' : 'Add recipe')}</Button>
       </div>
     </main>
   )

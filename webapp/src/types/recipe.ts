@@ -17,7 +17,7 @@ export interface Recipe {
   cookTime: number | null // minutes
   rating: number | null
   isFavorite: boolean
-  imageUrl: string | null
+  imageUrls: string[]
   notes: string | null
   source: string | null
   tags: string[]
@@ -38,7 +38,7 @@ export interface RecipeInput {
   prepTime?: number | null
   cookTime?: number | null
   rating?: number | null
-  imageUrl?: string | null
+  imageUrls?: string[]
   notes?: string | null
   source?: string | null
   tags?: string[]
@@ -59,7 +59,7 @@ export function createRecipe(input: RecipeInput, deviceId = ''): Recipe {
     cookTime: input.cookTime ?? null,
     rating: input.rating ?? null,
     isFavorite: input.isFavorite ?? false,
-    imageUrl: input.imageUrl ?? null,
+    imageUrls: input.imageUrls ?? [],
     notes: input.notes ?? null,
     source: input.source ?? null,
     tags: input.tags ?? [],
@@ -84,4 +84,16 @@ export function totalRecipeTime(r: Recipe): number | null {
   if (r.prepTime == null) return r.cookTime
   if (r.cookTime == null) return r.prepTime
   return r.prepTime + r.cookTime
+}
+
+// Backwards compatibility helpers for migration from imageUrl to imageUrls
+export function migrateRecipeImage(recipe: Recipe & { imageUrl?: string | null }): Recipe {
+  return {
+    ...recipe,
+    imageUrls: recipe.imageUrl ? [recipe.imageUrl] : (recipe.imageUrls ?? []),
+  }
+}
+
+export function getFirstImageUrl(recipe: Recipe): string | null {
+  return recipe.imageUrls.length > 0 ? recipe.imageUrls[0] : null
 }

@@ -86,11 +86,11 @@ img { display: block; max-width: 100%; }
   caret-color: var(--color-accent);
   background: var(--color-surface);
   border: 1px solid var(--color-divider);
-  border-radius: 999px;
+  border-radius: 0;
 }
 .input:hover { border-color: color-mix(in srgb, var(--color-text) 45%, transparent); }
 .input:focus-visible { border-color: var(--color-accent); outline-offset: 0; }
-textarea.input { min-height: 90px; resize: vertical; border-radius: var(--radius-md); }
+textarea.input { min-height: 90px; resize: vertical; border-radius: 0; }
 
 /* — cards — */
 .card {

@@ -1,21 +1,31 @@
-// RecipeDetail — shows a single recipe with favorite toggle, edit, and delete.
+// RecipeDetail — shows a single recipe with slideshow, share, and copy functionality.
 
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeft, Pencil, Star, Trash2 } from 'lucide-react'
+import { ArrowLeft, Pencil, Star, Trash2, Share2, Copy, BookOpen } from 'lucide-react'
 import { Button } from '../components/Button'
 import { Tag } from '../components/Tag'
-import { WashedImage } from '../components/WashedImage'
+import { ImageSlideshow } from '../components/ImageSlideshow'
 import { getRecipe, deleteRecipe, toggleFavorite } from '../features/recipe/repository'
 import { getDeviceId } from '../lib/device'
 import { totalRecipeTime } from '../types/recipe'
+import { useCookbooks } from '../hooks/useCookbooks'
 import type { Recipe } from '../types/recipe'
+
+function formatTime(minutes: number | null): string | null {
+  if (minutes == null) return null
+  if (minutes < 60) return `${minutes} min`
+  const h = Math.floor(minutes / 60)
+  const m = minutes % 60
+  return m ? `${h} hr ${m} min` : `${h} hr`
+}
 
 export function RecipeDetail() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const [recipe, setRecipe] = useState<Recipe | null>(null)
   const [loading, setLoading] = useState(true)
+  const { cookbooks } = useCookbooks()
 
   useEffect(() => {
     let active = true
@@ -26,13 +36,25 @@ export function RecipeDetail() {
         setLoading(false)
       }
     })
-    return () => {
-      active = false
-    }
+    return () => { active = false }
   }, [id])
 
   if (loading) return <main className="page"><p className="text-muted">Loading…</p></main>
   if (!recipe) return <main className="page"><p className="text-muted">Recipe not found.</p></main>
+
+  // Find cookbook containing this recipe
+  function getCookbookForRecipe() {
+    if (!recipe) return null
+    for (const cb of cookbooks) {
+      if (cb.recipeIds.includes(recipe.id)) {
+        return cb
+      }
+    }
+    return null
+  }
+
+  const cookbook = getCookbookForRecipe()
+  const time = recipe ? formatTime(totalRecipeTime(recipe)) : null
 
   async function onFavorite() {
     if (!recipe) return
@@ -48,36 +70,155 @@ export function RecipeDetail() {
     navigate('/')
   }
 
-  const time = totalRecipeTime(recipe)
+  // Format recipe as text for sharing
+  function formatRecipeAsText(r: Recipe) {
+    const time = formatTime(totalRecipeTime(r))
+    const lines: string[] = [
+      `=== ${r.title} ===`,
+      '',
+      `Category: ${r.category}`,
+      ...(r.description ? [`Description: ${r.description}`] : []),
+      '',
+      `Cookbook: ${cookbook?.name || 'None'}`,
+      `Time: ${time || 'N/A'}`,
+      ...(r.servingSize ? [`Servings: ${r.servingSize}`] : []),
+      ...(r.source ? [`Source: ${r.source}`] : []),
+      '',
+      '--- Ingredients ---',
+      ...r.ingredients.map((ing) => `- ${[ing.amount, ing.unit].filter(Boolean).join(' ')} ${ing.name}${ing.notes ? ` (${ing.notes})` : ''}`),
+      '',
+      '--- Instructions ---',
+      ...r.instructions.map((step, i) => `${i + 1}. ${step}`),
+      '',
+      ...(r.notes ? [`Notes: ${r.notes}`] : []),
+      '',
+      ...(r.tags.length > 0 ? [`Tags: ${r.tags.join(', ')}`] : []),
+    ]
+    return lines.join('\n')
+  }
+
+  // Share functionality
+  async function handleShare() {
+    if (!recipe) return
+    const text = formatRecipeAsText(recipe)
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: recipe.title,
+          text,
+        })
+      } else {
+        await navigator.clipboard.writeText(text)
+        alert('Recipe copied to clipboard!')
+      }
+    } catch {
+      // Fallback to clipboard if share fails
+      await navigator.clipboard.writeText(text)
+      alert('Recipe copied to clipboard!')
+    }
+  }
+
+  // Copy recipe to another cookbook
+  function handleCopy() {
+    if (!recipe) return
+    navigate(`/recipes/new?copyFrom=${recipe.id}`)
+  }
+
+  // Navigate to category search
+  function handleCategoryClick(e: React.MouseEvent) {
+    e.preventDefault()
+    if (!recipe) return
+    navigate(`/search?category=${encodeURIComponent(recipe.category)}`)
+  }
+
+  // Navigate to cookbook
+  function handleCookbookClick(e: React.MouseEvent) {
+    e.preventDefault()
+    if (cookbook) {
+      navigate(`/cookbooks/${cookbook.id}`)
+    }
+  }
 
   return (
     <main className="page">
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-        <Link to="/" className="btn btn-ghost btn-icon" aria-label="Back">
+        <Link to=".." relative="path" className="btn btn-ghost btn-icon" aria-label="Back">
           <ArrowLeft strokeWidth={2.75} />
         </Link>
+        <div style={{ flex: 1 }} />
+        {/* Action buttons on top-right */}
+        <Button variant="ghost" onClick={handleCopy} aria-label="Copy recipe">
+          <Copy size={18} strokeWidth={2.75} />
+        </Button>
+        <Button variant="ghost" onClick={handleShare} aria-label="Share recipe">
+          <Share2 size={18} strokeWidth={2.75} />
+        </Button>
+        <Button variant="secondary" onClick={onFavorite} aria-label={recipe.isFavorite ? 'Remove from favorites' : 'Add to favorites'}>
+          <Star size={18} fill={recipe.isFavorite ? 'currentColor' : 'none'} strokeWidth={2.75} />
+        </Button>
+        <Link to="edit" className="btn btn-secondary" aria-label="Edit recipe">
+          <Pencil size={18} strokeWidth={2.75} />
+        </Link>
+        <Button variant="ghost" onClick={onDelete} aria-label="Delete recipe">
+          <Trash2 size={18} strokeWidth={2.75} />
+        </Button>
       </div>
 
       <div className="recipe-hero">
-        {recipe.imageUrl && (
-          <figure style={{ margin: '0 0 16px' }}>
-            <WashedImage src={recipe.imageUrl} alt={recipe.title} />
-          </figure>
+        {/* Image slideshow */}
+        {recipe.imageUrls.length > 0 && (
+          <div style={{ marginBottom: 16 }}>
+            <ImageSlideshow imageUrls={recipe.imageUrls} alt={recipe.title} />
+          </div>
         )}
+
         <h1>{recipe.title}</h1>
         {recipe.description && <p className="text-muted">{recipe.description}</p>}
+
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 8 }}>
-          <Tag variant="accent">{recipe.category}</Tag>
+          <button
+            type="button"
+            onClick={handleCategoryClick}
+            style={{
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              padding: 0,
+            }}
+            aria-label={`Filter by ${recipe.category}`}
+          >
+            <Tag variant="accent">{recipe.category}</Tag>
+          </button>
           {recipe.tags.map((t) => (
-            <Tag key={t} variant="neutral">
-              {t}
-            </Tag>
+            <Tag key={t} variant="neutral">{t}</Tag>
           ))}
         </div>
+
         <div className="card-meta" style={{ marginTop: 8 }}>
-          {time != null && <span>{time} min total</span>}
-          {recipe.servingSize != null && <span>· {recipe.servingSize} servings</span>}
-          {recipe.source && <span>· {recipe.source}</span>}
+          {time != null && <span>{time} total</span>}
+          {time && recipe.servingSize && <span> · </span>}
+          {recipe.servingSize != null && <span>{recipe.servingSize} servings</span>}
+          {((time || recipe.servingSize) && cookbook) && <span> · </span>}
+          {cookbook && (
+            <button
+              type="button"
+              onClick={handleCookbookClick}
+              style={{
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                padding: 0,
+                color: 'var(--color-accent)',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 4,
+              }}
+            >
+              <BookOpen size={14} strokeWidth={2.75} />
+              {cookbook.name}
+            </button>
+          )}
+          {recipe.source && <span> · {recipe.source}</span>}
         </div>
       </div>
 
@@ -88,7 +229,10 @@ export function RecipeDetail() {
         ) : (
           <ul className="ingredient-list">
             {recipe.ingredients.map((ing) => (
-              <li key={ing.id}>{[ing.amount, ing.unit, ing.name].filter(Boolean).join(' ')}</li>
+              <li key={ing.id}>
+                {[ing.amount, ing.unit].filter(Boolean).join(' ')} {ing.name}
+                {ing.notes && ` (${ing.notes})`}
+              </li>
             ))}
           </ul>
         )}
@@ -114,18 +258,12 @@ export function RecipeDetail() {
         </section>
       )}
 
-      <div className="form-actions">
-        <Button variant="secondary" onClick={onFavorite}>
-          <Star size={16} fill={recipe.isFavorite ? 'currentColor' : 'none'} strokeWidth={2.75} />
-          {recipe.isFavorite ? 'Favorited' : 'Favorite'}
-        </Button>
-        <Link to={`/recipes/${recipe.id}/edit`} className="btn btn-secondary">
-          <Pencil size={16} strokeWidth={2.75} /> Edit
-        </Link>
-        <Button variant="ghost" onClick={onDelete}>
-          <Trash2 size={16} strokeWidth={2.75} /> Delete
-        </Button>
-      </div>
+      {recipe.source && (
+        <section className="recipe-section">
+          <h3>Source</h3>
+          <p>{recipe.source}</p>
+        </section>
+      )}
     </main>
   )
 }

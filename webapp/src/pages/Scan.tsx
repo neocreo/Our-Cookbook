@@ -1,6 +1,5 @@
 // Scan — capture/upload an image, run OCR, parse the text into a recipe,
-// let the user edit the result, and save. On mobile the camera opens
-// directly; on web a file picker lets the user upload a photo.
+// let the user edit the result, and save.
 
 import { useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -89,6 +88,7 @@ export function Scan() {
           return { id: crypto.randomUUID(), name: line, amount: null, unit: null, notes: null, order: i }
         }),
       instructions: instructions.split('\n').map((l) => l.trim()).filter(Boolean),
+      imageUrls: imagePreview ? [imagePreview] : undefined,
     }
     try {
       const saved = await saveRecipe(input, getDeviceId())
@@ -175,7 +175,7 @@ export function Scan() {
           <Button variant="secondary" onClick={() => { setPhase('idle'); setImagePreview(null); setError(null) }}>
             Discard
           </Button>
-          <Button variant="primary" onClick={onSave} disabled={phase === 'saving'}>
+          <Button variant="primary" onClick={onSave} disabled={phase === 'saving' || !title.trim()}>
             {phase === 'saving' ? 'Saving…' : 'Save recipe'}
           </Button>
         </div>
@@ -186,22 +186,28 @@ export function Scan() {
   return (
     <main className="page">
       <h1 className="page-title">Scan recipe</h1>
-      <p className="text-muted">
-        Take a photo of a recipe or upload an image. The app will recognize the
-        text and parse it into a recipe you can edit and save.
+      <p className="text-muted" style={{ textAlign: 'center', marginBottom: 16 }}>
+        Supported formats: JPG, PNG, PDF
       </p>
 
-      <div className="onboarding-actions" style={{ marginTop: 16 }}>
-        <Button variant="primary" block onClick={onCapture}>
+      <div style={{ display: 'flex', gap: 16, justifyContent: 'center', marginBottom: 16 }}>
+        <Button
+          variant="primary"
+          onClick={onCapture}
+          style={{ flex: 1, maxWidth: '45%' }}
+        >
           <Camera size={18} strokeWidth={2.75} />
-          Take photo
         </Button>
-        <input ref={fileInput} type="file" accept="image/*" onChange={onFilePick} style={{ display: 'none' }} />
-        <Button variant="secondary" block onClick={() => fileInput.current?.click()}>
-          <Upload size={18} strokeWidth={2.75} />
-          Upload image
+        <Button
+          variant="secondary"
+          onClick={() => fileInput.current?.click()}
+          style={{ flex: 1, maxWidth: '45%' }}
+        >
+          <Upload size={18} strokeWidth={2.75} /> Upload
         </Button>
       </div>
+
+      <input ref={fileInput} type="file" accept="image/*,application/pdf" onChange={onFilePick} style={{ display: 'none' }} />
 
       {error && <p className="text-muted" style={{ color: 'var(--color-accent-700)', marginTop: 16 }}>{error}</p>}
     </main>

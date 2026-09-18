@@ -1,13 +1,18 @@
-// Home — the recipe list. Live-subscribes to the repository and renders a
-// card per recipe. A FAB opens the new-recipe form. A favorites toggle
-// filters to starred recipes.
+// Home — the recipe list with tabs for Favorites, Categories, and Latest.
+// Live-subscribes to the repository and renders recipe entries with thumbnails.
 
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Plus, Star } from 'lucide-react'
-import { Card } from '../components/Card'
+import { Plus } from 'lucide-react'
+import { WashedImage } from '../components/WashedImage'
 import { useRecipes } from '../hooks/useRecipes'
-import { totalRecipeTime } from '../types/recipe'
+import { useCookbooks } from '../hooks/useCookbooks'
+import { totalRecipeTime, getFirstImageUrl } from '../types/recipe'
+import { allCategories } from '../features/recipe/repository'
+import type { Recipe } from '../types/recipe'
+import type { Cookbook } from '../types/cookbook'
+
+type TabType = 'latest' | 'favorites' | 'categories'
 
 function formatTime(minutes: number | null): string | null {
   if (minutes == null) return null
@@ -17,65 +22,214 @@ function formatTime(minutes: number | null): string | null {
   return m ? `${h} hr ${m} min` : `${h} hr`
 }
 
-export function Home() {
-  const { recipes, loading, error } = useRecipes()
-  const [favoritesOnly, setFavoritesOnly] = useState(false)
+function getCookbookForRecipe(recipe: Recipe, cookbooks: Cookbook[]): Cookbook | null {
+  // Find which cookbook contains this recipe
+  for (const cb of cookbooks) {
+    if (cb.recipeIds.includes(recipe.id)) {
+      return cb
+    }
+  }
+  return null
+}
 
-  const shown = favoritesOnly ? recipes.filter((r) => r.isFavorite) : recipes
+function RecipeEntry({ recipe, cookbook }: { recipe: Recipe; cookbook: Cookbook | null }) {
+  const time = formatTime(totalRecipeTime(recipe))
+  const imageUrl = getFirstImageUrl(recipe)
 
   return (
-    <main className="page">
-      <h1 className="page-title">Home</h1>
+    <Link to={`/recipes/${recipe.id}`} style={{ textDecoration: 'none', color: 'inherit', display: 'block' }}>
+      <div style={{ display: 'flex', gap: 12, padding: '12px 0', alignItems: 'flex-start' }}>
+        {/* Thumbnail */}
+        <div style={{ flexShrink: 0 }}>
+          {imageUrl ? (
+            <WashedImage
+              src={imageUrl}
+              alt={recipe.title}
+              style={{ width: 64, height: 64, borderRadius: 'var(--radius-md)' }}
+            />
+          ) : (
+            <div
+              style={{
+                width: 64,
+                height: 64,
+                background: 'var(--color-surface-3)',
+                borderRadius: 'var(--radius-md)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <span style={{ fontSize: 24, opacity: 0.5 }}>📖</span>
+            </div>
+          )}
+        </div>
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
+        {/* Text content */}
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'baseline', marginBottom: 4 }}>
+            <span style={{ fontSize: 13, color: 'var(--color-text-muted)' }}>
+              {cookbook?.name || 'Unknown'}
+            </span>
+            <span style={{ color: 'var(--color-text-muted)' }}>|</span>
+            <span style={{ fontSize: 13, color: 'var(--color-text-muted)' }}>
+              {recipe.category}
+            </span>
+          </div>
+          <h3 style={{ margin: '0 0 4px', fontSize: 16, fontWeight: 600, color: 'var(--color-text)' }}>
+            {recipe.title}
+          </h3>
+          <div style={{ display: 'flex', gap: 12, fontSize: 13, color: 'var(--color-text-muted)' }}>
+            <span>{recipe.ingredients.length} ingredients</span>
+            {time && <span>{time}</span>}
+            {recipe.servingSize && <span>{recipe.servingSize} servings</span>}
+          </div>
+        </div>
+      </div>
+    </Link>
+  )
+}
+
+export function Home() {
+  const { recipes, loading, error } = useRecipes()
+  const { cookbooks } = useCookbooks()
+  const [activeTab, setActiveTab] = useState<TabType>('latest')
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
+
+  const categories = allCategories(recipes)
+
+  // Sort recipes by updatedAt (latest first)
+  const sortedRecipes = [...recipes].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
+
+  // Filter recipes based on active tab
+  const filteredRecipes = (() => {
+    switch (activeTab) {
+      case 'favorites':
+        return sortedRecipes.filter((r) => r.isFavorite)
+      case 'categories':
+        return selectedCategory
+          ? sortedRecipes.filter((r) => r.category === selectedCategory)
+          : []
+      case 'latest':
+      default:
+        return sortedRecipes
+    }
+  })()
+
+  // Limit to 5 entries
+  const displayedRecipes = filteredRecipes.slice(0, 5)
+
+  const handleCategoryButtonClick = (category: string) => {
+    setSelectedCategory(category)
+    setActiveTab('categories')
+  }
+
+  return (
+    <main className="page" style={{ paddingTop: 0 }}>
+      {/* Tab Navigation */}
+      <div
+        style={{
+          display: 'flex',
+          gap: 4,
+          marginBottom: 16,
+          borderBottom: '1px solid var(--color-surface-4)',
+          paddingBottom: 8,
+        }}
+      >
         <button
           type="button"
-          className={`btn ${favoritesOnly ? 'btn-primary' : 'btn-secondary'}`}
-          onClick={() => setFavoritesOnly((v) => !v)}
-          aria-pressed={favoritesOnly}
+          className={activeTab === 'latest' ? 'btn btn-primary' : 'btn btn-secondary'}
+          onClick={() => {
+            setActiveTab('latest')
+            setSelectedCategory(null)
+          }}
+          style={{ flex: 1 }}
         >
-          <Star size={16} fill={favoritesOnly ? 'currentColor' : 'none'} strokeWidth={2.75} />
+          Latest
+        </button>
+        <button
+          type="button"
+          className={activeTab === 'favorites' ? 'btn btn-primary' : 'btn btn-secondary'}
+          onClick={() => {
+            setActiveTab('favorites')
+            setSelectedCategory(null)
+          }}
+          style={{ flex: 1 }}
+        >
           Favorites
         </button>
+        <button
+          type="button"
+          className={activeTab === 'categories' ? 'btn btn-primary' : 'btn btn-secondary'}
+          onClick={() => setActiveTab('categories')}
+          style={{ flex: 1 }}
+        >
+          Categories
+        </button>
       </div>
+
+      {/* Categories as clickable buttons (shown when active tab is categories or latest) */}
+      {(activeTab === 'categories' || activeTab === 'latest') && categories.length > 0 && (
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 16 }}>
+          {categories.map((c) => (
+            <button
+              key={c}
+              type="button"
+              onClick={() => handleCategoryButtonClick(c)}
+              style={{
+                padding: '6px 12px',
+                background: selectedCategory === c ? 'var(--color-accent)' : 'var(--color-surface-3)',
+                color: selectedCategory === c ? 'var(--color-accent-contrast)' : 'var(--color-text)',
+                border: 'none',
+                borderRadius: 'var(--radius-md)',
+                cursor: 'pointer',
+                fontSize: 13,
+              }}
+            >
+              {c}
+            </button>
+          ))}
+        </div>
+      )}
 
       {loading && <p className="text-muted">Loading recipes…</p>}
       {error && <p className="text-muted">Could not load recipes: {error}</p>}
 
-      {!loading && shown.length === 0 && (
+      {!loading && filteredRecipes.length === 0 && activeTab !== 'categories' && (
         <p className="text-muted">
-          {favoritesOnly
+          {activeTab === 'favorites'
             ? 'No favorite recipes yet. Tap the star on a recipe to add it here.'
             : 'No recipes yet. Tap the + button to add your first one.'}
         </p>
       )}
 
-      <div className="stack">
-        {shown.map((r) => {
-          const time = formatTime(totalRecipeTime(r))
-          const meta = [time, r.servingSize ? `${r.servingSize} servings` : null]
-            .filter(Boolean)
-            .join(' · ')
-          return (
-            <Link key={r.id} to={`/recipes/${r.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
-              <Card
-                as="article"
-                elevation="sm"
-                kicker={r.category}
-                title={r.title}
-                meta={
-                  <>
-                    {meta && <span>{meta}</span>}
-                    {r.isFavorite && <Star size={13} fill="currentColor" strokeWidth={2.75} />}
-                  </>
-                }
-              >
-                {r.description ?? (r.ingredients.length ? `${r.ingredients.length} ingredients` : null)}
-              </Card>
-            </Link>
-          )
-        })}
+      {!loading && activeTab === 'categories' && selectedCategory && filteredRecipes.length === 0 && (
+        <p className="text-muted">No recipes in category "{selectedCategory}".</p>
+      )}
+
+      {/* Recipe entries with separators */}
+      <div>
+        {displayedRecipes.map((r, index) => (
+          <div key={r.id}>
+            {index > 0 && (
+              <hr
+                style={{
+                  margin: '0 0 0 76px',
+                  border: 0,
+                  borderTop: '1px solid var(--color-primary)',
+                  opacity: 0.3,
+                }}
+              />
+            )}
+            <RecipeEntry recipe={r} cookbook={getCookbookForRecipe(r, cookbooks)} />
+          </div>
+        ))}
       </div>
+
+      {displayedRecipes.length > 0 && filteredRecipes.length > 5 && (
+        <p style={{ textAlign: 'center', color: 'var(--color-text-muted)', marginTop: 16 }}>
+          Showing 5 of {filteredRecipes.length} recipes
+        </p>
+      )}
 
       <Link to="/recipes/new" className="fab" aria-label="Add recipe">
         <Plus strokeWidth={2.75} />

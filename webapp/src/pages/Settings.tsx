@@ -1,5 +1,4 @@
-// Settings — theme, sync mode, and export/import. Drive sync settings live
-// on the dedicated Sync page (/sync).
+// Settings — theme, sync mode, export/import, and about.
 
 import { useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
@@ -75,7 +74,7 @@ export function Settings() {
         <h3>Sync</h3>
         <p className="text-muted">
           {syncMode === 'drive'
-            ? 'Google Drive sync is enabled.'
+            ? 'Google Drive sync is enabled. Data is synced to: /Google Drive/OurOpenCookbook/'
             : 'Offline mode — recipes are stored on this device only.'}
         </p>
         <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
@@ -135,8 +134,17 @@ export function Settings() {
 
       <section className="recipe-section">
         <h3>About</h3>
-        <p className="text-muted">Our Open Cookbook · Phase 1</p>
+        <p className="text-muted">Our Open Cookbook · Version 0.1.0</p>
         <p className="text-muted">Storage: {getRepositoryMode() === 'rxdb' ? 'RxDB (IndexedDB)' : 'Session (memory fallback)'}</p>
+        <p className="text-muted" style={{ marginTop: 8 }}>
+          <a href="https://github.com/ourcookbook" style={{ color: 'var(--color-accent)' }}>Homepage</a>
+        </p>
+        <p className="text-muted" style={{ marginTop: 4 }}>
+          <a href="https://github.com/ourcookbook/support" style={{ color: 'var(--color-accent)' }}>Support page</a>
+        </p>
+        <p className="text-muted" style={{ marginTop: 8, fontSize: 12 }}>
+          All rights reserved. This app is provided as-is without warranty.
+        </p>
       </section>
     </main>
   )

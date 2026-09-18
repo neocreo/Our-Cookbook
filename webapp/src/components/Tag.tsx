@@ -1,8 +1,10 @@
 // Tag — port of the Organic `.tag` classes.
 
+import type { ReactNode } from 'react'
+
 interface TagProps {
   variant?: 'accent' | 'accent-2' | 'neutral' | 'outline'
-  children: string
+  children: ReactNode
 }
 
 export function Tag({ variant = 'neutral', children }: TagProps) {

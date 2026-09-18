@@ -49,7 +49,7 @@ const recipeSchema = {
     cookTime: { type: ['number', 'null'] },
     rating: { type: ['number', 'null'] },
     isFavorite: { type: 'boolean' },
-    imageUrl: { type: ['string', 'null'] },
+    imageUrls: { type: 'array', items: { type: 'string' } },
     notes: { type: ['string', 'null'] },
     source: { type: ['string', 'null'] },
     tags: { type: 'array', items: { type: 'string' } },

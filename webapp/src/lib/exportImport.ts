@@ -48,10 +48,11 @@ export function parseRecipesJSON(json: string): Recipe[] {
   return data.map(normalizeRecipe)
 }
 
-function normalizeRecipe(r: Recipe): Recipe {
+function normalizeRecipe(r: Recipe & { imageUrl?: string | null }): Recipe {
   // Ensure required fields exist; keep id/versionVector if present for
   // Drive compatibility, otherwise generate fresh.
-  return {
+  // Migrate imageUrl to imageUrls if present
+  const base = {
     ...createRecipe({ title: r.title || 'Untitled', category: r.category || 'Uncategorized' }),
     ...r,
     ingredients: (r.ingredients ?? []).map((ing) => ({
@@ -59,6 +60,13 @@ function normalizeRecipe(r: Recipe): Recipe {
       ...ing,
     })),
   }
+  
+  // Handle backwards compatibility for imageUrl
+  if ('imageUrl' in r && r.imageUrl && !r.imageUrls) {
+    return { ...base, imageUrls: [r.imageUrl] }
+  }
+  
+  return base
 }
 
 // --- file helpers ---

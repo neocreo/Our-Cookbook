@@ -59,14 +59,14 @@ export async function createCookbookNamed(
   return cookbook
 }
 
-export async function renameCookbook(id: string, name: string): Promise<void> {
+export async function renameCookbook(id: string, name: string, description: string | null = null): Promise<void> {
   if (getMode() === 'rxdb' && getDb()) {
     const doc = await getDb()!.cookbooks.findOne(id).exec()
-    if (doc) await doc.incrementalModify((d) => ({ ...d, name, updatedAt: new Date().toISOString() }))
+    if (doc) await doc.incrementalModify((d) => ({ ...d, name, description, updatedAt: new Date().toISOString() }))
   } else {
     const cb = getMemCookbooks().get(id)
     if (cb) {
-      getMemCookbooks().set(id, { ...cb, name, updatedAt: new Date().toISOString() })
+      getMemCookbooks().set(id, { ...cb, name, description, updatedAt: new Date().toISOString() })
       notifyCookbooks()
     }
   }

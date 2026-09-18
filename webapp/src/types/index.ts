@@ -13,6 +13,8 @@ export {
   createRecipe,
   withRecipeUpdate,
   totalRecipeTime,
+  migrateRecipeImage,
+  getFirstImageUrl,
   type RecipeInput,
 } from './recipe'
 export { createCookbook, withAddedRecipe, withRemovedRecipe } from './cookbook'
