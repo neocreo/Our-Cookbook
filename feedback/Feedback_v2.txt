@@ -1,0 +1,5 @@
+Home view
+- hide categories until Categories are chosen in top-nav.
+- add margin in top for 15px so the button row
+
+Cookbooks view
