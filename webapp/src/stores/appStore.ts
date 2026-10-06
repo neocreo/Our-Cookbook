@@ -11,9 +11,17 @@ interface AppState {
   onboardingDone: boolean
   syncMode: SyncMode | null
   theme: ThemePref
+  userName: string | null
+  /** True once the user has completed a Drive sign-in — gates silent re-auth. */
+  driveConsentGranted: boolean
+  /** OCR recognition language on the scan page. */
+  scanLanguage: 'eng' | 'swe'
   completeOnboarding: (mode: SyncMode) => void
   setSyncMode: (mode: SyncMode) => void
   setTheme: (theme: ThemePref) => void
+  setUserName: (name: string) => void
+  setDriveConsentGranted: (granted: boolean) => void
+  setScanLanguage: (language: 'eng' | 'swe') => void
 }
 
 export const useAppStore = create<AppState>()(
@@ -22,9 +30,15 @@ export const useAppStore = create<AppState>()(
       onboardingDone: false,
       syncMode: null,
       theme: 'system',
+      userName: null,
+      driveConsentGranted: false,
+      scanLanguage: 'swe',
       completeOnboarding: (mode) => set({ onboardingDone: true, syncMode: mode }),
       setSyncMode: (mode) => set({ syncMode: mode }),
       setTheme: (theme) => set({ theme }),
+      setUserName: (name) => set({ userName: name }),
+      setDriveConsentGranted: (granted) => set({ driveConsentGranted: granted }),
+      setScanLanguage: (language) => set({ scanLanguage: language }),
     }),
     { name: 'oc.app' },
   ),

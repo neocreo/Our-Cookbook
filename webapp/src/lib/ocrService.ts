@@ -1,11 +1,15 @@
 // OCR service — abstracts image capture and text recognition across
 // platforms. On mobile, @capacitor/camera takes the photo; on web, a file
 // input lets the user pick an image. OCR runs via tesseract.js in both cases
-// (works in browser and Capacitor WebView). When Capacitor 8 is available,
+// (works in browser and Capacitor WebView), with a selectable recognition
+// language (English/Swedish). PDFs are supported by rendering each page to
+// an image with pdf.js before recognition. When Capacitor 8 is available,
 // ML Kit can replace tesseract on mobile for better accuracy.
 
 import { Capacitor } from '@capacitor/core'
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera'
+
+export type OcrLanguage = 'eng' | 'swe'
 
 type ProgressFn = (progress: number) => void
 
@@ -50,13 +54,40 @@ export function pickImageFile(): Promise<string | null> {
   })
 }
 
-/** Run OCR on an image data URL using tesseract.js. */
+/** Render each PDF page to an image data URL, ready for OCR. */
+export async function pdfPagesToImageUrls(data: Uint8Array, maxPages = 10): Promise<string[]> {
+  const pdfjs = await import('pdfjs-dist')
+  const { default: workerUrl } = await import('pdfjs-dist/build/pdf.worker.min.mjs?url')
+  pdfjs.GlobalWorkerOptions.workerSrc = workerUrl
+
+  const task = pdfjs.getDocument({ data })
+  const doc = await task.promise
+  const pages: string[] = []
+  const count = Math.min(doc.numPages, maxPages)
+  for (let pageNumber = 1; pageNumber <= count; pageNumber++) {
+    const page = await doc.getPage(pageNumber)
+    const viewport = page.getViewport({ scale: 2 })
+    const canvas = document.createElement('canvas')
+    canvas.width = Math.ceil(viewport.width)
+    canvas.height = Math.ceil(viewport.height)
+    const context = canvas.getContext('2d')
+    if (!context) throw new Error('Could not create a canvas for the PDF page')
+    await page.render({ canvas, canvasContext: context, viewport }).promise
+    pages.push(canvas.toDataURL('image/png'))
+    page.cleanup()
+  }
+  await task.destroy()
+  return pages
+}
+
+/** Run OCR on an image data URL using tesseract.js, in the given language. */
 export async function runOcr(
   imageDataUrl: string,
+  language: OcrLanguage = 'eng',
   onProgress?: ProgressFn,
 ): Promise<OcrResult> {
   const { createWorker } = await import('tesseract.js')
-  const worker = await createWorker('eng', 1, {
+  const worker = await createWorker(language, 1, {
     logger: (m: { status: string; progress: number }) => {
       if (m.status === 'recognizing text' && onProgress) onProgress(m.progress)
     },

@@ -21,6 +21,8 @@ export function Settings() {
   const setTheme = useAppStore((s) => s.setTheme)
   const syncMode = useAppStore((s) => s.syncMode)
   const setSyncMode = useAppStore((s) => s.setSyncMode)
+  const userName = useAppStore((s) => s.userName)
+  const setUserName = useAppStore((s) => s.setUserName)
   const { recipes } = useRecipes()
   const fileInput = useRef<HTMLInputElement>(null)
   const [importMsg, setImportMsg] = useState<string | null>(null)
@@ -56,6 +58,21 @@ export function Settings() {
       <h1 className="page-title">Settings</h1>
 
       <section className="recipe-section">
+        <h3>You</h3>
+        <p className="text-muted">Your name is shown as the owner of cookbooks you create.</p>
+        <div className="field" style={{ maxWidth: 320 }}>
+          <label htmlFor="settings-name">Your name</label>
+          <input
+            id="settings-name"
+            className="input"
+            value={userName ?? ''}
+            onChange={(e) => setUserName(e.target.value)}
+            placeholder="Your name"
+          />
+        </div>
+      </section>
+
+      <section className="recipe-section">
         <h3>Theme</h3>
         <div style={{ display: 'flex', gap: 8 }}>
           {themes.map((t) => (
@@ -74,7 +91,7 @@ export function Settings() {
         <h3>Sync</h3>
         <p className="text-muted">
           {syncMode === 'drive'
-            ? 'Google Drive sync is enabled. Data is synced to: /Google Drive/OurOpenCookbook/'
+            ? 'Google Drive sync is on. Sign in on the Sync status page — recipes and cookbooks then sync to the visible folder /Google Drive/OurOpenCookbook/, one subfolder per cookbook.'
             : 'Offline mode — recipes are stored on this device only.'}
         </p>
         <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
@@ -91,7 +108,7 @@ export function Settings() {
             Google Drive
           </Button>
           <Link to="/sync" className="btn btn-secondary">
-            Sync settings
+            Sync status
           </Link>
         </div>
         {syncMode === 'drive' && (
@@ -105,7 +122,11 @@ export function Settings() {
 
       <section className="recipe-section">
         <h3>Export</h3>
-        <p className="text-muted">Export all {recipes.length} recipes.</p>
+        <p className="text-muted">
+          Exports all {recipes.length} of your recipes as a single file — recipes only. Cookbooks,
+          their groupings, and app settings are not included. Import the file on another device to
+          bring your recipes there.
+        </p>
         <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
           <Button variant="secondary" onClick={exportMarkdown} disabled={recipes.length === 0}>
             Markdown (.md)
@@ -118,7 +139,10 @@ export function Settings() {
 
       <section className="recipe-section">
         <h3>Import</h3>
-        <p className="text-muted">Import recipes from a JSON file exported by this app.</p>
+        <p className="text-muted">
+          Imports recipes from a JSON file exported from Our Open Cookbook. The recipes are added
+          alongside your existing ones — nothing is deleted or overwritten.
+        </p>
         <input
           ref={fileInput}
           type="file"

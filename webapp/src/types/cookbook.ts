@@ -6,6 +6,7 @@ export interface Cookbook {
   name: string
   description: string | null
   ownerDeviceId: string
+  ownerName: string | null
   isShared: boolean
   sharingLink: string | null
   imageUri: string | null
@@ -19,6 +20,7 @@ export function createCookbook(
   ownerDeviceId: string,
   description: string | null = null,
   recipeIds: string[] = [],
+  ownerName: string | null = null,
 ): Cookbook {
   const now = new Date().toISOString()
   return {
@@ -26,6 +28,7 @@ export function createCookbook(
     name,
     description,
     ownerDeviceId,
+    ownerName,
     isShared: false,
     sharingLink: null,
     imageUri: null,
@@ -49,4 +52,16 @@ export function withRemovedRecipe(cb: Cookbook, recipeId: string): Cookbook {
     recipeIds: cb.recipeIds.filter((id) => id !== recipeId),
     updatedAt: new Date().toISOString(),
   }
+}
+
+// Owner label shown in the UI. Falls back to the current user's name for
+// cookbooks created on this device, so the device id is never shown.
+export function ownerDisplayName(
+  cb: Cookbook,
+  currentDeviceId: string,
+  currentUserName: string | null,
+): string {
+  if (cb.ownerName) return cb.ownerName
+  if (cb.ownerDeviceId === currentDeviceId) return currentUserName?.trim() || 'You'
+  return 'Unknown'
 }

@@ -4,7 +4,7 @@
 // All pages except Home are lazy-loaded to reduce the initial bundle.
 
 import { lazy, Suspense, useEffect } from 'react'
-import { Navigate, Route, Routes } from 'react-router-dom'
+import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { BottomNav } from './components/BottomNav'
 import { Onboarding } from './pages/Onboarding'
 import { Home } from './pages/Home'
@@ -41,9 +41,13 @@ function useTheme() {
 
 export function App() {
   const onboardingDone = useAppStore((s) => s.onboardingDone)
+  const location = useLocation()
   useTheme()
 
   if (!onboardingDone) return <Onboarding />
+
+  // The edit form has its own fixed save/cancel bar; no bottom nav there.
+  const hideBottomNav = /^\/recipes\/(new|[^/]+\/edit)$/.test(location.pathname)
 
   return (
     <div className="app-shell">
@@ -62,7 +66,7 @@ export function App() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Suspense>
-      <BottomNav />
+      {!hideBottomNav && <BottomNav />}
     </div>
   )
 }

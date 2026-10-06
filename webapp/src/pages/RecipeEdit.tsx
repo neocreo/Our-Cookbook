@@ -8,14 +8,18 @@ import { ArrowLeft, Plus, X, GripVertical } from 'lucide-react'
 import { Button } from '../components/Button'
 import { WashedImage } from '../components/WashedImage'
 import { getRecipe, saveRecipe } from '../features/recipe/repository'
+import { createCookbookNamed, addRecipeToCookbook, removeRecipeFromCookbook } from '../features/cookbook/repository'
 import { getDeviceId } from '../lib/device'
 import { createIngredient } from '../types/ingredient'
 import { resizeImageToDataURI } from '../lib/imageUtils'
 import { useCookbooks } from '../hooks/useCookbooks'
+import { useAppStore } from '../stores/appStore'
 import type { Ingredient } from '../types/ingredient'
 import type { Recipe, RecipeInput } from '../types/recipe'
 
 const UNITS = ['', 'tsp', 'tbsp', 'cup', 'cups', 'oz', 'lb', 'g', 'kg', 'ml', 'l', 'cloves', 'cans', 'slices', 'pieces', 'bunches', 'sticks']
+
+const CREATE_NEW_COOKBOOK = '__create__'
 
 export function RecipeEdit() {
   const { id } = useParams<{ id: string }>()
@@ -35,17 +39,37 @@ export function RecipeEdit() {
   const [tagInput, setTagInput] = useState('')
   const [notes, setNotes] = useState('')
   const [imageUrls, setImageUrls] = useState<string[]>([])
-  // Get initial cookbook from URL if present (for new recipes)
-  const initialCookbookId = !isEdit && cookbooks.length > 0 
-    ? searchParams.get('cookbookId') || ''
-    : ''
+  // Get initial cookbook from URL if present (for new recipes). Read straight
+  // from the URL so it is correct even before the cookbooks list has loaded.
+  const initialCookbookId = !isEdit ? searchParams.get('cookbookId') || '' : ''
   
-  const [selectedCookbookId, setSelectedCookbookId] = useState<string>(initialCookbookId)
+  const [selectedCookbookId, setSelectedCookbookId] = useState<string | null>(initialCookbookId || null)
+  const [creatingCookbook, setCreatingCookbook] = useState(false)
+  const [newCookbookName, setNewCookbookName] = useState('')
+  const [newCookbookDesc, setNewCookbookDesc] = useState('')
   const [ingredients, setIngredients] = useState<Ingredient[]>(!isEdit ? [createIngredient('', null, null, null, 0)] : [])
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null)
   const [instructions, setInstructions] = useState('')
   const [loading, setLoading] = useState(isEdit)
   const [saving, setSaving] = useState(false)
+
+  const copyFromId = !isEdit ? searchParams.get('copyFrom') : null
+
+  // Fill the form from a loaded recipe (edit mode or copy).
+  function applyRecipeToForm(r: Recipe) {
+    setTitle(r.title)
+    setCategory(r.category)
+    setDescription(r.description ?? '')
+    setSource(r.source ?? '')
+    setServings(r.servingSize != null ? String(r.servingSize) : '')
+    setPrepTime(r.prepTime != null ? String(r.prepTime) : '')
+    setCookTime(r.cookTime != null ? String(r.cookTime) : '')
+    setTags(r.tags)
+    setNotes(r.notes ?? '')
+    setImageUrls(r.imageUrls ?? [])
+    setIngredients(r.ingredients.length > 0 ? r.ingredients : [createIngredient('', null, null, null, 0)])
+    setInstructions(r.instructions.join('\n'))
+  }
 
   // Load recipe for edit
   useEffect(() => {
@@ -53,22 +77,33 @@ export function RecipeEdit() {
     let active = true
     getRecipe(id).then((r: Recipe | null) => {
       if (!active || !r) return
-      setTitle(r.title)
-      setCategory(r.category)
-      setDescription(r.description ?? '')
-      setSource(r.source ?? '')
-      setServings(r.servingSize != null ? String(r.servingSize) : '')
-      setPrepTime(r.prepTime != null ? String(r.prepTime) : '')
-      setCookTime(r.cookTime != null ? String(r.cookTime) : '')
-      setTags(r.tags)
-      setNotes(r.notes ?? '')
-      setImageUrls(r.imageUrls ?? [])
-      setIngredients(r.ingredients.length > 0 ? r.ingredients : [createIngredient('', null, null, null, 0)])
-      setInstructions(r.instructions.join('\n'))
+      applyRecipeToForm(r)
       setLoading(false)
     })
     return () => { active = false }
   }, [id])
+
+  // Copy mode: prefill the form from the source recipe (saved as a new one)
+  useEffect(() => {
+    if (!copyFromId) return
+    let active = true
+    getRecipe(copyFromId).then((r: Recipe | null) => {
+      if (!active || !r) return
+      applyRecipeToForm(r)
+    })
+    return () => { active = false }
+  }, [copyFromId])
+
+  // Copy mode: default to the cookbook that holds the source recipe, until the
+  // user picks another. Edit mode shows the recipe's current cookbook.
+  // Derived here rather than set in an effect.
+  const copyHolderId = copyFromId
+    ? cookbooks.find((cb) => cb.recipeIds.includes(copyFromId))?.id
+    : undefined
+  const editHolderId = isEdit && id
+    ? cookbooks.find((cb) => cb.recipeIds.includes(id))?.id
+    : undefined
+  const effectiveCookbookId = selectedCookbookId ?? copyHolderId ?? editHolderId ?? ''
 
   function handleDragStart(index: number) {
     setDraggedIndex(index)
@@ -175,15 +210,27 @@ export function RecipeEdit() {
     }
 
     try {
+      // Merge the form values into the existing recipe so edits actually persist.
       let existing: Recipe | null = null
       if (id) existing = await getRecipe(id)
-      const saved = await saveRecipe(existing ?? input, getDeviceId())
-      
-      if (selectedCookbookId && !isEdit) {
-        const { addRecipeToCookbook } = await import('../features/cookbook/repository')
-        await addRecipeToCookbook(selectedCookbookId, saved.id)
+      const saved = await saveRecipe(existing ? { ...existing, ...input } : input, getDeviceId())
+
+      const deviceId = getDeviceId()
+      if (!isEdit) {
+        if (effectiveCookbookId) {
+          await addRecipeToCookbook(effectiveCookbookId, saved.id, deviceId)
+        }
+      } else {
+        // Editing: apply the cookbook dropdown — move the recipe if it changed.
+        const holder = cookbooks.find((cb) => cb.recipeIds.includes(saved.id))
+        if (holder && holder.id !== effectiveCookbookId) {
+          await removeRecipeFromCookbook(holder.id, saved.id, deviceId)
+        }
+        if (effectiveCookbookId && holder?.id !== effectiveCookbookId) {
+          await addRecipeToCookbook(effectiveCookbookId, saved.id, deviceId)
+        }
       }
-      
+
       setSaving(false)
       navigate(`/recipes/${saved.id}`, { replace: true })
     } catch (err) {
@@ -192,10 +239,31 @@ export function RecipeEdit() {
     }
   }
 
+  function onSelectCookbook(value: string) {
+    if (value === CREATE_NEW_COOKBOOK) {
+      setCreatingCookbook(true)
+      // keep the current selection; the new cookbook is selected once created
+      return
+    }
+    setSelectedCookbookId(value)
+  }
+
+  const userName = useAppStore((s) => s.userName)
+
+  async function onCreateCookbook() {
+    const name = newCookbookName.trim()
+    if (!name) return
+    const cookbook = await createCookbookNamed(name, getDeviceId(), newCookbookDesc.trim() || null, userName)
+    setSelectedCookbookId(cookbook.id)
+    setCreatingCookbook(false)
+    setNewCookbookName('')
+    setNewCookbookDesc('')
+  }
+
   if (loading) return <main className="page"><p className="text-muted">Loading…</p></main>
 
   return (
-    <main className="page">
+    <main className="page edit-page">
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
         <button type="button" className="btn btn-ghost btn-icon" onClick={() => navigate(-1)} aria-label="Back">
           <ArrowLeft strokeWidth={2.75} />
@@ -213,13 +281,40 @@ export function RecipeEdit() {
       </div>
 
       <div className="form-row" style={{ marginBottom: 12 }}>
-        <select className="input" value={selectedCookbookId} onChange={(e) => setSelectedCookbookId(e.target.value)} style={{ fontSize: 14 }}>
+        <select
+          className="input"
+          value={effectiveCookbookId}
+          onChange={(e) => onSelectCookbook(e.target.value)}
+          style={{ fontSize: 14 }}
+          aria-label="Cookbook"
+        >
           <option value="">Select a cookbook...</option>
           {cookbooks.map((cb) => <option key={cb.id} value={cb.id}>{cb.name}</option>)}
+          <option value={CREATE_NEW_COOKBOOK}>+ Create new cookbook…</option>
         </select>
-        <Button variant="secondary" onClick={() => navigate('/cookbooks/new')} style={{ marginTop: 8 }}>
-          <Plus size={16} strokeWidth={2.75} /> Create New
-        </Button>
+        {creatingCookbook && (
+          <div className="card" style={{ gap: 8, padding: 12 }}>
+            <input
+              className="input"
+              value={newCookbookName}
+              onChange={(e) => setNewCookbookName(e.target.value)}
+              placeholder="Cookbook name"
+              autoFocus
+            />
+            <input
+              className="input"
+              value={newCookbookDesc}
+              onChange={(e) => setNewCookbookDesc(e.target.value)}
+              placeholder="Description (optional)"
+            />
+            <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+              <Button variant="secondary" onClick={() => setCreatingCookbook(false)}>Cancel</Button>
+              <Button variant="primary" onClick={onCreateCookbook} disabled={!newCookbookName.trim()}>
+                Create
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="form-row" style={{ marginBottom: 12 }}>
@@ -306,7 +401,7 @@ export function RecipeEdit() {
         <textarea className="input" value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Notes" rows={3} />
       </div>
 
-      <div className="form-actions">
+      <div className="edit-actions-bar">
         <Button variant="secondary" onClick={() => navigate(-1)} disabled={saving}>Cancel</Button>
         <Button variant="primary" onClick={onSave} disabled={saving}>{saving ? 'Saving…' : (isEdit ? 'Save changes' : 'Add recipe')}</Button>
       </div>

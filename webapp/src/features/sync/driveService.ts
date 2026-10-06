@@ -9,18 +9,25 @@
 // VITE_GOOGLE_CLIENT_ID env var) before sign-in works.
 
 import type { Recipe } from '../../types/recipe'
+import type { Cookbook } from '../../types/cookbook'
 import { getGoogleClientId, GOOGLE_SCOPES } from '../../lib/googleConfig'
-import { runSync, type SyncResult } from './syncEngine'
+import { runSync, type SyncResult, type SyncCallbacks } from './syncEngine'
 
 // Token stored in memory (session-scoped). GIS tokens are short-lived (~1h);
-// the user re-authenticates when they expire.
+// returning users are silently re-authenticated (prompt: '') on the sync page.
+
 let accessToken: string | null = null
 
 export interface DriveSyncService {
   signIn(): Promise<void>
   signOut(): Promise<void>
   isAuthenticated(): Promise<boolean>
-  sync(localRecipes: Recipe[], deviceId: string, saveRemoteRecipe: (r: Recipe) => Promise<void>): Promise<SyncResult>
+  sync(
+    localRecipes: Recipe[],
+    localCookbooks: Cookbook[],
+    deviceId: string,
+    callbacks: SyncCallbacks,
+  ): Promise<SyncResult>
 }
 
 export class RealDriveSyncService implements DriveSyncService {
@@ -33,10 +40,10 @@ export class RealDriveSyncService implements DriveSyncService {
   }
 
   async signOut(): Promise<void> {
+    const token = accessToken
     accessToken = null
     // GIS doesn't have a logout endpoint for token model; just clear the token
-    revokeToken(accessToken ?? '')
-    accessToken = null
+    revokeToken(token ?? '')
   }
 
   async isAuthenticated(): Promise<boolean> {
@@ -45,11 +52,12 @@ export class RealDriveSyncService implements DriveSyncService {
 
   async sync(
     localRecipes: Recipe[],
+    localCookbooks: Cookbook[],
     deviceId: string,
-    saveRemoteRecipe: (r: Recipe) => Promise<void>,
+    callbacks: SyncCallbacks,
   ): Promise<SyncResult> {
     if (!accessToken) throw new Error('Not authenticated. Sign in to Drive first.')
-    return runSync(accessToken, localRecipes, deviceId, saveRemoteRecipe)
+    return runSync(accessToken, localRecipes, localCookbooks, deviceId, callbacks)
   }
 }
 

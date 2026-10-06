@@ -86,11 +86,11 @@ app's visual identity — port it, don't reinvent it.
 - `src/theme/global.css` holds the ported component classes (`.btn`, `.card`,
   `.tag`, `.nav`, `.input`, `.dialog`, `.washed`, …). React components apply
   these class names; do not write parallel styling.
-- Fonts: Caprasimo (display) + Figtree (body), via Google Fonts.
+- Fonts: Trocchi (display) + Figtree (body), via Google Fonts.
 - Direction: **left-aligned, asymmetric**, flush-left headings, whitespace on
   the right. **Over-round**: `--radius-lg` for containers, `999px` for
   buttons/inputs. Soft shapes, no sharp corners. `.washed` on every food photo.
-- Warmth is the point: never desaturate the palette to grey; Caprasimo is the
+- Warmth is the point: never desaturate the palette to grey; Trocchi is the
   only display face.
 - Interaction states come from the accent ramp; keyboard focus is the 2px
   accent `:focus-visible` ring — never the browser default.

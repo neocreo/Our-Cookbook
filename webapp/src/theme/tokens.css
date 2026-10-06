@@ -4,8 +4,11 @@
 :root {
   --color-bg: #f5ead8;
   --color-surface: #ebddc5;
+  --color-surface-2: color-mix(in srgb, #201e1d 4%, var(--color-surface));
+  --color-surface-3: color-mix(in srgb, #201e1d 8%, var(--color-surface));
   --color-text: #201e1d;
   --color-accent: #c67139;
+  --color-accent-contrast: var(--color-bg);
   --color-accent-2: #7a8a5e;
   --color-divider: color-mix(in srgb, #201e1d 16%, transparent);
 
@@ -40,7 +43,7 @@
   --color-accent-2-800: #3d472b;
   --color-accent-2-900: #272e1b;
 
-  --font-heading: "Caprasimo", system-ui, sans-serif;
+  --font-heading: "Trocchi", system-ui, serif;
   --font-heading-weight: 400;
   --font-body: "Figtree", system-ui, sans-serif;
 
@@ -69,6 +72,20 @@
   --color-accent: #f6a06b;
   --color-accent-2: #aebf92;
   --color-divider: color-mix(in srgb, #f9f4ed 18%, transparent);
+
+  /* Tonal ramps flip so chips, tags and placeholders keep the same shape as
+     light mode: soft tinted backgrounds with light text on them. */
+  --color-accent-100: color-mix(in srgb, var(--color-accent) 26%, var(--color-surface));
+  --color-accent-200: color-mix(in srgb, var(--color-accent) 38%, var(--color-surface));
+  --color-accent-800: #ffe1d0;
+  --color-accent-2-100: color-mix(in srgb, var(--color-accent-2) 26%, var(--color-surface));
+  --color-accent-2-200: color-mix(in srgb, var(--color-accent-2) 38%, var(--color-surface));
+  --color-accent-2-800: #e1eecc;
+  --color-neutral-100: #474238;
+  --color-neutral-200: #645c50;
+  --color-neutral-300: #82796a;
+  --color-neutral-800: #f9f4ed;
+  --color-neutral-900: #f9f4ed;
 
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
   --shadow-md: 0 3px 10px rgba(0, 0, 0, 0.45);

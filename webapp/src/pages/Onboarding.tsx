@@ -5,6 +5,7 @@
 // A device id is generated silently in the background for sync metadata; the
 // user never sees or interacts with it.
 
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { BookOpen, Cloud, HardDrive } from 'lucide-react'
 import { Button } from '../components/Button'
@@ -14,11 +15,15 @@ import { getDeviceId } from '../lib/device'
 export function Onboarding() {
   const navigate = useNavigate()
   const completeOnboarding = useAppStore((s) => s.completeOnboarding)
+  const setUserName = useAppStore((s) => s.setUserName)
+  const [name, setName] = useState('')
 
   function choose(mode: SyncMode) {
     getDeviceId() // silent — generated and persisted, never shown
+    setUserName(name.trim() || 'You')
     completeOnboarding(mode)
-    navigate('/', { replace: true })
+    // Drive choice continues on the sync page, where sign-in happens.
+    navigate(mode === 'drive' ? '/sync' : '/', { replace: true })
   }
 
   return (
@@ -32,6 +37,17 @@ export function Onboarding() {
           Gather your recipes in one warm, offline-first place. Choose how you want to start —
           you can change this later.
         </p>
+      </div>
+      <div className="field">
+        <label htmlFor="onboarding-name">What is your name?</label>
+        <input
+          id="onboarding-name"
+          className="input"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="Shown as the owner of your cookbooks"
+          autoFocus
+        />
       </div>
       <div className="onboarding-actions">
         <Button variant="primary" block onClick={() => choose('drive')}>

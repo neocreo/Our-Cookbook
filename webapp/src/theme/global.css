@@ -296,6 +296,62 @@ textarea.input { min-height: 90px; resize: vertical; border-radius: 0; }
 .line-row .input { flex: 1; }
 .form-actions { display: flex; justify-content: flex-end; gap: var(--space-2); margin-top: var(--space-4); }
 
+/* Edit recipe: save/cancel always visible at the bottom of the viewport. */
+.edit-page { padding-bottom: calc(var(--space-8) + 96px); }
+.edit-actions-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 20;
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4) calc(var(--space-2) + env(safe-area-inset-bottom, 0));
+  background: var(--color-surface);
+  border-top: 1px solid var(--color-divider);
+}
+
+/* — cookbook detail: A-Ö index rail beside the content — */
+.cookbook-layout {
+  display: grid;
+  grid-template-columns: 26px 1fr;
+  gap: 0 var(--space-4);
+}
+.az-rail {
+  position: sticky;
+  top: 0;
+  align-self: start;
+  height: calc(100dvh - 96px);
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 2px 0;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+.az-rail::-webkit-scrollbar { display: none; }
+.az-rail button {
+  flex: none;
+  width: 26px;
+  height: 19px;
+  padding: 0;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: color-mix(in srgb, var(--color-text) 60%, transparent);
+  font: 600 11px/1 var(--font-body);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.az-rail button:hover { background: var(--color-surface-3); color: var(--color-text); }
+.az-rail button[aria-pressed='true'] {
+  background: var(--color-accent);
+  color: var(--color-bg);
+}
+
 @media (min-width: 600px) {
   .fab { width: auto; padding: 0 var(--space-4); }
   .fab .fab-label { display: inline; }

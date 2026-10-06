@@ -71,7 +71,7 @@ const recipeSchema = {
 } as const
 
 const cookbookSchema = {
-  version: 0,
+  version: 1,
   primaryKey: 'id',
   type: 'object',
   properties: {
@@ -79,6 +79,7 @@ const cookbookSchema = {
     name: { type: 'string' },
     description: { type: ['string', 'null'] },
     ownerDeviceId: { type: 'string' },
+    ownerName: { type: ['string', 'null'] },
     isShared: { type: 'boolean' },
     sharingLink: { type: ['string', 'null'] },
     imageUri: { type: ['string', 'null'] },
@@ -105,7 +106,13 @@ export function initDatabase(deviceId: string): Promise<AppDatabase> {
 
     const collections = await db.addCollections({
       recipes: { schema: recipeSchema },
-      cookbooks: { schema: cookbookSchema },
+      cookbooks: {
+        schema: cookbookSchema,
+        migrationStrategies: {
+          // v1 added ownerName (nullable) so cookbooks can show a person, not a device.
+          1: (doc) => ({ ...doc, ownerName: doc.ownerName ?? null }),
+        },
+      },
     })
 
     const appDb: AppDatabase = {

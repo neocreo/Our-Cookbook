@@ -131,6 +131,12 @@ export function RecipeDetail() {
     navigate(`/search?category=${encodeURIComponent(recipe.category)}`)
   }
 
+  // Navigate to tag search
+  function handleTagClick(e: React.MouseEvent, tag: string) {
+    e.preventDefault()
+    navigate(`/search?tag=${encodeURIComponent(tag)}`)
+  }
+
   // Navigate to cookbook
   function handleCookbookClick(e: React.MouseEvent) {
     e.preventDefault()
@@ -190,7 +196,15 @@ export function RecipeDetail() {
             <Tag variant="accent">{recipe.category}</Tag>
           </button>
           {recipe.tags.map((t) => (
-            <Tag key={t} variant="neutral">{t}</Tag>
+            <button
+              key={t}
+              type="button"
+              onClick={(e) => handleTagClick(e, t)}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+              aria-label={`Filter by ${t}`}
+            >
+              <Tag variant="neutral">{t}</Tag>
+            </button>
           ))}
         </div>
 
@@ -255,13 +269,6 @@ export function RecipeDetail() {
         <section className="recipe-section">
           <h3>Notes</h3>
           <p>{recipe.notes}</p>
-        </section>
-      )}
-
-      {recipe.source && (
-        <section className="recipe-section">
-          <h3>Source</h3>
-          <p>{recipe.source}</p>
         </section>
       )}
     </main>

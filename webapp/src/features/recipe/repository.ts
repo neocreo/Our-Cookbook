@@ -95,13 +95,29 @@ export async function deleteRecipe(id: string, deviceId?: string): Promise<void>
   if (getMode() === 'rxdb' && getDb()) {
     const doc = await getDb()!.recipes.findOne(id).exec()
     if (doc) await doc.remove()
-    await removeFromCookbooks(id)
+    await removeFromCookbooks(id, deviceId)
   } else {
     getMemRecipes().delete(id)
-    removeFromCookbooks(id)
+    removeFromCookbooks(id, deviceId)
     notifyRecipes()
   }
   if (deviceId) enqueueSync('DELETE', 'RECIPE', id, '', deviceId)
+}
+
+/** Store a recipe pulled from Drive as-is — keeps its id, timestamps, and
+ *  version vector, and never re-enqueues (no push ping-pong). */
+export async function saveRecipeFromRemote(recipe: Recipe): Promise<void> {
+  if (getMode() === 'rxdb' && getDb()) {
+    const doc = await getDb()!.recipes.findOne(recipe.id).exec()
+    if (doc) {
+      await doc.incrementalModify(() => recipe)
+    } else {
+      await getDb()!.recipes.insert(recipe)
+    }
+  } else {
+    getMemRecipes().set(recipe.id, recipe)
+    notifyRecipes()
+  }
 }
 
 export async function toggleFavorite(id: string, deviceId: string): Promise<void> {
@@ -160,7 +176,7 @@ async function cookbooksCount(): Promise<number> {
   return getMemCookbooks().size
 }
 
-async function removeFromCookbooks(recipeId: string): Promise<void> {
+async function removeFromCookbooks(recipeId: string, deviceId?: string): Promise<void> {
   if (getMode() === 'rxdb' && getDb()) {
     const docs = await getDb()!.cookbooks.find().exec()
     const affected = docs.filter((d) => (d.toMutableJSON().recipeIds ?? []).includes(recipeId))
@@ -169,9 +185,19 @@ async function removeFromCookbooks(recipeId: string): Promise<void> {
         doc.incrementalModify((d) => withRemovedRecipe(d as Cookbook, recipeId)),
       ),
     )
+    if (deviceId) {
+      for (const doc of affected) {
+        const cb = doc.toMutableJSON()
+        enqueueSync('UPDATE', 'COOKBOOK', cb.id, JSON.stringify(cb), deviceId)
+      }
+    }
   } else {
     for (const [id, cb] of getMemCookbooks()) {
-      getMemCookbooks().set(id, withRemovedRecipe(cb, recipeId))
+      if (cb.recipeIds.includes(recipeId)) {
+        const updated = withRemovedRecipe(cb, recipeId)
+        getMemCookbooks().set(id, updated)
+        if (deviceId) enqueueSync('UPDATE', 'COOKBOOK', id, JSON.stringify(updated), deviceId)
+      }
     }
   }
 }

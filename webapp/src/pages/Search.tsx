@@ -162,95 +162,87 @@ export function Search() {
         />
       </div>
 
-      {/* Categories filter - compact by default */}
-      {allCategoriesList.length > 0 && (
-        <div style={{ marginBottom: categoriesExpanded ? 12 : 0 }}>
+      {/* Filter pickers — side by side, fold out on tap */}
+      <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
+        {allCategoriesList.length > 0 && (
           <button
             type="button"
+            className={`btn ${activeCategory ? 'btn-primary' : 'btn-secondary'}`}
+            style={{ flex: 1 }}
             onClick={() => setCategoriesExpanded(!categoriesExpanded)}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 6,
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-              padding: 0,
-              width: '100%',
-              textAlign: 'left',
-            }}
+            aria-expanded={categoriesExpanded}
+            aria-pressed={Boolean(activeCategory)}
           >
-            <span style={{ fontWeight: 500 }}>Categories</span>
+            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {activeCategory || 'Categories'}
+            </span>
             {categoriesExpanded ? <ChevronUp size={16} strokeWidth={2.75} /> : <ChevronDown size={16} strokeWidth={2.75} />}
           </button>
-          {categoriesExpanded && (
-            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 8 }}>
-              {allCategoriesList.map((c) => (
-                <button
-                  key={c}
-                  type="button"
-                  onClick={() => updateCategory(activeCategory === c ? null : c)}
-                  style={{
-                    padding: '6px 12px',
-                    background: activeCategory === c ? 'var(--color-accent)' : 'var(--color-surface-3)',
-                    color: activeCategory === c ? 'var(--color-accent-contrast)' : 'var(--color-text)',
-                    border: 'none',
-                    borderRadius: 'var(--radius-md)',
-                    cursor: 'pointer',
-                    fontSize: 13,
-                  }}
-                >
-                  {c}
-                </button>
-              ))}
-            </div>
-          )}
+        )}
+        {cookbooks.length > 0 && (
+          <button
+            type="button"
+            className={`btn ${activeCookbook ? 'btn-primary' : 'btn-secondary'}`}
+            style={{ flex: 1 }}
+            onClick={() => setCookbooksExpanded(!cookbooksExpanded)}
+            aria-expanded={cookbooksExpanded}
+            aria-pressed={Boolean(activeCookbook)}
+          >
+            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {cookbooks.find((c) => c.id === activeCookbook)?.name || 'Cookbooks'}
+            </span>
+            {cookbooksExpanded ? <ChevronUp size={16} strokeWidth={2.75} /> : <ChevronDown size={16} strokeWidth={2.75} />}
+          </button>
+        )}
+      </div>
+
+      {/* Categories filter options */}
+      {allCategoriesList.length > 0 && categoriesExpanded && (
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 12 }}>
+          {allCategoriesList.map((c) => (
+            <button
+              key={c}
+              type="button"
+              onClick={() => updateCategory(activeCategory === c ? null : c)}
+              aria-pressed={activeCategory === c}
+              style={{
+                padding: '6px 12px',
+                background: activeCategory === c ? 'var(--color-accent)' : 'var(--color-surface-3)',
+                color: activeCategory === c ? 'var(--color-accent-contrast)' : 'var(--color-text)',
+                border: 'none',
+                borderRadius: '999px',
+                cursor: 'pointer',
+                fontSize: 13,
+              }}
+            >
+              {c}
+            </button>
+          ))}
         </div>
       )}
 
-      {/* Cookbooks filter - compact by default */}
-      {cookbooks.length > 0 && (
-        <div style={{ marginBottom: cookbooksExpanded ? 12 : 0 }}>
-          <button
-            type="button"
-            onClick={() => setCookbooksExpanded(!cookbooksExpanded)}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 6,
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-              padding: 0,
-              width: '100%',
-              textAlign: 'left',
-            }}
-          >
-            <span style={{ fontWeight: 500 }}>Cookbooks</span>
-            {cookbooksExpanded ? <ChevronUp size={16} strokeWidth={2.75} /> : <ChevronDown size={16} strokeWidth={2.75} />}
-          </button>
-          {cookbooksExpanded && (
-            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 8 }}>
-              {cookbooks.map((cb) => (
-                <button
-                  key={cb.id}
-                  type="button"
-                  onClick={() => updateCookbook(activeCookbook === cb.id ? null : cb.id)}
-                  style={{
-                    padding: '6px 12px',
-                    background: activeCookbook === cb.id ? 'var(--color-accent)' : 'var(--color-surface-3)',
-                    color: activeCookbook === cb.id ? 'var(--color-accent-contrast)' : 'var(--color-text)',
-                    border: 'none',
-                    borderRadius: 'var(--radius-md)',
-                    cursor: 'pointer',
-                    fontSize: 13,
-                  }}
-                >
-                  {cb.name}
-                </button>
-              ))}
-            </div>
-          )}
+      {/* Cookbooks filter options */}
+      {cookbooks.length > 0 && cookbooksExpanded && (
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 12 }}>
+          {cookbooks.map((cb) => (
+            <button
+              key={cb.id}
+              type="button"
+              onClick={() => updateCookbook(activeCookbook === cb.id ? null : cb.id)}
+              aria-pressed={activeCookbook === cb.id}
+              style={{
+                padding: '6px 12px',
+                background: activeCookbook === cb.id ? 'var(--color-accent)' : 'var(--color-surface-3)',
+                color: activeCookbook === cb.id ? 'var(--color-accent-contrast)' : 'var(--color-text)',
+                border: 'none',
+                borderRadius: '999px',
+                cursor: 'pointer',
+                fontSize: 13,
+              }}
+            >
+              {cb.name}
+            </button>
+          ))}
         </div>
       )}
 

@@ -1,62 +1,97 @@
 // SyncStatus — the sync page. The user sees: sign in with Google, sync now,
 // and connection status. No developer-facing config — the client ID is baked
 // into the build.
+//
+// Returning users who have signed in before are silently re-authenticated
+// (GIS prompt: '') and pending changes sync automatically.
 
-import { useState, useEffect } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Button } from '../components/Button'
 import { useRecipes } from '../hooks/useRecipes'
+import { useCookbooks } from '../hooks/useCookbooks'
 import { getDeviceId } from '../lib/device'
 import { getGoogleClientId } from '../lib/googleConfig'
 import { getDriveSyncService, ensureGisLoaded } from '../features/sync/driveService'
 import { getPendingCount, getSyncMetadata } from '../features/sync/repository'
-import { saveRecipe } from '../features/recipe/repository'
+import { saveRecipeFromRemote, deleteRecipe } from '../features/recipe/repository'
+import { saveCookbookFromRemote, fileUnfiledRecipes } from '../features/cookbook/repository'
+import { useAppStore } from '../stores/appStore'
 import type { SyncResult } from '../features/sync/syncEngine'
 
 export function SyncStatus() {
   const { recipes } = useRecipes()
+  const { cookbooks } = useCookbooks()
+  const driveConsentGranted = useAppStore((s) => s.driveConsentGranted)
+  const setDriveConsentGranted = useAppStore((s) => s.setDriveConsentGranted)
   const [authenticated, setAuthenticated] = useState(false)
   const [syncing, setSyncing] = useState(false)
   const [syncResult, setSyncResult] = useState<SyncResult | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const pendingCount = getPendingCount()
+  const [pendingCount, setPendingCount] = useState(getPendingCount())
   const metadata = getSyncMetadata()
   const hasClientId = getGoogleClientId() != null
 
-  useEffect(() => {
-    getDriveSyncService().isAuthenticated().then(setAuthenticated)
-  }, [])
-
-  async function onSignIn() {
-    setError(null)
-    try {
-      await ensureGisLoaded()
-      await getDriveSyncService().signIn()
-      setAuthenticated(true)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Inloggning misslyckades')
-    }
-  }
-
-  async function onSignOut() {
-    await getDriveSyncService().signOut()
-    setAuthenticated(false)
-  }
-
-  async function onSync() {
+  const runSyncNow = useCallback(async () => {
     setSyncing(true)
     setError(null)
     try {
       const result = await getDriveSyncService().sync(
         recipes,
+        cookbooks,
         getDeviceId(),
-        async (r) => { await saveRecipe(r, getDeviceId()) },
+        {
+          saveRemoteRecipe: saveRecipeFromRemote,
+          saveRemoteCookbook: saveCookbookFromRemote,
+          deleteRemoteRecipe: (id) => deleteRecipe(id),
+          fileUnfiledRecipes: async (ids) => { await fileUnfiledRecipes(getDeviceId(), ids) },
+        },
       )
       setSyncResult(result)
+      setPendingCount(getPendingCount())
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Synk misslyckades')
     } finally {
       setSyncing(false)
     }
+  }, [recipes, cookbooks])
+
+  const onSignIn = useCallback(async () => {
+    setError(null)
+    try {
+      await ensureGisLoaded()
+      await getDriveSyncService().signIn()
+      setAuthenticated(true)
+      setDriveConsentGranted(true)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Inloggning misslyckades')
+    }
+  }, [setDriveConsentGranted])
+
+  // Returning users: silently re-authenticate, then drain any pending queue.
+  useEffect(() => {
+    if (!hasClientId || !driveConsentGranted) return
+    let active = true
+    ;(async () => {
+      try {
+        const service = getDriveSyncService()
+        if (!(await service.isAuthenticated())) {
+          await ensureGisLoaded()
+          await service.signIn()
+        }
+        if (!active) return
+        setAuthenticated(true)
+        if (getPendingCount() > 0) await runSyncNow()
+      } catch {
+        // Silent sign-in is best-effort — the user signs in manually instead.
+      }
+    })()
+    return () => { active = false }
+  }, [hasClientId, driveConsentGranted, runSyncNow])
+
+  async function onSignOut() {
+    await getDriveSyncService().signOut()
+    setAuthenticated(false)
+    setDriveConsentGranted(false)
   }
 
   return (
@@ -75,7 +110,7 @@ export function SyncStatus() {
           <>
             <p className="text-muted">
               {authenticated
-                ? 'Ansluten till Google Drive. Dina recept synkas till en privat mapp.'
+                ? 'Ansluten till Google Drive. Recept och kokböcker synkas till mappen /Google Drive/OurOpenCookbook/ — en katalog per kokbok.'
                 : 'Logga in med ditt Google-konto för att synka recepten till din Drive.'}
             </p>
             <div className="form-actions">
@@ -89,7 +124,7 @@ export function SyncStatus() {
                 </Button>
               )}
               {authenticated && (
-                <Button variant="primary" onClick={onSync} disabled={syncing}>
+                <Button variant="primary" onClick={runSyncNow} disabled={syncing}>
                   {syncing ? 'Synkar…' : 'Synka nu'}
                 </Button>
               )}

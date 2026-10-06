@@ -124,7 +124,7 @@ export function Home() {
   }
 
   return (
-    <main className="page" style={{ paddingTop: 0 }}>
+    <main className="page" style={{ paddingTop: 15 }}>
       {/* Tab Navigation */}
       <div
         style={{
@@ -167,8 +167,8 @@ export function Home() {
         </button>
       </div>
 
-      {/* Categories as clickable buttons (shown when active tab is categories or latest) */}
-      {(activeTab === 'categories' || activeTab === 'latest') && categories.length > 0 && (
+      {/* Categories as clickable buttons — only once the Categories tab is chosen */}
+      {activeTab === 'categories' && categories.length > 0 && (
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 16 }}>
           {categories.map((c) => (
             <button

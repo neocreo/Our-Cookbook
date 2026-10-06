@@ -10,9 +10,11 @@ import { useCookbooks } from '../hooks/useCookbooks'
 import { useRecipes } from '../hooks/useRecipes'
 import { createCookbookNamed } from '../features/cookbook/repository'
 import { getDeviceId } from '../lib/device'
+import { useAppStore } from '../stores/appStore'
+import { ownerDisplayName } from '../types/cookbook'
 import type { Cookbook } from '../types/cookbook'
 
-function CookbookEntry({ cookbook, allRecipes }: { cookbook: Cookbook; allRecipes: Array<{ id: string; imageUrls: string[] }> }) {
+function CookbookEntry({ cookbook, allRecipes, owner }: { cookbook: Cookbook; allRecipes: Array<{ id: string; imageUrls: string[] }>; owner: string }) {
   const [expanded, setExpanded] = useState(false)
 
   // Get recipe images for this cookbook
@@ -20,9 +22,6 @@ function CookbookEntry({ cookbook, allRecipes }: { cookbook: Cookbook; allRecipe
     .filter((r) => cookbook.recipeIds.includes(r.id))
     .flatMap((r) => r.imageUrls)
     .slice(0, 4)
-
-  // Find the owner name - for now just use the deviceId
-  const ownerName = `Device: ${cookbook.ownerDeviceId.substring(0, 8)}...`
 
   return (
     <Link to={`/cookbooks/${cookbook.id}`} style={{ textDecoration: 'none', color: 'inherit', display: 'block' }}>
@@ -45,7 +44,7 @@ function CookbookEntry({ cookbook, allRecipes }: { cookbook: Cookbook; allRecipe
             {cookbook.name}
           </h3>
           <div style={{ fontSize: 13, color: 'var(--color-text-muted)', marginBottom: 4 }}>
-            <span>Owner: {ownerName}</span>
+            <span>Owner: {owner}</span>
           </div>
           {cookbook.description && (
             <div>
@@ -55,42 +54,34 @@ function CookbookEntry({ cookbook, allRecipes }: { cookbook: Cookbook; allRecipe
                   color: 'var(--color-text-muted)',
                   margin: 0,
                   display: expanded ? 'block' : '-webkit-box',
-                  WebkitLineClamp: expanded ? 'unset' : 2,
+                  WebkitLineClamp: expanded ? 'unset' : 1,
                   WebkitBoxOrient: 'vertical',
                   overflow: 'hidden',
-                  cursor: 'pointer',
                 }}
+              >
+                {cookbook.description}
+              </p>
+              <button
+                type="button"
                 onClick={(e) => {
                   e.preventDefault()
                   e.stopPropagation()
                   setExpanded(!expanded)
                 }}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: 'var(--color-accent)',
+                  cursor: 'pointer',
+                  fontSize: 13,
+                  padding: '4px 0',
+                }}
               >
-                {cookbook.description}
-              </p>
-              {!expanded && cookbook.description.length > 100 && (
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.preventDefault()
-                    e.stopPropagation()
-                    setExpanded(true)
-                  }}
-                  style={{
-                    background: 'none',
-                    border: 'none',
-                    color: 'var(--color-accent)',
-                    cursor: 'pointer',
-                    fontSize: 13,
-                    padding: '4px 0',
-                  }}
-                >
-                  ...more
-                </button>
-              )}
+                {expanded ? 'less' : '...more'}
+              </button>
             </div>
           )}
-          <div style={{ fontSize: 13, color: 'var(--color-text-muted)', marginTop: 8 }}>
+          <div style={{ fontSize: 13, color: 'var(--color-text-muted)', marginTop: 8, fontWeight: 600 }}>
             {cookbook.recipeIds.length} recipe{cookbook.recipeIds.length === 1 ? '' : 's'}
           </div>
         </div>
@@ -102,6 +93,7 @@ function CookbookEntry({ cookbook, allRecipes }: { cookbook: Cookbook; allRecipe
 export function Cookbooks() {
   const { cookbooks, loading } = useCookbooks()
   const { recipes } = useRecipes()
+  const userName = useAppStore((s) => s.userName)
   const [creating, setCreating] = useState(false)
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
@@ -114,7 +106,7 @@ export function Cookbooks() {
 
   async function onCreate() {
     if (!name.trim()) return
-    await createCookbookNamed(name.trim(), getDeviceId(), description.trim() || null)
+    await createCookbookNamed(name.trim(), getDeviceId(), description.trim() || null, userName)
     setName('')
     setDescription('')
     setCreating(false)
@@ -132,7 +124,12 @@ export function Cookbooks() {
 
       <div style={{ marginTop: 16 }}>
         {cookbooks.map((cb) => (
-          <CookbookEntry key={cb.id} cookbook={cb} allRecipes={allRecipes} />
+          <CookbookEntry
+            key={cb.id}
+            cookbook={cb}
+            allRecipes={allRecipes}
+            owner={ownerDisplayName(cb, getDeviceId(), userName)}
+          />
         ))}
       </div>
 
