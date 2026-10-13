@@ -5,9 +5,10 @@
 // The schema field names mirror the Kotlin domain models so Drive-synced
 // files remain backwards-compatible with the old app.
 
-import { createRxDatabase, type RxDatabase, type RxCollection } from 'rxdb'
+import { createRxDatabase, addRxPlugin, type RxDatabase, type RxCollection } from 'rxdb'
 import { getRxStorageDexie } from 'rxdb/plugins/storage-dexie'
 import { wrappedValidateAjvStorage } from 'rxdb/plugins/validate-ajv'
+import { RxDBMigrationSchemaPlugin } from 'rxdb/plugins/migration-schema'
 import type { Recipe } from '../types/recipe'
 import type { Cookbook } from '../types/cookbook'
 import { buildSeed } from './seed'
@@ -92,6 +93,9 @@ const cookbookSchema = {
 
 let dbPromise: Promise<AppDatabase> | null = null
 
+// Required by the cookbook schema's migrationStrategies (v1 added ownerName).
+addRxPlugin(RxDBMigrationSchemaPlugin)
+
 export function initDatabase(deviceId: string): Promise<AppDatabase> {
   if (dbPromise) return dbPromise
 
@@ -101,7 +105,10 @@ export function initDatabase(deviceId: string): Promise<AppDatabase> {
       // AJV-wrapped Dexie storage: IndexedDB on web, with schema validation so
       // malformed documents are rejected at write time.
       storage: wrappedValidateAjvStorage({ storage: getRxStorageDexie() }),
-      ignoreDuplicate: true,
+      // Close stale instances on hot-reload (React HMR reloads code without
+      // reloading the process; the old RxDB handle would otherwise block
+      // re-creation with DB8).
+      closeDuplicates: true,
     })
 
     const collections = await db.addCollections({

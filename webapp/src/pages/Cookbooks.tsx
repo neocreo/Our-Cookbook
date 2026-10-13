@@ -20,7 +20,7 @@ function CookbookEntry({ cookbook, allRecipes, owner }: { cookbook: Cookbook; al
   // Get recipe images for this cookbook
   const recipeImages = allRecipes
     .filter((r) => cookbook.recipeIds.includes(r.id))
-    .flatMap((r) => r.imageUrls)
+    .flatMap((r) => r.imageUrls ?? [])
     .slice(0, 4)
 
   return (

@@ -172,9 +172,9 @@ export function RecipeDetail() {
 
       <div className="recipe-hero">
         {/* Image slideshow */}
-        {recipe.imageUrls.length > 0 && (
+        {(recipe.imageUrls ?? []).length > 0 && (
           <div className="mb-4">
-            <ImageSlideshow imageUrls={recipe.imageUrls} alt={recipe.title} />
+            <ImageSlideshow imageUrls={recipe.imageUrls ?? []} alt={recipe.title} />
           </div>
         )}
 

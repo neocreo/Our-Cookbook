@@ -203,7 +203,7 @@ export function RecipeEdit() {
       servingSize: servings ? Number(servings) : null,
       prepTime: prepTime ? Number(prepTime) : null,
       cookTime: cookTime ? Number(cookTime) : null,
-      imageUrls: imageUrls.length > 0 ? imageUrls : undefined,
+      imageUrls,
       ingredients: builtIngredients,
       instructions: builtInstructions,
       tags,

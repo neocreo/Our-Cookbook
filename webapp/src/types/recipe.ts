@@ -95,5 +95,6 @@ export function migrateRecipeImage(recipe: Recipe & { imageUrl?: string | null }
 }
 
 export function getFirstImageUrl(recipe: Recipe): string | null {
-  return recipe.imageUrls.length > 0 ? recipe.imageUrls[0] : null
+  const urls = recipe.imageUrls ?? []
+  return urls.length > 0 ? urls[0] : null
 }

@@ -16,6 +16,11 @@ const DEFAULT_COOKBOOK_NAME = 'Mina recept'
 
 const cookbookListeners = new Set<CookbookListener>()
 
+/** Fill in array fields that may be missing from older stored documents. */
+function normalizeCookbook(cb: Cookbook): Cookbook {
+  return { ...cb, recipeIds: cb.recipeIds ?? [] }
+}
+
 function sortedCookbooks(): Cookbook[] {
   return [...getMemCookbooks().values()].sort((a, b) => a.name.localeCompare(b.name))
 }
@@ -29,7 +34,7 @@ export function subscribeCookbooks(cb: CookbookListener): () => void {
   if (getMode() === 'rxdb' && getDb()) {
     const sub = getDb()!.cookbooks.find().$.subscribe((docs) => {
       const list = docs
-        .map((d) => d.toMutableJSON())
+        .map((d) => normalizeCookbook(d.toMutableJSON() as Cookbook))
         .sort((a, b) => a.name.localeCompare(b.name))
       cb(list)
     })
@@ -43,9 +48,10 @@ export function subscribeCookbooks(cb: CookbookListener): () => void {
 export async function getCookbook(id: string): Promise<Cookbook | null> {
   if (getMode() === 'rxdb' && getDb()) {
     const doc = await getDb()!.cookbooks.findOne(id).exec()
-    return doc ? doc.toMutableJSON() : null
+    return doc ? normalizeCookbook(doc.toMutableJSON() as Cookbook) : null
   }
-  return getMemCookbooks().get(id) ?? null
+  const cb = getMemCookbooks().get(id)
+  return cb ? normalizeCookbook(cb) : null
 }
 
 export async function createCookbookNamed(
@@ -155,7 +161,7 @@ export async function deleteCookbook(id: string, deviceId?: string): Promise<voi
 export async function listCookbooks(): Promise<Cookbook[]> {
   if (getMode() === 'rxdb' && getDb()) {
     const docs = await getDb()!.cookbooks.find().exec()
-    return docs.map((d) => d.toMutableJSON())
+    return docs.map((d) => normalizeCookbook(d.toMutableJSON() as Cookbook))
   }
   return sortedCookbooks()
 }

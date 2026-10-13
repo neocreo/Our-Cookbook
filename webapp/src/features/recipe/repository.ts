@@ -18,6 +18,18 @@ type RecipeListener = (recipes: Recipe[]) => void
 
 const recipeListeners = new Set<RecipeListener>()
 
+/** Fill in array fields that may be missing from older documents stored
+ *  before they were always written (JSON.stringify drops undefined). */
+function normalizeRecipe(r: Recipe): Recipe {
+  return {
+    ...r,
+    imageUrls: r.imageUrls ?? [],
+    ingredients: r.ingredients ?? [],
+    instructions: r.instructions ?? [],
+    tags: r.tags ?? [],
+  }
+}
+
 function sortedRecipes(): Recipe[] {
   return [...getMemRecipes().values()].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
 }
@@ -35,7 +47,7 @@ export function subscribeRecipes(cb: RecipeListener): () => void {
   if (getMode() === 'rxdb' && getDb()) {
     const sub = getDb()!.recipes.find().$.subscribe((docs) => {
       const list = docs
-        .map((d) => d.toMutableJSON())
+        .map((d) => normalizeRecipe(d.toMutableJSON() as Recipe))
         .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
       cb(list)
     })
@@ -49,9 +61,10 @@ export function subscribeRecipes(cb: RecipeListener): () => void {
 export async function getRecipe(id: string): Promise<Recipe | null> {
   if (getMode() === 'rxdb' && getDb()) {
     const doc = await getDb()!.recipes.findOne(id).exec()
-    return doc ? doc.toMutableJSON() : null
+    return doc ? normalizeRecipe(doc.toMutableJSON() as Recipe) : null
   }
-  return getMemRecipes().get(id) ?? null
+  const r = getMemRecipes().get(id)
+  return r ? normalizeRecipe(r) : null
 }
 
 export async function saveRecipe(
@@ -62,7 +75,7 @@ export async function saveRecipe(
     typeof (r as Recipe).id === 'string' && (r as Recipe).createdAt !== undefined
 
   if (isExisting(recipe)) {
-    const updated = withRecipeUpdate(recipe, deviceId)
+    const updated = withRecipeUpdate(normalizeRecipe(recipe), deviceId)
     if (getMode() === 'rxdb' && getDb()) {
       const doc = await getDb()!.recipes.findOne(recipe.id).exec()
       if (doc) {
