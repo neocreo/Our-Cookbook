@@ -8,7 +8,7 @@ const items = [
   { to: '/', label: 'Home', Icon: Home, end: true },
   { to: '/cookbooks', label: 'Cookbooks', Icon: Library, end: false },
   { to: '/scan', label: 'Scan', Icon: ScanLine, end: false },
-  { to: '/search', label: 'Search', Icon: Search, end: false },
+  { to: '/search', label: 'Recipes', Icon: Search, end: false },
   { to: '/settings', label: 'Settings', Icon: Settings, end: false },
 ]
 

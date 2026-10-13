@@ -60,7 +60,7 @@ export function Settings() {
       <section className="recipe-section">
         <h3>You</h3>
         <p className="text-muted">Your name is shown as the owner of cookbooks you create.</p>
-        <div className="field" style={{ maxWidth: 320 }}>
+        <div className="field field-narrow">
           <label htmlFor="settings-name">Your name</label>
           <input
             id="settings-name"
@@ -74,7 +74,7 @@ export function Settings() {
 
       <section className="recipe-section">
         <h3>Theme</h3>
-        <div style={{ display: 'flex', gap: 8 }}>
+        <div className="row">
           {themes.map((t) => (
             <Button
               key={t.value}
@@ -94,7 +94,7 @@ export function Settings() {
             ? 'Google Drive sync is on. Sign in on the Sync status page — recipes and cookbooks then sync to the visible folder /Google Drive/OurOpenCookbook/, one subfolder per cookbook.'
             : 'Offline mode — recipes are stored on this device only.'}
         </p>
-        <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+        <div className="row mt-2">
           <Button
             variant={syncMode === 'offline' ? 'primary' : 'secondary'}
             onClick={() => setSyncMode('offline' as SyncMode)}
@@ -112,7 +112,7 @@ export function Settings() {
           </Link>
         </div>
         {syncMode === 'drive' && (
-          <p className="text-muted" style={{ marginTop: 8 }}>
+          <p className="text-muted mt-2">
             {getPendingCount() > 0
               ? `${getPendingCount()} change${getPendingCount() === 1 ? '' : 's'} queued for sync.`
               : 'No pending changes.'}
@@ -127,7 +127,7 @@ export function Settings() {
           their groupings, and app settings are not included. Import the file on another device to
           bring your recipes there.
         </p>
-        <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+        <div className="row mt-2">
           <Button variant="secondary" onClick={exportMarkdown} disabled={recipes.length === 0}>
             Markdown (.md)
           </Button>
@@ -148,25 +148,25 @@ export function Settings() {
           type="file"
           accept="application/json,.json"
           onChange={onImportFile}
-          style={{ display: 'none' }}
+          hidden
         />
         <Button variant="secondary" onClick={() => fileInput.current?.click()}>
           Choose JSON file
         </Button>
-        {importMsg && <p className="text-muted" style={{ marginTop: 8 }}>{importMsg}</p>}
+        {importMsg && <p className="text-muted mt-2">{importMsg}</p>}
       </section>
 
       <section className="recipe-section">
         <h3>About</h3>
         <p className="text-muted">Our Open Cookbook · Version 0.1.0</p>
         <p className="text-muted">Storage: {getRepositoryMode() === 'rxdb' ? 'RxDB (IndexedDB)' : 'Session (memory fallback)'}</p>
-        <p className="text-muted" style={{ marginTop: 8 }}>
-          <a href="https://github.com/ourcookbook" style={{ color: 'var(--color-accent)' }}>Homepage</a>
+        <p className="text-muted mt-2">
+          <a href="https://github.com/ourcookbook">Homepage</a>
         </p>
-        <p className="text-muted" style={{ marginTop: 4 }}>
-          <a href="https://github.com/ourcookbook/support" style={{ color: 'var(--color-accent)' }}>Support page</a>
+        <p className="text-muted mt-1">
+          <a href="https://github.com/ourcookbook/support">Support page</a>
         </p>
-        <p className="text-muted" style={{ marginTop: 8, fontSize: 12 }}>
+        <p className="text-muted mt-2 text-xs">
           All rights reserved. This app is provided as-is without warranty.
         </p>
       </section>

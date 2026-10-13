@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { ArrowLeft, Plus, X, GripVertical } from 'lucide-react'
 import { Button } from '../components/Button'
+import { Tag } from '../components/Tag'
 import { WashedImage } from '../components/WashedImage'
 import { getRecipe, saveRecipe } from '../features/recipe/repository'
 import { createCookbookNamed, addRecipeToCookbook, removeRecipeFromCookbook } from '../features/cookbook/repository'
@@ -264,28 +265,27 @@ export function RecipeEdit() {
 
   return (
     <main className="page edit-page">
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+      <div className="row mb-2">
         <button type="button" className="btn btn-ghost btn-icon" onClick={() => navigate(-1)} aria-label="Back">
           <ArrowLeft strokeWidth={2.75} />
         </button>
       </div>
 
-      <h1 className="page-title" style={{ marginBottom: 16 }}>{isEdit ? 'Edit recipe' : 'New recipe'}</h1>
+      <h1 className="page-title">{isEdit ? 'Edit recipe' : 'New recipe'}</h1>
 
-      <div className="form-row" style={{ marginBottom: 12 }}>
-        <input className="input" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Title" style={{ fontSize: 20, fontWeight: 600 }} />
+      <div className="form-row">
+        <input className="input input-title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Title" />
       </div>
 
-      <div className="form-row" style={{ marginBottom: 12 }}>
+      <div className="form-row">
         <input className="input" value={category} onChange={(e) => setCategory(e.target.value)} placeholder="Category" />
       </div>
 
-      <div className="form-row" style={{ marginBottom: 12 }}>
+      <div className="form-row">
         <select
           className="input"
           value={effectiveCookbookId}
           onChange={(e) => onSelectCookbook(e.target.value)}
-          style={{ fontSize: 14 }}
           aria-label="Cookbook"
         >
           <option value="">Select a cookbook...</option>
@@ -293,7 +293,7 @@ export function RecipeEdit() {
           <option value={CREATE_NEW_COOKBOOK}>+ Create new cookbook…</option>
         </select>
         {creatingCookbook && (
-          <div className="card" style={{ gap: 8, padding: 12 }}>
+          <div className="card">
             <input
               className="input"
               value={newCookbookName}
@@ -307,7 +307,7 @@ export function RecipeEdit() {
               onChange={(e) => setNewCookbookDesc(e.target.value)}
               placeholder="Description (optional)"
             />
-            <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+            <div className="row-end">
               <Button variant="secondary" onClick={() => setCreatingCookbook(false)}>Cancel</Button>
               <Button variant="primary" onClick={onCreateCookbook} disabled={!newCookbookName.trim()}>
                 Create
@@ -317,87 +317,87 @@ export function RecipeEdit() {
         )}
       </div>
 
-      <div className="form-row" style={{ marginBottom: 12 }}>
+      <div className="form-row">
         <textarea className="input" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Description" rows={3} />
       </div>
 
-      <div className="form-row" style={{ marginBottom: 16 }}>
+      <div className="form-row">
         <label>Ingredients</label>
         <div className="line-list">
           {ingredients.map((ing, idx) => (
-            <div key={ing.id} className="line-row" draggable onDragStart={() => handleDragStart(idx)} onDragOver={(e) => handleDragOver(idx, e)} onDrop={(e) => handleDrop(idx, e)} onDragEnd={handleDragEnd} style={{ cursor: 'grab' }}>
-              <span style={{ cursor: 'grab', padding: '0 4px', opacity: 0.5 }}><GripVertical size={14} strokeWidth={2.75} /></span>
-              <input className="input" placeholder="amount" value={ing.amount ?? ''} onChange={(e) => updateIngredient(ing.id, 'amount', e.target.value)} style={{ maxWidth: 80, flexShrink: 0 }} />
-              <select className="input" value={ing.unit ?? ''} onChange={(e) => updateIngredient(ing.id, 'unit', e.target.value)} style={{ maxWidth: 100, flexShrink: 0 }}>
+            <div key={ing.id} className="line-row" draggable onDragStart={() => handleDragStart(idx)} onDragOver={(e) => handleDragOver(idx, e)} onDrop={(e) => handleDrop(idx, e)} onDragEnd={handleDragEnd}>
+              <span className="drag-handle"><GripVertical size={14} strokeWidth={2.75} /></span>
+              <input className="input input-amount" placeholder="amount" value={ing.amount ?? ''} onChange={(e) => updateIngredient(ing.id, 'amount', e.target.value)} />
+              <select className="input input-unit" value={ing.unit ?? ''} onChange={(e) => updateIngredient(ing.id, 'unit', e.target.value)}>
                 {UNITS.map((u) => <option key={u} value={u}>{u}</option>)}
               </select>
-              <input className="input" placeholder="ingredient name" value={ing.name} onChange={(e) => updateIngredient(ing.id, 'name', e.target.value)} style={{ flex: 1 }} />
+              <input className="input" placeholder="ingredient name" value={ing.name} onChange={(e) => updateIngredient(ing.id, 'name', e.target.value)} />
               <button type="button" className="btn btn-ghost btn-icon" onClick={() => removeIngredient(ing.id)} aria-label="Remove"><X size={18} strokeWidth={2.75} /></button>
             </div>
           ))}
         </div>
-        <Button variant="secondary" onClick={addIngredient} style={{ marginTop: 8 }}><Plus size={16} strokeWidth={2.75} /></Button>
+        <Button variant="secondary" className="mt-2" onClick={addIngredient}><Plus size={16} strokeWidth={2.75} /></Button>
       </div>
 
-      <div className="form-row" style={{ marginBottom: 12 }}>
+      <div className="form-row">
         <textarea className="input" value={instructions} onChange={(e) => setInstructions(e.target.value)} placeholder="Instructions (one step per line)" rows={8} />
-        <Button variant="secondary" onClick={insertStepMarkup} style={{ marginTop: 8 }}><Plus size={16} strokeWidth={2.75} /> Insert Step</Button>
+        <Button variant="secondary" className="mt-2" onClick={insertStepMarkup}><Plus size={16} strokeWidth={2.75} /> Insert Step</Button>
       </div>
 
-      <div style={{ display: 'flex', gap: 12, marginBottom: 16 }}>
-        <div className="form-row" style={{ flex: 1 }}>
+      <div className="form-grid">
+        <div className="form-row">
           <label>Servings</label>
           <input className="input" type="number" value={servings} onChange={(e) => setServings(e.target.value)} />
         </div>
-        <div className="form-row" style={{ flex: 1 }}>
+        <div className="form-row">
           <label>Prep time (min)</label>
           <input className="input" type="number" value={prepTime} onChange={(e) => setPrepTime(e.target.value)} />
         </div>
-        <div className="form-row" style={{ flex: 1 }}>
+        <div className="form-row">
           <label>Cook time (min)</label>
           <input className="input" type="number" value={cookTime} onChange={(e) => setCookTime(e.target.value)} />
         </div>
       </div>
 
-      <div className="form-row" style={{ marginBottom: 12 }}>
+      <div className="form-row">
         <label>Images</label>
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 4 }}>
+        <div className="row-wrap mt-1">
           {imageUrls.map((url, idx) => (
-            <div key={idx} style={{ position: 'relative' }}>
-              <WashedImage src={url} alt={`Recipe ${idx + 1}`} style={{ width: 80, height: 80, borderRadius: 'var(--radius-md)' }} />
-              <button type="button" className="btn btn-ghost btn-icon" onClick={() => removeImage(idx)} style={{ position: 'absolute', top: 4, right: 4, background: 'rgba(0,0,0,0.5)' }} aria-label={`Remove ${idx + 1}`}>
+            <div key={idx} className="image-thumb">
+              <WashedImage src={url} alt={`Recipe ${idx + 1}`} className="thumb thumb-80" />
+              <button type="button" className="btn btn-ghost btn-icon image-remove" onClick={() => removeImage(idx)} aria-label={`Remove ${idx + 1}`}>
                 <X size={14} strokeWidth={2.75} />
               </button>
             </div>
           ))}
         </div>
-        <input type="file" accept="image/*" onChange={addImageFromFile} style={{ display: 'none' }} id="image-upload" />
+        <input type="file" accept="image/*" onChange={addImageFromFile} hidden id="image-upload" />
         <Button variant="secondary" onClick={() => document.getElementById('image-upload')?.click()}><Plus size={16} strokeWidth={2.75} /> Add image</Button>
       </div>
 
-      <div className="form-row" style={{ marginBottom: 12 }}>
+      <div className="form-row">
         <label>Tags</label>
-        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 4 }}>
+        <div className="chip-row mt-1">
           {tags.map((tag) => (
-            <div key={tag} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, background: 'var(--color-surface-3)', padding: '4px 8px', borderRadius: 'var(--radius-md)' }}>
-              <span style={{ fontSize: 13 }}>{tag}</span>
-              <button type="button" className="btn btn-ghost btn-icon" onClick={() => removeTag(tag)} style={{ padding: 0, height: 16, width: 16 }} aria-label={`Remove ${tag}`}>
+            <Tag key={tag} variant="neutral">
+              {tag}
+              <button type="button" className="tag-remove" onClick={() => removeTag(tag)} aria-label={`Remove ${tag}`}>
                 <X size={12} strokeWidth={2.75} />
               </button>
-            </div>
+            </Tag>
           ))}
         </div>
-        <div style={{ display: 'flex', gap: 4, marginTop: 4 }}>
-          <input className="input" value={tagInput} onChange={(e) => setTagInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addTag())} placeholder="Add a tag" style={{ flex: 1 }} />
+        <div className="tag-add">
+          <input className="input" value={tagInput} onChange={(e) => setTagInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addTag())} placeholder="Add a tag" />
           <Button variant="secondary" onClick={addTag}><Plus size={16} strokeWidth={2.75} /></Button>
         </div>
       </div>
 
-      <div className="form-row" style={{ marginBottom: 12 }}>
+      <div className="form-row">
         <input className="input" value={source} onChange={(e) => setSource(e.target.value)} placeholder="Source" />
       </div>
 
-      <div className="form-row" style={{ marginBottom: 16 }}>
+      <div className="form-row">
         <textarea className="input" value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Notes" rows={3} />
       </div>
 

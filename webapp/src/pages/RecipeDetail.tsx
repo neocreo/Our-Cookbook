@@ -147,11 +147,11 @@ export function RecipeDetail() {
 
   return (
     <main className="page">
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+      <div className="row mb-2">
         <Link to=".." relative="path" className="btn btn-ghost btn-icon" aria-label="Back">
           <ArrowLeft strokeWidth={2.75} />
         </Link>
-        <div style={{ flex: 1 }} />
+        <div className="row-spacer" />
         {/* Action buttons on top-right */}
         <Button variant="ghost" onClick={handleCopy} aria-label="Copy recipe">
           <Copy size={18} strokeWidth={2.75} />
@@ -173,7 +173,7 @@ export function RecipeDetail() {
       <div className="recipe-hero">
         {/* Image slideshow */}
         {recipe.imageUrls.length > 0 && (
-          <div style={{ marginBottom: 16 }}>
+          <div className="mb-4">
             <ImageSlideshow imageUrls={recipe.imageUrls} alt={recipe.title} />
           </div>
         )}
@@ -181,16 +181,11 @@ export function RecipeDetail() {
         <h1>{recipe.title}</h1>
         {recipe.description && <p className="text-muted">{recipe.description}</p>}
 
-        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 8 }}>
+        <div className="chip-row mt-2">
           <button
             type="button"
+            className="btn-reset"
             onClick={handleCategoryClick}
-            style={{
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-              padding: 0,
-            }}
             aria-label={`Filter by ${recipe.category}`}
           >
             <Tag variant="accent">{recipe.category}</Tag>
@@ -199,8 +194,8 @@ export function RecipeDetail() {
             <button
               key={t}
               type="button"
+              className="btn-reset"
               onClick={(e) => handleTagClick(e, t)}
-              style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
               aria-label={`Filter by ${t}`}
             >
               <Tag variant="neutral">{t}</Tag>
@@ -208,7 +203,7 @@ export function RecipeDetail() {
           ))}
         </div>
 
-        <div className="card-meta" style={{ marginTop: 8 }}>
+        <div className="card-meta mt-2">
           {time != null && <span>{time} total</span>}
           {time && recipe.servingSize && <span> · </span>}
           {recipe.servingSize != null && <span>{recipe.servingSize} servings</span>}
@@ -216,17 +211,8 @@ export function RecipeDetail() {
           {cookbook && (
             <button
               type="button"
+              className="btn-reset btn-reset-accent"
               onClick={handleCookbookClick}
-              style={{
-                background: 'none',
-                border: 'none',
-                cursor: 'pointer',
-                padding: 0,
-                color: 'var(--color-accent)',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 4,
-              }}
             >
               <BookOpen size={14} strokeWidth={2.75} />
               {cookbook.name}

@@ -3,7 +3,7 @@
 
 import { useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { Search as SearchIcon, ChevronDown, ChevronUp } from 'lucide-react'
+import { Search as SearchIcon, ChevronDown, ChevronUp, BookOpen } from 'lucide-react'
 import { WashedImage } from '../components/WashedImage'
 import { Tag } from '../components/Tag'
 import { useRecipes } from '../hooks/useRecipes'
@@ -35,46 +35,30 @@ function RecipeEntry({ recipe, cookbook }: { recipe: Recipe; cookbook: Cookbook 
   const imageUrl = getFirstImageUrl(recipe)
 
   return (
-    <Link to={`/recipes/${recipe.id}`} style={{ textDecoration: 'none', color: 'inherit', display: 'block' }}>
-      <div style={{ display: 'flex', gap: 12, padding: '12px 0', alignItems: 'flex-start' }}>
-        <div style={{ flexShrink: 0 }}>
+    <Link to={`/recipes/${recipe.id}`} className="link-plain">
+      <div className="entry">
+        <div className="entry-thumb">
           {imageUrl ? (
             <WashedImage
               src={imageUrl}
               alt={recipe.title}
-              style={{ width: 64, height: 64, borderRadius: 'var(--radius-md)' }}
+              className="thumb thumb-64"
             />
           ) : (
-            <div
-              style={{
-                width: 64,
-                height: 64,
-                background: 'var(--color-surface-3)',
-                borderRadius: 'var(--radius-md)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <span style={{ fontSize: 24, opacity: 0.5 }}>📖</span>
+            <div className="thumb-placeholder thumb-64">
+              <BookOpen size={24} strokeWidth={2.75} />
             </div>
           )}
         </div>
 
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ display: 'flex', gap: 8, alignItems: 'baseline', marginBottom: 4 }}>
-            <span style={{ fontSize: 13, color: 'var(--color-text-muted)' }}>
-              {cookbook?.name || 'Unknown'}
-            </span>
-            <span style={{ color: 'var(--color-text-muted)' }}>|</span>
-            <span style={{ fontSize: 13, color: 'var(--color-text-muted)' }}>
-              {recipe.category}
-            </span>
+        <div className="entry-body">
+          <div className="entry-meta">
+            <span>{cookbook?.name || 'Unknown'}</span>
+            <span>|</span>
+            <span>{recipe.category}</span>
           </div>
-          <h3 style={{ margin: '0 0 4px', fontSize: 16, fontWeight: 600, color: 'var(--color-text)' }}>
-            {recipe.title}
-          </h3>
-          <div style={{ display: 'flex', gap: 12, fontSize: 13, color: 'var(--color-text-muted)' }}>
+          <h3 className="entry-title">{recipe.title}</h3>
+          <div className="entry-stats">
             <span>{recipe.ingredients.length} ingredients</span>
             {time && <span>{time}</span>}
             {recipe.servingSize && <span>{recipe.servingSize} servings</span>}
@@ -144,36 +128,34 @@ export function Search() {
 
   return (
     <main className="page">
-      <h1 className="page-title">Search</h1>
+      <h1 className="page-title">Recipes</h1>
 
       {/* Search input */}
-      <div style={{ position: 'relative', marginBottom: 12 }}>
+      <div className="search-field">
         <input
-          className="input"
+          className="input search-input"
           placeholder="Search recipes, ingredients, tags…"
           value={query}
           onChange={(e) => updateQuery(e.target.value)}
-          style={{ paddingLeft: 36 }}
         />
         <SearchIcon
           size={16}
           strokeWidth={2.75}
-          style={{ position: 'absolute', left: 12, top: 10, opacity: 0.5 }}
+          className="search-icon"
         />
       </div>
 
       {/* Filter pickers — side by side, fold out on tap */}
-      <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
+      <div className="filter-pickers">
         {allCategoriesList.length > 0 && (
           <button
             type="button"
             className={`btn ${activeCategory ? 'btn-primary' : 'btn-secondary'}`}
-            style={{ flex: 1 }}
             onClick={() => setCategoriesExpanded(!categoriesExpanded)}
             aria-expanded={categoriesExpanded}
             aria-pressed={Boolean(activeCategory)}
           >
-            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            <span className="ellipsis">
               {activeCategory || 'Categories'}
             </span>
             {categoriesExpanded ? <ChevronUp size={16} strokeWidth={2.75} /> : <ChevronDown size={16} strokeWidth={2.75} />}
@@ -183,12 +165,11 @@ export function Search() {
           <button
             type="button"
             className={`btn ${activeCookbook ? 'btn-primary' : 'btn-secondary'}`}
-            style={{ flex: 1 }}
             onClick={() => setCookbooksExpanded(!cookbooksExpanded)}
             aria-expanded={cookbooksExpanded}
             aria-pressed={Boolean(activeCookbook)}
           >
-            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            <span className="ellipsis">
               {cookbooks.find((c) => c.id === activeCookbook)?.name || 'Cookbooks'}
             </span>
             {cookbooksExpanded ? <ChevronUp size={16} strokeWidth={2.75} /> : <ChevronDown size={16} strokeWidth={2.75} />}
@@ -198,22 +179,14 @@ export function Search() {
 
       {/* Categories filter options */}
       {allCategoriesList.length > 0 && categoriesExpanded && (
-        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 12 }}>
+        <div className="chip-row mb-3">
           {allCategoriesList.map((c) => (
             <button
               key={c}
               type="button"
+              className="chip"
               onClick={() => updateCategory(activeCategory === c ? null : c)}
               aria-pressed={activeCategory === c}
-              style={{
-                padding: '6px 12px',
-                background: activeCategory === c ? 'var(--color-accent)' : 'var(--color-surface-3)',
-                color: activeCategory === c ? 'var(--color-accent-contrast)' : 'var(--color-text)',
-                border: 'none',
-                borderRadius: '999px',
-                cursor: 'pointer',
-                fontSize: 13,
-              }}
             >
               {c}
             </button>
@@ -223,22 +196,14 @@ export function Search() {
 
       {/* Cookbooks filter options */}
       {cookbooks.length > 0 && cookbooksExpanded && (
-        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 12 }}>
+        <div className="chip-row mb-3">
           {cookbooks.map((cb) => (
             <button
               key={cb.id}
               type="button"
+              className="chip"
               onClick={() => updateCookbook(activeCookbook === cb.id ? null : cb.id)}
               aria-pressed={activeCookbook === cb.id}
-              style={{
-                padding: '6px 12px',
-                background: activeCookbook === cb.id ? 'var(--color-accent)' : 'var(--color-surface-3)',
-                color: activeCookbook === cb.id ? 'var(--color-accent-contrast)' : 'var(--color-text)',
-                border: 'none',
-                borderRadius: '999px',
-                cursor: 'pointer',
-                fontSize: 13,
-              }}
             >
               {cb.name}
             </button>
@@ -248,21 +213,11 @@ export function Search() {
 
       {/* Active filters */}
       {(activeCategory || activeTag || activeCookbook) && (
-        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 16, fontSize: 13 }}>
+        <div className="chip-row mb-4">
           {activeCategory && (
             <Tag variant="accent">
               Category: {activeCategory}
-              <button
-                type="button"
-                onClick={() => updateCategory(null)}
-                style={{
-                  marginLeft: 4,
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer',
-                  padding: 0,
-                }}
-              >
+              <button type="button" className="tag-remove" onClick={() => updateCategory(null)}>
                 ×
               </button>
             </Tag>
@@ -270,17 +225,7 @@ export function Search() {
           {activeTag && (
             <Tag variant="accent">
               Tag: {activeTag}
-              <button
-                type="button"
-                onClick={() => updateTag(null)}
-                style={{
-                  marginLeft: 4,
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer',
-                  padding: 0,
-                }}
-              >
+              <button type="button" className="tag-remove" onClick={() => updateTag(null)}>
                 ×
               </button>
             </Tag>
@@ -288,17 +233,7 @@ export function Search() {
           {activeCookbook && (
             <Tag variant="accent">
               Cookbook: {cookbooks.find((c) => c.id === activeCookbook)?.name || activeCookbook}
-              <button
-                type="button"
-                onClick={() => updateCookbook(null)}
-                style={{
-                  marginLeft: 4,
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer',
-                  padding: 0,
-                }}
-              >
+              <button type="button" className="tag-remove" onClick={() => updateCookbook(null)}>
                 ×
               </button>
             </Tag>
@@ -307,7 +242,7 @@ export function Search() {
       )}
 
       {/* Results */}
-      <div style={{ marginTop: 12 }}>
+      <div className="mt-3">
         {loading && <p className="text-muted">Loading…</p>}
         {!loading && results.length === 0 && query && (
           <p className="text-muted">No recipes match "{query}".</p>
@@ -317,16 +252,7 @@ export function Search() {
         )}
         {results.map((r, index) => (
           <div key={r.id}>
-            {index > 0 && (
-              <hr
-                style={{
-                  margin: '0 0 0 76px',
-                  border: 0,
-                  borderTop: '1px solid var(--color-primary)',
-                  opacity: 0.3,
-                }}
-              />
-            )}
+            {index > 0 && <hr className="entry-divider" />}
             <RecipeEntry recipe={r} cookbook={getCookbookForRecipe(r, cookbooks)} />
           </div>
         ))}

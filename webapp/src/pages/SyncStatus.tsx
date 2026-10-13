@@ -101,7 +101,7 @@ export function SyncStatus() {
       <section className="recipe-section">
         <h3>Google Drive</h3>
         {!hasClientId && (
-          <p className="text-muted" style={{ color: 'var(--color-accent-700)' }}>
+          <p className="text-muted text-error">
             Drive-sync har inte konfigurerats ännu. Det kräver en engångsinställning
             av appens utvecklare.
           </p>
@@ -161,10 +161,10 @@ export function SyncStatus() {
           )}
           {syncResult.errors.length > 0 && (
             <div>
-              <p className="text-muted" style={{ color: 'var(--color-accent-700)' }}>Fel:</p>
+              <p className="text-muted text-error">Fel:</p>
               <ul className="ingredient-list">
                 {syncResult.errors.map((e, i) => (
-                  <li key={i} style={{ fontSize: 13 }}>{e}</li>
+                  <li key={i} className="text-sm">{e}</li>
                 ))}
               </ul>
             </div>
@@ -174,7 +174,7 @@ export function SyncStatus() {
 
       {error && (
         <section className="recipe-section">
-          <p className="text-muted" style={{ color: 'var(--color-accent-700)' }}>{error}</p>
+          <p className="text-muted text-error">{error}</p>
         </section>
       )}
     </main>

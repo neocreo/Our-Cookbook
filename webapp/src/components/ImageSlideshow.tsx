@@ -32,11 +32,11 @@ export function ImageSlideshow({ imageUrls, alt }: ImageSlideshowProps) {
   if (imageUrls.length === 0) return null
   if (imageUrls.length === 1) {
     return (
-      <div style={{ position: 'relative', display: 'inline-block' }}>
+      <div className="slideshow-single">
         <WashedImage
           src={imageUrls[0]}
           alt={alt}
-          style={{ width: '100%', maxHeight: 300, objectFit: 'cover', borderRadius: 'var(--radius-lg)' }}
+          className="img-cover slideshow-single-img"
         />
       </div>
     )
@@ -83,39 +83,22 @@ export function ImageSlideshow({ imageUrls, alt }: ImageSlideshowProps) {
   return (
     <div
       ref={containerRef}
+      className="slideshow"
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
-      style={{
-        position: 'relative',
-        width: '100%',
-        maxHeight: 400,
-        overflow: 'hidden',
-        borderRadius: 'var(--radius-lg)',
-      }}
     >
-      {/* Slideshow container */}
+      {/* Slideshow container — the track offset is dynamic, so it stays inline */}
       <div
-        style={{
-          display: 'flex',
-          transition: 'transform 0.3s ease',
-          transform: `translateX(-${currentIndex * 100}%)`,
-          height: '100%',
-        }}
+        className="slideshow-track"
+        style={{ transform: `translateX(-${currentIndex * 100}%)` }}
       >
         {imageUrls.map((url, index) => (
-          <div
-            key={index}
-            style={{
-              minWidth: '100%',
-              flexShrink: 0,
-              position: 'relative',
-            }}
-          >
+          <div key={index} className="slideshow-slide">
             <WashedImage
               src={url}
               alt={`${alt} - Image ${index + 1}`}
-              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              className="slideshow-img"
             />
           </div>
         ))}
@@ -124,24 +107,8 @@ export function ImageSlideshow({ imageUrls, alt }: ImageSlideshowProps) {
       {/* Navigation arrows */}
       <button
         type="button"
+        className="slideshow-nav slideshow-nav-prev"
         onClick={prevImage}
-        style={{
-          position: 'absolute',
-          left: 12,
-          top: '50%',
-          transform: 'translateY(-50%)',
-          background: 'rgba(0,0,0,0.5)',
-          border: 'none',
-          borderRadius: '50%',
-          width: 40,
-          height: 40,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          cursor: 'pointer',
-          color: 'white',
-          zIndex: 10,
-        }}
         aria-label="Previous image"
       >
         <ArrowLeft size={20} strokeWidth={2.75} />
@@ -149,71 +116,27 @@ export function ImageSlideshow({ imageUrls, alt }: ImageSlideshowProps) {
 
       <button
         type="button"
+        className="slideshow-nav slideshow-nav-next"
         onClick={nextImage}
-        style={{
-          position: 'absolute',
-          right: 12,
-          top: '50%',
-          transform: 'translateY(-50%)',
-          background: 'rgba(0,0,0,0.5)',
-          border: 'none',
-          borderRadius: '50%',
-          width: 40,
-          height: 40,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          cursor: 'pointer',
-          color: 'white',
-          zIndex: 10,
-        }}
         aria-label="Next image"
       >
         <ArrowRight size={20} strokeWidth={2.75} />
       </button>
 
       {/* Image indicators */}
-      <div
-        style={{
-          position: 'absolute',
-          bottom: 12,
-          left: '50%',
-          transform: 'translateX(-50%)',
-          display: 'flex',
-          gap: 6,
-          zIndex: 10,
-        }}
-      >
+      <div className="slideshow-dots">
         {imageUrls.map((_, index) => (
           <div
             key={index}
+            className={['slideshow-dot', currentIndex === index ? 'slideshow-dot-active' : ''].filter(Boolean).join(' ')}
             onClick={() => goToImage(index)}
-            style={{
-              width: 8,
-              height: 8,
-              borderRadius: '50%',
-              background: currentIndex === index ? 'var(--color-accent)' : 'rgba(255,255,255,0.5)',
-              cursor: 'pointer',
-            }}
             aria-label={`Go to image ${index + 1}`}
           />
         ))}
       </div>
 
       {/* Image counter */}
-      <div
-        style={{
-          position: 'absolute',
-          bottom: 12,
-          right: 12,
-          background: 'rgba(0,0,0,0.7)',
-          color: 'white',
-          padding: '4px 8px',
-          borderRadius: 'var(--radius-sm)',
-          fontSize: 12,
-          zIndex: 10,
-        }}
-      >
+      <div className="slideshow-counter">
         {currentIndex + 1} / {imageUrls.length}
       </div>
     </div>

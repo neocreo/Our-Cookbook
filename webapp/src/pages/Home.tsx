@@ -3,7 +3,7 @@
 
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Plus } from 'lucide-react'
+import { Plus, BookOpen } from 'lucide-react'
 import { WashedImage } from '../components/WashedImage'
 import { useRecipes } from '../hooks/useRecipes'
 import { useCookbooks } from '../hooks/useCookbooks'
@@ -37,48 +37,32 @@ function RecipeEntry({ recipe, cookbook }: { recipe: Recipe; cookbook: Cookbook 
   const imageUrl = getFirstImageUrl(recipe)
 
   return (
-    <Link to={`/recipes/${recipe.id}`} style={{ textDecoration: 'none', color: 'inherit', display: 'block' }}>
-      <div style={{ display: 'flex', gap: 12, padding: '12px 0', alignItems: 'flex-start' }}>
+    <Link to={`/recipes/${recipe.id}`} className="link-plain">
+      <div className="entry">
         {/* Thumbnail */}
-        <div style={{ flexShrink: 0 }}>
+        <div className="entry-thumb">
           {imageUrl ? (
             <WashedImage
               src={imageUrl}
               alt={recipe.title}
-              style={{ width: 64, height: 64, borderRadius: 'var(--radius-md)' }}
+              className="thumb thumb-64"
             />
           ) : (
-            <div
-              style={{
-                width: 64,
-                height: 64,
-                background: 'var(--color-surface-3)',
-                borderRadius: 'var(--radius-md)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <span style={{ fontSize: 24, opacity: 0.5 }}>📖</span>
+            <div className="thumb-placeholder thumb-64">
+              <BookOpen size={24} strokeWidth={2.75} />
             </div>
           )}
         </div>
 
         {/* Text content */}
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ display: 'flex', gap: 8, alignItems: 'baseline', marginBottom: 4 }}>
-            <span style={{ fontSize: 13, color: 'var(--color-text-muted)' }}>
-              {cookbook?.name || 'Unknown'}
-            </span>
-            <span style={{ color: 'var(--color-text-muted)' }}>|</span>
-            <span style={{ fontSize: 13, color: 'var(--color-text-muted)' }}>
-              {recipe.category}
-            </span>
+        <div className="entry-body">
+          <div className="entry-meta">
+            <span>{cookbook?.name || 'Unknown'}</span>
+            <span>|</span>
+            <span>{recipe.category}</span>
           </div>
-          <h3 style={{ margin: '0 0 4px', fontSize: 16, fontWeight: 600, color: 'var(--color-text)' }}>
-            {recipe.title}
-          </h3>
-          <div style={{ display: 'flex', gap: 12, fontSize: 13, color: 'var(--color-text-muted)' }}>
+          <h3 className="entry-title">{recipe.title}</h3>
+          <div className="entry-stats">
             <span>{recipe.ingredients.length} ingredients</span>
             {time && <span>{time}</span>}
             {recipe.servingSize && <span>{recipe.servingSize} servings</span>}
@@ -124,17 +108,9 @@ export function Home() {
   }
 
   return (
-    <main className="page" style={{ paddingTop: 15 }}>
+    <main className="page">
       {/* Tab Navigation */}
-      <div
-        style={{
-          display: 'flex',
-          gap: 4,
-          marginBottom: 16,
-          borderBottom: '1px solid var(--color-surface-4)',
-          paddingBottom: 8,
-        }}
-      >
+      <div className="tab-row">
         <button
           type="button"
           className={activeTab === 'latest' ? 'btn btn-primary' : 'btn btn-secondary'}
@@ -142,7 +118,6 @@ export function Home() {
             setActiveTab('latest')
             setSelectedCategory(null)
           }}
-          style={{ flex: 1 }}
         >
           Latest
         </button>
@@ -153,7 +128,6 @@ export function Home() {
             setActiveTab('favorites')
             setSelectedCategory(null)
           }}
-          style={{ flex: 1 }}
         >
           Favorites
         </button>
@@ -161,7 +135,6 @@ export function Home() {
           type="button"
           className={activeTab === 'categories' ? 'btn btn-primary' : 'btn btn-secondary'}
           onClick={() => setActiveTab('categories')}
-          style={{ flex: 1 }}
         >
           Categories
         </button>
@@ -169,21 +142,14 @@ export function Home() {
 
       {/* Categories as clickable buttons — only once the Categories tab is chosen */}
       {activeTab === 'categories' && categories.length > 0 && (
-        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 16 }}>
+        <div className="chip-row mb-4">
           {categories.map((c) => (
             <button
               key={c}
               type="button"
+              className="chip"
+              aria-pressed={selectedCategory === c}
               onClick={() => handleCategoryButtonClick(c)}
-              style={{
-                padding: '6px 12px',
-                background: selectedCategory === c ? 'var(--color-accent)' : 'var(--color-surface-3)',
-                color: selectedCategory === c ? 'var(--color-accent-contrast)' : 'var(--color-text)',
-                border: 'none',
-                borderRadius: 'var(--radius-md)',
-                cursor: 'pointer',
-                fontSize: 13,
-              }}
             >
               {c}
             </button>
@@ -210,23 +176,14 @@ export function Home() {
       <div>
         {displayedRecipes.map((r, index) => (
           <div key={r.id}>
-            {index > 0 && (
-              <hr
-                style={{
-                  margin: '0 0 0 76px',
-                  border: 0,
-                  borderTop: '1px solid var(--color-primary)',
-                  opacity: 0.3,
-                }}
-              />
-            )}
+            {index > 0 && <hr className="entry-divider" />}
             <RecipeEntry recipe={r} cookbook={getCookbookForRecipe(r, cookbooks)} />
           </div>
         ))}
       </div>
 
       {displayedRecipes.length > 0 && filteredRecipes.length > 5 && (
-        <p style={{ textAlign: 'center', color: 'var(--color-text-muted)', marginTop: 16 }}>
+        <p className="text-muted text-center mt-4">
           Showing 5 of {filteredRecipes.length} recipes
         </p>
       )}

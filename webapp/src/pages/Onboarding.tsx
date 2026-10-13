@@ -59,7 +59,7 @@ export function Onboarding() {
           Fortsätt offline
         </Button>
       </div>
-      <p className="text-muted" style={{ fontSize: 12 }}>
+      <p className="text-muted text-xs">
         Offline keeps everything on this device. Drive sync links a folder so recipes follow you
         across devices.
       </p>

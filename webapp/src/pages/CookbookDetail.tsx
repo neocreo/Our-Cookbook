@@ -1,13 +1,14 @@
 // CookbookDetail — shows the recipes in a cookbook with an A-Ö index rail and
 // category filter. Supports in-place editing of title and description.
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { ArrowLeft, Pencil, Plus, Trash2, X, BookOpen, Check } from 'lucide-react'
 import { Button } from '../components/Button'
 import { WashedImage } from '../components/WashedImage'
 import { Tag } from '../components/Tag'
 import { getCookbook, deleteCookbook, renameCookbook } from '../features/cookbook/repository'
+import { deleteRecipe } from '../features/recipe/repository'
 import { useRecipes } from '../hooks/useRecipes'
 import { getDeviceId } from '../lib/device'
 import { useAppStore } from '../stores/appStore'
@@ -64,48 +65,29 @@ function RecipeRow({ recipe, cookbook, onRemove, editMode }: {
   const time = formatTime(totalRecipeTime(recipe))
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        gap: 12,
-        padding: '12px 0',
-        alignItems: 'flex-start',
-      }}
-    >
-      <div style={{ flexShrink: 0 }}>
+    <div className="entry">
+      <div className="entry-thumb">
         {imageUrl ? (
           <WashedImage
             src={imageUrl}
             alt={recipe.title}
-            style={{ width: 48, height: 48, borderRadius: 'var(--radius-md)' }}
+            className="thumb thumb-48"
           />
         ) : (
-          <div
-            style={{
-              width: 48,
-              height: 48,
-              background: 'var(--color-surface-3)',
-              borderRadius: 'var(--radius-md)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <BookOpen size={20} style={{ opacity: 0.5 }} strokeWidth={2.75} />
+          <div className="thumb-placeholder thumb-48">
+            <BookOpen size={20} className="icon-muted" strokeWidth={2.75} />
           </div>
         )}
       </div>
 
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ display: 'flex', gap: 8, alignItems: 'baseline', marginBottom: 4 }}>
-          <span style={{ fontSize: 13, color: 'var(--color-text-muted)' }}>{cookbook.name}</span>
-          <span style={{ color: 'var(--color-text-muted)' }}>|</span>
-          <span style={{ fontSize: 13, color: 'var(--color-text-muted)' }}>{recipe.category}</span>
+      <div className="entry-body">
+        <div className="entry-meta">
+          <span>{cookbook.name}</span>
+          <span>|</span>
+          <span>{recipe.category}</span>
         </div>
-        <h4 style={{ margin: '0 0 4px', fontSize: 15, fontWeight: 600, color: 'var(--color-text)' }}>
-          {recipe.title}
-        </h4>
-        <div style={{ display: 'flex', gap: 12, fontSize: 13, color: 'var(--color-text-muted)' }}>
+        <h4 className="entry-title">{recipe.title}</h4>
+        <div className="entry-stats">
           <span>{recipe.ingredients.length} ingredients</span>
           {time && <span>{time}</span>}
           {recipe.servingSize && <span>{recipe.servingSize} servings</span>}
@@ -115,10 +97,9 @@ function RecipeRow({ recipe, cookbook, onRemove, editMode }: {
       {editMode && (
         <button
           type="button"
-          className="btn btn-ghost btn-icon"
+          className="btn btn-ghost btn-icon flex-none"
           onClick={() => onRemove(recipe.id)}
           aria-label={`Remove ${recipe.title}`}
-          style={{ flexShrink: 0 }}
         >
           <X size={16} strokeWidth={2.75} />
         </button>
@@ -139,6 +120,7 @@ export function CookbookDetail() {
   const [description, setDescription] = useState('')
   const [filterLetter, setFilterLetter] = useState<string | null>(null)
   const [filterCategory, setFilterCategory] = useState<string | null>(null)
+  const deleteDialog = useRef<HTMLDialogElement>(null)
 
   useEffect(() => {
     if (!id) return
@@ -171,10 +153,22 @@ export function CookbookDetail() {
     await refresh()
   }
 
-  async function onDelete() {
-    if (!id) return
-    if (!window.confirm(`Delete "${cookbook?.name}"? Recipes are not deleted.`)) return
-    await deleteCookbook(id, getDeviceId())
+  function onDelete() {
+    deleteDialog.current?.showModal()
+  }
+
+  // Recipes go first: if one fails, the cookbook and its remaining recipes
+  // stay intact and the delete can be retried.
+  async function confirmDelete(deleteRecipesToo: boolean) {
+    if (!id || !cookbook) return
+    deleteDialog.current?.close()
+    const deviceId = getDeviceId()
+    if (deleteRecipesToo) {
+      for (const recipeId of cookbook.recipeIds) {
+        await deleteRecipe(recipeId, deviceId)
+      }
+    }
+    await deleteCookbook(id, deviceId)
     navigate('/cookbooks', { replace: true })
   }
 
@@ -216,11 +210,11 @@ export function CookbookDetail() {
         </aside>
 
         <div className="cookbook-content">
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+          <div className="row mb-2">
             <Link to="/cookbooks" className="btn btn-ghost btn-icon" aria-label="Back">
               <ArrowLeft strokeWidth={2.75} />
             </Link>
-            <div style={{ flex: 1 }} />
+            <div className="row-spacer" />
             {editing ? (
               <>
                 <Button variant="primary" onClick={onRename} disabled={!name.trim()} aria-label="Save changes">
@@ -242,25 +236,23 @@ export function CookbookDetail() {
             )}
           </div>
 
-          <div className="recipe-hero" style={{ marginBottom: 16 }}>
+          <div className="recipe-hero">
             {editing ? (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <div className="stack">
                 <div className="form-row">
                   <input
-                    className="input"
+                    className="input input-heading"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    style={{ fontSize: 24, fontWeight: 600, padding: 8 }}
                     autoFocus
                     aria-label="Cookbook name"
                   />
                 </div>
                 <div className="form-row">
                   <textarea
-                    className="input"
+                    className="input input-md"
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
-                    style={{ fontSize: 14, minHeight: 60 }}
                     placeholder="Cookbook description..."
                     aria-label="Cookbook description"
                   />
@@ -268,12 +260,12 @@ export function CookbookDetail() {
               </div>
             ) : (
               <>
-                <h1 style={{ marginBottom: 4 }}>{cookbook.name}</h1>
-                {cookbook.description && <p className="text-muted" style={{ margin: 0 }}>{cookbook.description}</p>}
-                <div style={{ marginTop: 8, fontSize: 13, color: 'var(--color-text-muted)', display: 'flex', alignItems: 'baseline', gap: 8 }}>
+                <h1 className="mb-1">{cookbook.name}</h1>
+                {cookbook.description && <p className="text-muted mb-0">{cookbook.description}</p>}
+                <div className="cookbook-meta">
                   <span>Owner: {owner}</span>
                   <span>·</span>
-                  <span style={{ fontWeight: 600 }}>{`${members.length} recipe${members.length === 1 ? '' : 's'}`}</span>
+                  <strong>{`${members.length} recipe${members.length === 1 ? '' : 's'}`}</strong>
                 </div>
               </>
             )}
@@ -282,20 +274,12 @@ export function CookbookDetail() {
           {/* Category filter — under the title and owner info; the index then
               drills down within the chosen category. */}
           {!editing && categories.length > 0 && (
-            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 16 }}>
+            <div className="chip-row mb-4">
               <button
                 type="button"
+                className="chip"
                 onClick={() => selectCategory(null)}
                 aria-pressed={filterCategory == null}
-                style={{
-                  padding: '6px 12px',
-                  background: filterCategory == null ? 'var(--color-accent)' : 'var(--color-surface-3)',
-                  color: filterCategory == null ? 'var(--color-accent-contrast)' : 'var(--color-text)',
-                  border: 'none',
-                  borderRadius: '999px',
-                  cursor: 'pointer',
-                  fontSize: 13,
-                }}
               >
                 All
               </button>
@@ -303,17 +287,9 @@ export function CookbookDetail() {
                 <button
                   key={c}
                   type="button"
+                  className="chip"
                   onClick={() => selectCategory(filterCategory === c ? null : c)}
                   aria-pressed={filterCategory === c}
-                  style={{
-                    padding: '6px 12px',
-                    background: filterCategory === c ? 'var(--color-accent)' : 'var(--color-surface-3)',
-                    color: filterCategory === c ? 'var(--color-accent-contrast)' : 'var(--color-text)',
-                    border: 'none',
-                    borderRadius: '999px',
-                    cursor: 'pointer',
-                    fontSize: 13,
-                  }}
                 >
                   {c}
                 </button>
@@ -322,7 +298,7 @@ export function CookbookDetail() {
           )}
 
           {!editing && (
-            <div style={{ marginBottom: 16 }}>
+            <div className="mb-4">
               <Link to={`/recipes/new?cookbookId=${cookbook.id}`} className="btn btn-primary">
                 <Plus size={16} strokeWidth={2.75} /> Add Recipe
               </Link>
@@ -330,7 +306,7 @@ export function CookbookDetail() {
           )}
 
           {filterLetter && (
-            <div style={{ marginBottom: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div className="row mb-2">
               <Tag variant="accent">{`Filter: ${filterLetter}`}</Tag>
               <button type="button" className="btn btn-ghost btn-icon" onClick={() => setFilterLetter(null)} aria-label="Clear letter filter">
                 <X size={16} strokeWidth={2.75} />
@@ -350,16 +326,7 @@ export function CookbookDetail() {
             ) : (
               filteredMembers.map((r, index) => (
                 <div key={r.id}>
-                  {index > 0 && (
-                    <hr
-                      style={{
-                        margin: '0 0 0 60px',
-                        border: 0,
-                        borderTop: '1px solid var(--color-primary)',
-                        opacity: 0.3,
-                      }}
-                    />
-                  )}
+                  {index > 0 && <hr className="entry-divider entry-divider-sm" />}
                   <RecipeRow recipe={r} cookbook={cookbook} onRemove={onRemove} editMode={editing} />
                 </div>
               ))
@@ -367,6 +334,34 @@ export function CookbookDetail() {
           </div>
         </div>
       </div>
+
+      <dialog
+        ref={deleteDialog}
+        className="dialog"
+        aria-labelledby="delete-cookbook-title"
+        onClick={(e) => {
+          // Clicks on the ::backdrop retarget to the dialog element; only
+          // dismiss when the click lands outside the card itself.
+          const dlg = deleteDialog.current
+          if (!dlg) return
+          const rect = dlg.getBoundingClientRect()
+          const onBackdrop =
+            e.clientX < rect.left || e.clientX > rect.right ||
+            e.clientY < rect.top || e.clientY > rect.bottom
+          if (onBackdrop) dlg.close()
+        }}
+      >
+        <div className="dialog-title" id="delete-cookbook-title">Delete "{cookbook.name}"?</div>
+        <p className="dialog-body">
+          The cookbook contains {cookbook.recipeIds.length} recipe{cookbook.recipeIds.length === 1 ? '' : 's'}.
+          Choose whether to delete them as well — this cannot be undone.
+        </p>
+        <div className="dialog-actions">
+          <Button variant="ghost" onClick={() => deleteDialog.current?.close()}>Cancel</Button>
+          <Button variant="secondary" onClick={() => confirmDelete(false)}>Keep the recipes</Button>
+          <Button variant="primary" onClick={() => confirmDelete(true)}>Delete them too</Button>
+        </div>
+      </dialog>
     </main>
   )
 }

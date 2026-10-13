@@ -24,64 +24,38 @@ function CookbookEntry({ cookbook, allRecipes, owner }: { cookbook: Cookbook; al
     .slice(0, 4)
 
   return (
-    <Link to={`/cookbooks/${cookbook.id}`} style={{ textDecoration: 'none', color: 'inherit', display: 'block' }}>
-      <div
-        style={{
-          display: 'flex',
-          gap: 16,
-          padding: '16px 0',
-          alignItems: 'flex-start',
-        }}
-      >
+    <Link to={`/cookbooks/${cookbook.id}`} className="link-plain">
+      <div className="entry">
         {/* Book-shaped thumbnail */}
-        <div style={{ flexShrink: 0 }}>
+        <div className="entry-thumb">
           <BookThumbnail recipeImageUrls={recipeImages} size={100} />
         </div>
 
         {/* Text content */}
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <h3 style={{ margin: '0 0 4px', fontSize: 16, fontWeight: 600, color: 'var(--color-text)' }}>
-            {cookbook.name}
-          </h3>
-          <div style={{ fontSize: 13, color: 'var(--color-text-muted)', marginBottom: 4 }}>
+        <div className="entry-body">
+          <h3 className="entry-title">{cookbook.name}</h3>
+          <div className="entry-meta">
             <span>Owner: {owner}</span>
           </div>
           {cookbook.description && (
             <div>
-              <p
-                style={{
-                  fontSize: 14,
-                  color: 'var(--color-text-muted)',
-                  margin: 0,
-                  display: expanded ? 'block' : '-webkit-box',
-                  WebkitLineClamp: expanded ? 'unset' : 1,
-                  WebkitBoxOrient: 'vertical',
-                  overflow: 'hidden',
-                }}
-              >
+              <p className={expanded ? 'cookbook-desc' : 'cookbook-desc clamp-1'}>
                 {cookbook.description}
               </p>
               <button
                 type="button"
+                className="btn-more"
                 onClick={(e) => {
                   e.preventDefault()
                   e.stopPropagation()
                   setExpanded(!expanded)
-                }}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  color: 'var(--color-accent)',
-                  cursor: 'pointer',
-                  fontSize: 13,
-                  padding: '4px 0',
                 }}
               >
                 {expanded ? 'less' : '...more'}
               </button>
             </div>
           )}
-          <div style={{ fontSize: 13, color: 'var(--color-text-muted)', marginTop: 8, fontWeight: 600 }}>
+          <div className="cookbook-count">
             {cookbook.recipeIds.length} recipe{cookbook.recipeIds.length === 1 ? '' : 's'}
           </div>
         </div>
@@ -122,7 +96,7 @@ export function Cookbooks() {
         <p className="text-muted">No cookbooks yet. Create one to organize your recipes.</p>
       )}
 
-      <div style={{ marginTop: 16 }}>
+      <div className="mt-4">
         {cookbooks.map((cb) => (
           <CookbookEntry
             key={cb.id}
@@ -134,8 +108,8 @@ export function Cookbooks() {
       </div>
 
       {creating && (
-        <div className="card elev-md" style={{ marginTop: 16 }}>
-          <h3 style={{ margin: '0 0 16px' }}>Create Cookbook</h3>
+        <div className="card elev-md mt-4">
+          <h3 className="mb-4">Create Cookbook</h3>
           <div className="form-row">
             <label htmlFor="cb-name">Name</label>
             <input

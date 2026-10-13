@@ -166,10 +166,10 @@ export function Scan() {
       <main className="page">
         <h1 className="page-title">Scanning…</h1>
         {imagePreview && (
-          <img src={imagePreview} alt="Scanning" className="washed" style={{ borderRadius: 'var(--radius-lg)', width: '100%', marginBottom: 16 }} />
+          <img src={imagePreview} alt="Scanning" className="washed img-cover mb-4" />
         )}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <Loader2 size={20} strokeWidth={2.75} style={{ animation: 'spin 1s linear infinite' }} />
+        <div className="row">
+          <Loader2 size={20} strokeWidth={2.75} className="spin" />
           <span className="text-muted">Recognizing text… {Math.round(progress * 100)}%</span>
         </div>
       </main>
@@ -182,7 +182,7 @@ export function Scan() {
         <h1 className="page-title">Review recipe</h1>
 
         {imagePreview && (
-          <img src={imagePreview} alt="Source" className="washed" style={{ borderRadius: 'var(--radius-lg)', width: '100%', marginBottom: 16, maxHeight: 200, objectFit: 'cover' }} />
+          <img src={imagePreview} alt="Source" className="washed img-cover scan-preview mb-4" />
         )}
 
         <div className="form-row">
@@ -211,32 +211,30 @@ export function Scan() {
           <label htmlFor="ingredients">Ingredients (one per line)</label>
           <textarea
             id="ingredients"
-            className="input"
+            className="input input-tall"
             value={ingredients}
             onChange={(e) => setIngredients(e.target.value)}
-            style={{ minHeight: 120 }}
           />
         </div>
         <div className="form-row">
           <label htmlFor="instructions">Instructions (one per line)</label>
           <textarea
             id="instructions"
-            className="input"
+            className="input input-tall"
             value={instructions}
             onChange={(e) => setInstructions(e.target.value)}
-            style={{ minHeight: 120 }}
           />
         </div>
 
         {ocrText && (
-          <details style={{ marginBottom: 16 }}>
-            <summary className="text-muted" style={{ cursor: 'pointer', fontSize: 13 }}>Raw OCR text</summary>
-            <pre className="text-muted" style={{ fontSize: 12, whiteSpace: 'pre-wrap', marginTop: 8 }}>{preprocessOcrText(ocrText)}</pre>
-            <Button variant="ghost" onClick={onEditRaw} style={{ marginTop: 4 }}>Re-parse from raw text</Button>
+          <details className="mb-4">
+            <summary className="text-muted raw-toggle">Raw OCR text</summary>
+            <pre className="text-muted ocr-text">{preprocessOcrText(ocrText)}</pre>
+            <Button variant="ghost" className="mt-1" onClick={onEditRaw}>Re-parse from raw text</Button>
           </details>
         )}
 
-        {error && <p className="text-muted" style={{ color: 'var(--color-accent-700)' }}>{error}</p>}
+        {error && <p className="text-muted text-error">{error}</p>}
 
         <div className="form-actions">
           <Button variant="secondary" onClick={() => { setPhase('idle'); setImagePreview(null); setError(null) }}>
@@ -253,37 +251,28 @@ export function Scan() {
   return (
     <main className="page">
       <h1 className="page-title">Scan recipe</h1>
-      <p className="text-muted" style={{ textAlign: 'center', marginBottom: 16 }}>
+      <p className="text-muted text-center mb-4">
         Supported formats: JPG, PNG, PDF
       </p>
 
-      <div style={{ display: 'flex', gap: 6, justifyContent: 'center', marginBottom: 16 }}>
+      <div className="chip-row chip-row-center mb-4">
         {LANGUAGES.map(({ value, label }) => (
           <button
             key={value}
             type="button"
+            className="chip"
             onClick={() => setScanLanguage(value)}
             aria-pressed={scanLanguage === value}
-            style={{
-              padding: '6px 14px',
-              background: scanLanguage === value ? 'var(--color-accent)' : 'var(--color-surface-3)',
-              color: scanLanguage === value ? 'var(--color-accent-contrast)' : 'var(--color-text)',
-              border: 'none',
-              borderRadius: '999px',
-              cursor: 'pointer',
-              fontSize: 13,
-            }}
           >
             {label}
           </button>
         ))}
       </div>
 
-      <div style={{ display: 'flex', gap: 16, justifyContent: 'center', marginBottom: 16 }}>
+      <div className="scan-actions">
         <Button
           variant="primary"
           onClick={onCapture}
-          style={{ flex: 1, maxWidth: '45%' }}
           aria-label="Take photo"
         >
           <Camera size={18} strokeWidth={2.75} />
@@ -291,15 +280,14 @@ export function Scan() {
         <Button
           variant="secondary"
           onClick={() => fileInput.current?.click()}
-          style={{ flex: 1, maxWidth: '45%' }}
         >
           <Upload size={18} strokeWidth={2.75} /> Upload
         </Button>
       </div>
 
-      <input ref={fileInput} type="file" accept="image/*,application/pdf" onChange={onFilePick} style={{ display: 'none' }} />
+      <input ref={fileInput} type="file" accept="image/*,application/pdf" onChange={onFilePick} hidden />
 
-      {error && <p className="text-muted" style={{ color: 'var(--color-accent-700)', marginTop: 16 }}>{error}</p>}
+      {error && <p className="text-muted text-error mt-4">{error}</p>}
     </main>
   )
 }
