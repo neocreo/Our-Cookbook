@@ -63,3 +63,12 @@ gradle-8.6-bin.zip*
 
 # Source materials (large binaries, not part of source)
 _sources/
+
+# webapp (React + Capacitor)
+webapp/node_modules/
+webapp/dist/
+webapp/dist-ssr/
+webapp/android/
+webapp/ios/
+webapp/.vite/
+webapp/*.local

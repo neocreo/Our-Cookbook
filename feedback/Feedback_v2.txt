@@ -1,0 +1,38 @@
+Home view
+- hide categories until Categories are chosen in top-nav.
+- add margin in top for 15px so the button row
+
+Cookbooks view
+- Change the "Owner" to not show the Device name. It should be the users name
+- make "X recipes" in bold
+- Show First line of the description and ability to fold out the description. We are trying to help the user find the correct cookbook.
+
+Cookbook view
+- Index overlaps the content. It should span from the Header at the top to the footer at the bottom. 
+- If there are no recipes starting with a letter - do not display the letter in the index. i.e. if there is no recipe starting with "D" do not 
+- Content should be to the right of the index.
+- move the "3 recipes" down to the same line as "Owner"
+- Owner should show the Users name who created the cookbook file. Not the Device name.
+- We need a way to filter to the cookbooks different categories. That should come under the Cook book title and owner info. User should then be able to use the index to filter further and drill down into the book.
+- Make Edit and Delete buttons icons only like on the Recipe view.
+
+Recipe view
+- I like this look. This is more how I want it through out the app, and the Cookbook view.
+- Remove "Source" at the bottom. It is available in the header.
+- make the tags/categories under the title clickable to respective category.
+- the copy-icon seem to create a new reccipe that is empty.
+
+Edit Recipe view
+- Remove the button "+ Create New". Add "Create new cookbook" as an option in the drop down instead.
+- Saving did not update the recipe. Make sure it can save.
+- Save and cancel buttons are hidden unless the user scrolls. Place them fixed at the bottom of the viewport. No need to see the bottom row of navigation icons on the edit recipe view.
+
+Search view
+- Categories and cookbook choice look a bit bland. Place them on the same row and more inviting to click on.still fold out the options.
+- goal here is to make it easy for the user to find what they are looking for.
+
+Settings view
+- dark mode should match choices for light mode where it comes to borders and backgrounds and rounded corners.
+- Export is unclear what it exports. Is it a whole cook book? Just settings for the app? 
+- Import is unclear what it actually imports.
+- Sync settings are not finished.

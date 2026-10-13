@@ -1,0 +1,85 @@
+Feedback
+
+Home view
+Remove the word "Home". We will make it clearer that this is the home screen.
+
+Home view Top Nav
+Display "Favorites","Categories", "Latest". Default is "Latest" and displays latest used recipes.
+
+Home view "Favorites" and "Latest"
+Display each entry with 1 thumbnail of recipe picture (if available, otherwise a placeholder "book" thumbnail. Next to this we can keep the text layout we have currently: Category, Title, Ingredient number, cooking time, servings. Add Cookbook title to show where the recipe belongs. Place cookbook title on same row as Category so it reads "Cookbookname | categoryname".
+Remove the background colour and rounded corners on the recipes. Separate each entry instead by a horizontal line in primary colour and padding above and below.
+Max 5 entries for each.
+
+Home view Categories
+Show categories as clickable buttons. A click takes you to Category view
+
+Cookbooks view.
+Each entry listed has Cookbook title, Owner/Author, Description (able to expand) and a small thumbnail in the shape of a book with 1-4 pictures from recipes inside the book. Thumbnail to the left, text on the right. 
+
+Cookbook detail view
+Keep the layout with Title and Description, add Owner/Author and then total number of recipes.
+Make "Rename/Edit" and "Delete" icons only. Place these in the top-right corner opposite of the back-button.
+When clicking edit, I want to edit the text in place on the page. No  Also make the remove-button on the recipes visible
+Right now you cannot edit a cookbook. I want "Rename" to be "Edit" and I want to be able to adjust Title and desciption of the cookbook - if I am the owner.
+I want to see an index on the left hand side A-Z (A-Ö in Swedish) so I can easily filter on recipes.
+Same layout choice for each recipe as for the Home view Favorites. 
+Hide the Remove button on the recipes and only show in Edit-mode.
+Add recipe button - go to Create Recipe view directly. Pre-select the cookbook for the recipe. Do not display existing recipes to be added.
+
+New/Edit Recipe view
+Change the layout. Think of it as edit in place for the layout of the recipe. We want the users to recognize themselves.
+No need to complicate things.
+Field names can be hidden per default. Use placeholder text if text or chosen option is missing.  
+Title on top
+Categories
+Cookbook - Dropdown between current cookbooks, or to create new cookbook.
+Description
+Ingredients
+- text field for amount, dropdown for unit, text field for ingredient name, remove icon.
+- make ingredients draggable for reordering.
+- Replace button "+ Add ingredient" with just a "+" icon under the last entered ingredient.
+Instructions
+- Make as one text area instead of multiple text-inputs. 
+- Add helpful button to the right on the same line as "Instructions" to insert Step-markup between different steps in the instructions. (Step markers can be converted when viewing to numbered list).
+- Remove button "+Add step" at the button as the function is moved.
+Servings, Prep time (min) and Cook time can be displayed on one row.
+Tags should be able to show already entered tags, or add new.
+Source - just a text input
+Notes - text area.
+Images - replace "Image URL" with ability to either take photo or upload picture. Convert any uploaded or taken photos to 500x500 images, and store as dataURI instead of binary.
+Images - in edit mode we should be able to remove said image.
+
+View Recipe view
+Display the deta in this order:
+Title
+Categories - make clickable to go to Search list with all recipes within a category.
+Cooking time | Servings | Cookbook name (make cookbook name clickable to go to full cookbook.
+Recipe-image - make as slideshow if more than one image exists on the recipe. User should be able to slide sideways between photos. Crop as 1:1. Click on recipe opens in full screen.
+Ingredients
+Instructions
+Notes
+Source
+
+View Recipe buttons - move to top-right location on same row as back-button. Keep buttons as icons.
+- Add "Share" icon, to copy recipe as text and share on social media.
+- Add "Copy" icon to create a copy in any existing cookbook.
+
+Search view
+Order of fields
+Search - input
+Categories - make category list compactable. Compact as default. Works as filter.
+Cookbooks - compact, user can choose to only search within a selected cookbook or all. Works as a filter.
+Search results - display recipes only when there are hits. Default is empty until user has written a search term.
+Layout of recipes should be same as Home Favorites view.
+
+Scan
+Replace buttons so they are displayed side by side at 45% size each. Format 1x1. Photo should just have a camera icon. Upload should have upload button but also the word "Upload".
+Provide info about upload formats. We should support JPG, PNG and PDF.
+
+Settings
+Sync - display the path to the folder i.e. "/Google Drive/OurOpenCookbook/"
+About - Add version and important info about support and link to homepage, rights, support page, etc.
+
+General UI
+Remove rounded corners on all form-fields.
