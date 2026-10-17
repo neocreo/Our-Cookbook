@@ -145,6 +145,7 @@ export function resolveConflict(
           category: conflict.remoteRecipe.category,
           description: conflict.remoteRecipe.description,
           ingredients: conflict.remoteRecipe.ingredients,
+          ingredientSections: conflict.remoteRecipe.ingredientSections,
           instructions: conflict.remoteRecipe.instructions,
           servingSize: conflict.remoteRecipe.servingSize,
           prepTime: conflict.remoteRecipe.prepTime,
@@ -163,7 +164,7 @@ export function resolveConflict(
 /** Field-level merge: latest updatedAt wins for scalar fields, tags union. */
 function mergeRecipes(local: Recipe, remote: Recipe): Recipe {
   const localIsNewer = isVersionNewer(local.versionVector, remote.versionVector)
-  return {
+  const merged: Recipe = {
     ...local,
     title: localIsNewer ? local.title : remote.title,
     description: localIsNewer ? local.description : remote.description,
@@ -180,4 +181,10 @@ function mergeRecipes(local: Recipe, remote: Recipe): Recipe {
     tags: [...new Set([...local.tags, ...remote.tags])],
     updatedAt: local.updatedAt > remote.updatedAt ? local.updatedAt : remote.updatedAt,
   }
+  // Sections travel with the flat list of whichever side wins; drop them when
+  // the winner has none so the two never disagree.
+  const sections = localIsNewer ? local.ingredientSections : remote.ingredientSections
+  if (sections) merged.ingredientSections = sections
+  else delete merged.ingredientSections
+  return merged
 }

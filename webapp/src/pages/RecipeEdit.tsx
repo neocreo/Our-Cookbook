@@ -1,26 +1,33 @@
 // RecipeEdit — create or edit a recipe with edit-in-place layout.
-// Supports drag-and-drop reordering of ingredients, multiple image uploads,
-// and pre-selecting a cookbook.
+// Ingredients and instructions are entered one per line (the same format as
+// the scan review); a recipe can have several named ingredient lists (e.g.
+// "Biscuits" and "Gravy"). Category is picked from existing categories or
+// entered as a new one. Supports multiple image uploads and pre-selecting
+// a cookbook.
 
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
-import { ArrowLeft, Plus, X, GripVertical } from 'lucide-react'
+import { ArrowLeft, Plus, X } from 'lucide-react'
 import { Button } from '../components/Button'
 import { Tag } from '../components/Tag'
 import { WashedImage } from '../components/WashedImage'
-import { getRecipe, saveRecipe } from '../features/recipe/repository'
+import { getRecipe, saveRecipe, allCategories } from '../features/recipe/repository'
 import { createCookbookNamed, addRecipeToCookbook, removeRecipeFromCookbook } from '../features/cookbook/repository'
 import { getDeviceId } from '../lib/device'
-import { createIngredient } from '../types/ingredient'
+import { createIngredientSection, flattenIngredientSections, ingredientDisplay } from '../types/ingredient'
+import { parseIngredientsFromText } from '../lib/ocrParser'
 import { resizeImageToDataURI } from '../lib/imageUtils'
 import { useCookbooks } from '../hooks/useCookbooks'
+import { useRecipes } from '../hooks/useRecipes'
 import { useAppStore } from '../stores/appStore'
-import type { Ingredient } from '../types/ingredient'
+import { getIngredientSections } from '../types/recipe'
 import type { Recipe, RecipeInput } from '../types/recipe'
 
-const UNITS = ['', 'tsp', 'tbsp', 'cup', 'cups', 'oz', 'lb', 'g', 'kg', 'ml', 'l', 'cloves', 'cans', 'slices', 'pieces', 'bunches', 'sticks']
-
 const CREATE_NEW_COOKBOOK = '__create__'
+const CREATE_NEW_CATEGORY = '__new_category__'
+
+// Editable draft of one ingredient list: a name plus the raw one-per-line text.
+type SectionDraft = { id: string; name: string; text: string }
 
 export function RecipeEdit() {
   const { id } = useParams<{ id: string }>()
@@ -28,9 +35,13 @@ export function RecipeEdit() {
   const navigate = useNavigate()
   const isEdit = Boolean(id)
   const { cookbooks } = useCookbooks()
+  const { recipes } = useRecipes()
+  const categories = allCategories(recipes)
 
   const [title, setTitle] = useState('')
   const [category, setCategory] = useState('')
+  // 'pick' = choose an existing category, 'new' = type a category name.
+  const [categoryMode, setCategoryMode] = useState<'pick' | 'new'>('pick')
   const [description, setDescription] = useState('')
   const [source, setSource] = useState('')
   const [servings, setServings] = useState('')
@@ -48,8 +59,8 @@ export function RecipeEdit() {
   const [creatingCookbook, setCreatingCookbook] = useState(false)
   const [newCookbookName, setNewCookbookName] = useState('')
   const [newCookbookDesc, setNewCookbookDesc] = useState('')
-  const [ingredients, setIngredients] = useState<Ingredient[]>(!isEdit ? [createIngredient('', null, null, null, 0)] : [])
-  const [draggedIndex, setDraggedIndex] = useState<number | null>(null)
+  // One unnamed list by default; "Add ingredient list" appends more.
+  const [sections, setSections] = useState<SectionDraft[]>([{ id: crypto.randomUUID(), name: '', text: '' }])
   const [instructions, setInstructions] = useState('')
   const [loading, setLoading] = useState(isEdit)
   const [saving, setSaving] = useState(false)
@@ -68,7 +79,13 @@ export function RecipeEdit() {
     setTags(r.tags)
     setNotes(r.notes ?? '')
     setImageUrls(r.imageUrls ?? [])
-    setIngredients(r.ingredients.length > 0 ? r.ingredients : [createIngredient('', null, null, null, 0)])
+    setSections(
+      getIngredientSections(r).map((s) => ({
+        id: s.id,
+        name: s.name,
+        text: s.ingredients.map(ingredientDisplay).join('\n'),
+      })),
+    )
     setInstructions(r.instructions.join('\n'))
   }
 
@@ -106,44 +123,16 @@ export function RecipeEdit() {
     : undefined
   const effectiveCookbookId = selectedCookbookId ?? copyHolderId ?? editHolderId ?? ''
 
-  function handleDragStart(index: number) {
-    setDraggedIndex(index)
+  function updateSection(id: string, patch: Partial<SectionDraft>) {
+    setSections(sections.map((s) => (s.id === id ? { ...s, ...patch } : s)))
   }
 
-  function handleDragOver(_index: number, e: React.DragEvent) {
-    e.preventDefault()
+  function addSection() {
+    setSections([...sections, { id: crypto.randomUUID(), name: '', text: '' }])
   }
 
-  function handleDrop(targetIndex: number, e: React.DragEvent) {
-    e.preventDefault()
-    if (draggedIndex === null || draggedIndex === targetIndex) return
-    setIngredients((prev) => {
-      const newIngredients = [...prev]
-      const [removed] = newIngredients.splice(draggedIndex, 1)
-      newIngredients.splice(targetIndex, 0, removed)
-      return newIngredients.map((ing, i) => ({ ...ing, order: i }))
-    })
-    setDraggedIndex(null)
-  }
-
-  function handleDragEnd() {
-    setDraggedIndex(null)
-  }
-
-  function addIngredient() {
-    setIngredients((prev) => [...prev, createIngredient('', null, null, null, prev.length)])
-  }
-
-  function removeIngredient(ingredientId: string) {
-    setIngredients((prev) => {
-      if (prev.length <= 1) return prev
-      const filtered = prev.filter((ing) => ing.id !== ingredientId)
-      return filtered.map((ing, i) => ({ ...ing, order: i }))
-    })
-  }
-
-  function updateIngredient(id: string, field: keyof Ingredient, value: string | number | null) {
-    setIngredients((prev) => prev.map((ing) => ing.id === id ? { ...ing, [field]: value } : ing))
+  function removeSection(id: string) {
+    setSections(sections.filter((s) => s.id !== id))
   }
 
   function addTag() {
@@ -175,20 +164,25 @@ export function RecipeEdit() {
     e.target.value = ''
   }
 
-  function insertStepMarkup() {
-    setInstructions(`${instructions}\n[STEP]\n`)
-  }
-
   async function onSave() {
     if (!title.trim() || !category.trim()) {
       window.alert('Title and category are required.')
       return
     }
-    setSaving(true)
 
-    const builtIngredients = ingredients
-      .filter((ing) => ing.name.trim())
-      .map((ing, i) => createIngredient(ing.name.trim(), ing.amount?.trim() || null, ing.unit?.trim() || null, ing.notes?.trim() || null, i))
+    // One ingredient per line: "amount unit name" — parsed the same way as
+    // the scan review, so any unit text is kept as typed. Empty lists are
+    // dropped; with more than one list, every list must have a name.
+    const builtSections = sections
+      .map((s) => createIngredientSection(s.name.trim(), parseIngredientsFromText(s.text)))
+      .filter((s) => s.ingredients.length > 0)
+    if (builtSections.length > 1 && builtSections.some((s) => !s.name)) {
+      window.alert('Each ingredient list needs a name (e.g. "Biscuits", "Gravy").')
+      return
+    }
+    const builtIngredients = flattenIngredientSections(builtSections)
+
+    setSaving(true)
 
     const builtInstructions = instructions
       .split('\n')
@@ -209,12 +203,20 @@ export function RecipeEdit() {
       tags,
       notes: notes.trim() || null,
     }
+    // Persist the structure only when it carries more than the default
+    // single unnamed list.
+    if (builtSections.length > 1 || builtSections.some((s) => s.name !== '')) {
+      input.ingredientSections = builtSections
+    }
 
     try {
       // Merge the form values into the existing recipe so edits actually persist.
       let existing: Recipe | null = null
       if (id) existing = await getRecipe(id)
-      const saved = await saveRecipe(existing ? { ...existing, ...input } : input, getDeviceId())
+      const merged = existing ? { ...existing, ...input } : input
+      // A single unnamed list means no sections — drop any stored structure.
+      if (!input.ingredientSections) delete merged.ingredientSections
+      const saved = await saveRecipe(merged, getDeviceId())
 
       const deviceId = getDeviceId()
       if (!isEdit) {
@@ -278,7 +280,34 @@ export function RecipeEdit() {
       </div>
 
       <div className="form-row">
-        <input className="input" value={category} onChange={(e) => setCategory(e.target.value)} placeholder="Category" />
+        <select
+          className="input"
+          value={categoryMode === 'new' ? CREATE_NEW_CATEGORY : category}
+          onChange={(e) => {
+            const v = e.target.value
+            if (v === CREATE_NEW_CATEGORY) {
+              setCategoryMode('new')
+            } else {
+              setCategoryMode('pick')
+              setCategory(v)
+            }
+          }}
+          aria-label="Category"
+        >
+          <option value="">Select a category...</option>
+          {categories.map((c) => <option key={c} value={c}>{c}</option>)}
+          {category && !categories.includes(category) && <option value={category}>{category}</option>}
+          <option value={CREATE_NEW_CATEGORY}>+ New category…</option>
+        </select>
+        {categoryMode === 'new' && (
+          <input
+            className="input"
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+            placeholder="Category name"
+            autoFocus
+          />
+        )}
       </div>
 
       <div className="form-row">
@@ -322,26 +351,47 @@ export function RecipeEdit() {
       </div>
 
       <div className="form-row">
-        <label>Ingredients</label>
-        <div className="line-list">
-          {ingredients.map((ing, idx) => (
-            <div key={ing.id} className="line-row" draggable onDragStart={() => handleDragStart(idx)} onDragOver={(e) => handleDragOver(idx, e)} onDrop={(e) => handleDrop(idx, e)} onDragEnd={handleDragEnd}>
-              <span className="drag-handle"><GripVertical size={14} strokeWidth={2.75} /></span>
-              <input className="input input-amount" placeholder="amount" value={ing.amount ?? ''} onChange={(e) => updateIngredient(ing.id, 'amount', e.target.value)} />
-              <select className="input input-unit" value={ing.unit ?? ''} onChange={(e) => updateIngredient(ing.id, 'unit', e.target.value)}>
-                {UNITS.map((u) => <option key={u} value={u}>{u}</option>)}
-              </select>
-              <input className="input" placeholder="ingredient name" value={ing.name} onChange={(e) => updateIngredient(ing.id, 'name', e.target.value)} />
-              <button type="button" className="btn btn-ghost btn-icon" onClick={() => removeIngredient(ing.id)} aria-label="Remove"><X size={18} strokeWidth={2.75} /></button>
-            </div>
-          ))}
-        </div>
-        <Button variant="secondary" className="mt-2" onClick={addIngredient}><Plus size={16} strokeWidth={2.75} /></Button>
+        <label>{sections.length > 1 ? 'Ingredient lists (one per line)' : 'Ingredients (one per line)'}</label>
+        {sections.map((s, idx) => (
+          <div key={s.id} className="ingredient-section">
+            {(sections.length > 1 || s.name) && (
+              <div className="row">
+                <input
+                  className="input"
+                  value={s.name}
+                  onChange={(e) => updateSection(s.id, { name: e.target.value })}
+                  placeholder="List name (e.g. Biscuits)"
+                  aria-label={`Ingredient list ${idx + 1} name`}
+                />
+                {sections.length > 1 && (
+                  <button type="button" className="btn btn-ghost btn-icon" onClick={() => removeSection(s.id)} aria-label={`Remove list ${idx + 1}`}>
+                    <X size={18} strokeWidth={2.75} />
+                  </button>
+                )}
+              </div>
+            )}
+            <textarea
+              className="input input-tall"
+              value={s.text}
+              onChange={(e) => updateSection(s.id, { text: e.target.value })}
+              placeholder={'2 cups flour\n1 tsp salt'}
+              rows={6}
+              aria-label={`Ingredients, list ${idx + 1}`}
+            />
+          </div>
+        ))}
+        <Button variant="secondary" onClick={addSection}><Plus size={16} strokeWidth={2.75} /> Add ingredient list</Button>
       </div>
 
       <div className="form-row">
-        <textarea className="input" value={instructions} onChange={(e) => setInstructions(e.target.value)} placeholder="Instructions (one step per line)" rows={8} />
-        <Button variant="secondary" className="mt-2" onClick={insertStepMarkup}><Plus size={16} strokeWidth={2.75} /> Insert Step</Button>
+        <label htmlFor="instructions">Instructions (one per line)</label>
+        <textarea
+          id="instructions"
+          className="input input-tall"
+          value={instructions}
+          onChange={(e) => setInstructions(e.target.value)}
+          rows={8}
+        />
       </div>
 
       <div className="form-grid">

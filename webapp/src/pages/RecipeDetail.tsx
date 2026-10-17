@@ -8,7 +8,7 @@ import { Tag } from '../components/Tag'
 import { ImageSlideshow } from '../components/ImageSlideshow'
 import { getRecipe, deleteRecipe, toggleFavorite } from '../features/recipe/repository'
 import { getDeviceId } from '../lib/device'
-import { totalRecipeTime } from '../types/recipe'
+import { totalRecipeTime, getIngredientSections } from '../types/recipe'
 import { useCookbooks } from '../hooks/useCookbooks'
 import type { Recipe } from '../types/recipe'
 
@@ -85,7 +85,10 @@ export function RecipeDetail() {
       ...(r.source ? [`Source: ${r.source}`] : []),
       '',
       '--- Ingredients ---',
-      ...r.ingredients.map((ing) => `- ${[ing.amount, ing.unit].filter(Boolean).join(' ')} ${ing.name}${ing.notes ? ` (${ing.notes})` : ''}`),
+      ...getIngredientSections(r).flatMap((s) => [
+        ...(s.name ? [`## ${s.name}`] : []),
+        ...s.ingredients.map((ing) => `- ${[ing.amount, ing.unit].filter(Boolean).join(' ')} ${ing.name}${ing.notes ? ` (${ing.notes})` : ''}`),
+      ]),
       '',
       '--- Instructions ---',
       ...r.instructions.map((step, i) => `${i + 1}. ${step}`),
@@ -223,21 +226,23 @@ export function RecipeDetail() {
         </div>
       </div>
 
-      <section className="recipe-section">
-        <h3>Ingredients</h3>
-        {recipe.ingredients.length === 0 ? (
-          <p className="text-muted">None</p>
-        ) : (
-          <ul className="ingredient-list">
-            {recipe.ingredients.map((ing) => (
-              <li key={ing.id}>
-                {[ing.amount, ing.unit].filter(Boolean).join(' ')} {ing.name}
-                {ing.notes && ` (${ing.notes})`}
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
+      {getIngredientSections(recipe).map((s) => (
+        <section className="recipe-section" key={s.id}>
+          <h3>{s.name || 'Ingredients'}</h3>
+          {s.ingredients.length === 0 ? (
+            <p className="text-muted">None</p>
+          ) : (
+            <ul className="ingredient-list">
+              {s.ingredients.map((ing) => (
+                <li key={ing.id}>
+                  {[ing.amount, ing.unit].filter(Boolean).join(' ')} {ing.name}
+                  {ing.notes && ` (${ing.notes})`}
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      ))}
 
       <section className="recipe-section">
         <h3>Instructions</h3>

@@ -1,7 +1,8 @@
 // Recipe — core domain model. Ported from Recipe.kt; field names match the
 // Kotlin app so Drive-synced files stay backwards-compatible.
 
-import type { Ingredient } from './ingredient'
+import type { Ingredient, IngredientSection } from './ingredient'
+import { flattenIngredientSections } from './ingredient'
 import type { VersionVector } from './versionVector'
 import { createVersionVector, incrementVersionVector } from './versionVector'
 
@@ -11,6 +12,10 @@ export interface Recipe {
   description: string | null
   category: string
   ingredients: Ingredient[]
+  // Named ingredient lists (e.g. "Biscuits" and "Gravy"). Optional: recipes
+  // with a single list only use `ingredients`. When present, `ingredients`
+  // mirrors the flattened sections for backwards compatibility.
+  ingredientSections?: IngredientSection[]
   instructions: string[]
   servingSize: number | null
   prepTime: number | null // minutes
@@ -33,6 +38,7 @@ export interface RecipeInput {
   description?: string | null
   category: string
   ingredients?: Ingredient[]
+  ingredientSections?: IngredientSection[]
   instructions?: string[]
   servingSize?: number | null
   prepTime?: number | null
@@ -52,7 +58,12 @@ export function createRecipe(input: RecipeInput, deviceId = ''): Recipe {
     title: input.title,
     description: input.description ?? null,
     category: input.category,
-    ingredients: input.ingredients ?? [],
+    // Sections are the structured source; the flat list mirrors them so
+    // older versions (and Drive-synced files) keep showing all ingredients.
+    ingredients: input.ingredientSections
+      ? flattenIngredientSections(input.ingredientSections)
+      : (input.ingredients ?? []),
+    ...(input.ingredientSections ? { ingredientSections: input.ingredientSections } : {}),
     instructions: input.instructions ?? [],
     servingSize: input.servingSize ?? null,
     prepTime: input.prepTime ?? null,
@@ -77,6 +88,15 @@ export function withRecipeUpdate(recipe: Recipe, deviceId: string): Recipe {
     updatedAt: new Date().toISOString(),
     versionVector: incrementVersionVector(recipe.versionVector, deviceId),
   }
+}
+
+/** The recipe's ingredient lists. Recipes saved before sections existed (or
+ *  with a single list) are presented as one unnamed section. */
+export function getIngredientSections(recipe: Recipe): IngredientSection[] {
+  if (recipe.ingredientSections && recipe.ingredientSections.length > 0) {
+    return recipe.ingredientSections
+  }
+  return [{ id: 'default', name: '', ingredients: recipe.ingredients ?? [] }]
 }
 
 export function totalRecipeTime(r: Recipe): number | null {

@@ -15,6 +15,7 @@ import { addRecipeToCookbook, fileUnfiledRecipes } from '../features/cookbook/re
 import { useCookbooks } from '../hooks/useCookbooks'
 import { useAppStore } from '../stores/appStore'
 import { getDeviceId } from '../lib/device'
+import { ingredientDisplay } from '../types/ingredient'
 import type { RecipeInput } from '../types/recipe'
 
 type Phase = 'idle' | 'cropping' | 'regions' | 'recognizing' | 'reviewing' | 'saving'
@@ -73,7 +74,7 @@ export function Scan() {
     const parsed = parseRecipeFromText(text)
     setTitle(parsed.title ?? '')
     setCategory(parsed.category ?? '')
-    setIngredients((parsed.ingredients ?? []).map((i) => [i.amount, i.unit, i.name].filter(Boolean).join(' ')).join('\n'))
+    setIngredients((parsed.ingredients ?? []).map(ingredientDisplay).join('\n'))
     setInstructions((parsed.instructions ?? []).join('\n'))
     setPhase('reviewing')
   }
@@ -172,7 +173,7 @@ export function Scan() {
     setTitle(titleLine.slice(0, 100))
     setCategory(titleLine ? inferCategoryFromTitle(titleLine) : '')
     const ings = parseIngredientsFromText(cleanIngredients)
-    setIngredients(ings.map((i) => [i.amount, i.unit, i.name].filter(Boolean).join(' ')).join('\n'))
+    setIngredients(ings.map(ingredientDisplay).join('\n'))
     setInstructions(parseInstructionsFromText(cleanInstructions).join('\n'))
     setPhase('reviewing')
   }
@@ -226,17 +227,8 @@ export function Scan() {
     const input: RecipeInput = {
       title: title.trim(),
       category: category.trim() || 'Uncategorized',
-      ingredients: ingredients
-        .split('\n')
-        .map((l) => l.trim())
-        .filter(Boolean)
-        .map((line, i) => {
-          const match = /^(\d+\s*\d*\/\d+|\d+\.\d+|\d+)\s*(oz|cup|cups|tbsp|tsp|lb|lbs|g|kg|ml|l|dl|cloves|cans|slices|pieces)?\s+(.*)$/i.exec(line)
-          if (match) {
-            return { id: crypto.randomUUID(), name: match[3], amount: match[1], unit: match[2] ?? null, notes: null, order: i }
-          }
-          return { id: crypto.randomUUID(), name: line, amount: null, unit: null, notes: null, order: i }
-        }),
+      // Parse the same way as RecipeEdit so any unit text is kept as typed.
+      ingredients: parseIngredientsFromText(ingredients),
       instructions: instructions.split('\n').map((l) => l.trim()).filter(Boolean),
       imageUrls: imagePreview ? [imagePreview] : undefined,
     }

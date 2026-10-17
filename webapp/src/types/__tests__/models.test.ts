@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
-import { createRecipe, withRecipeUpdate, totalRecipeTime } from '../../types/recipe'
-import { createIngredient } from '../../types/ingredient'
+import { createRecipe, withRecipeUpdate, totalRecipeTime, getIngredientSections } from '../../types/recipe'
+import { createIngredient, createIngredientSection, flattenIngredientSections } from '../../types/ingredient'
 import { createVersionVector, incrementVersionVector, isVersionNewer } from '../../types/versionVector'
 import { mergeSyncVersionVectors, createSyncVersionVector, withIncrementedSyncVersion } from '../../types/versionVector'
 
@@ -60,5 +60,39 @@ describe('Ingredient', () => {
     expect(i.name).toBe('flour')
     expect(i.amount).toBe('2')
     expect(i.order).toBe(0)
+  })
+})
+
+describe('IngredientSection', () => {
+  const biscuits = () => createIngredientSection('Biscuits', [createIngredient('flour', '2', 'cups', null, 0)])
+  const gravy = () => createIngredientSection('Gravy', [createIngredient('milk', '1', 'cup', null, 0)])
+
+  it('flattens sections into a single ingredient list', () => {
+    expect(flattenIngredientSections([biscuits(), gravy()]).map((i) => i.name)).toEqual(['flour', 'milk'])
+  })
+
+  it('presents a legacy recipe as one unnamed section', () => {
+    const r = createRecipe({ title: 'T', category: 'C', ingredients: [createIngredient('salt', null, null, null, 0)] })
+    const sections = getIngredientSections(r)
+    expect(sections).toHaveLength(1)
+    expect(sections[0].name).toBe('')
+    expect(sections[0].ingredients.map((i) => i.name)).toEqual(['salt'])
+  })
+
+  it('uses stored sections when present', () => {
+    const r = createRecipe({ title: 'T', category: 'C', ingredientSections: [biscuits(), gravy()] })
+    const sections = getIngredientSections(r)
+    expect(sections.map((s) => s.name)).toEqual(['Biscuits', 'Gravy'])
+  })
+
+  it('flattens sections into ingredients on create and keeps the structure', () => {
+    const r = createRecipe({ title: 'T', category: 'C', ingredientSections: [biscuits(), gravy()] })
+    expect(r.ingredients.map((i) => i.name)).toEqual(['flour', 'milk'])
+    expect(r.ingredientSections?.map((s) => s.name)).toEqual(['Biscuits', 'Gravy'])
+  })
+
+  it('omits ingredientSections when not provided', () => {
+    const r = createRecipe({ title: 'T', category: 'C', ingredients: [createIngredient('salt', null, null, null, 0)] })
+    expect('ingredientSections' in r).toBe(false)
   })
 })

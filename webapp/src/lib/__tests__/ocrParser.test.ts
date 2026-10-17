@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { parseRecipeFromText, preprocessOcrText, parseIngredientsFromText, parseInstructionsFromText, stripLeadingSectionHeaders } from '../../lib/ocrParser'
+import { ingredientDisplay } from '../../types/ingredient'
 
 describe('preprocessOcrText', () => {
   it('normalizes line endings', () => {
@@ -133,5 +134,20 @@ describe('stripLeadingSectionHeaders', () => {
 
   it('does not strip headers in the middle of the text', () => {
     expect(stripLeadingSectionHeaders('1 cup flour\nNotes:\nchill')).toBe('1 cup flour\nNotes:\nchill')
+  })
+})
+
+describe('ingredient line round-trip (one per line entry)', () => {
+  it('parse -> display reproduces the typed lines exactly', () => {
+    const lines = ['2 cups flour', '1/2 tsp salt', '3 cloves garlic', 'salt to taste', '2 cups flour (sifted)']
+    const text = lines.join('\n')
+    const roundTrip = parseIngredientsFromText(text).map(ingredientDisplay).join('\n')
+    expect(roundTrip).toBe(text)
+  })
+
+  it('keeps any unit text as typed, including Swedish units', () => {
+    const parsed = parseIngredientsFromText('1 msk socker\n2 matsked mjöl')
+    expect(parsed[0]).toMatchObject({ amount: '1', unit: 'msk', name: 'socker' })
+    expect(parsed[1]).toMatchObject({ amount: '2', unit: 'matsked', name: 'mjöl' })
   })
 })

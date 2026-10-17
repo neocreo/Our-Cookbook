@@ -5,10 +5,14 @@ import { Link } from 'react-router-dom'
 import { Button } from '../components/Button'
 import { useAppStore, effectiveTheme, type ThemePref, type SyncMode } from '../stores/appStore'
 import { useRecipes } from '../hooks/useRecipes'
+import { useCookbooks } from '../hooks/useCookbooks'
 import { getRepositoryMode, saveRecipe } from '../features/recipe/repository'
+import { createCookbookNamed, addRecipeToCookbook, fileUnfiledRecipes } from '../features/cookbook/repository'
 import { getDeviceId } from '../lib/device'
 import { recipesToMarkdown, recipesToJSON, parseRecipesJSON, downloadFile, readFileText } from '../lib/exportImport'
 import { getPendingCount } from '../features/sync/repository'
+
+const CREATE_NEW_COOKBOOK = '__create__'
 
 const themes: { value: ThemePref; label: string }[] = [
   { value: 'light', label: 'Light' },
@@ -24,8 +28,11 @@ export function Settings() {
   const userName = useAppStore((s) => s.userName)
   const setUserName = useAppStore((s) => s.setUserName)
   const { recipes } = useRecipes()
+  const { cookbooks } = useCookbooks()
   const fileInput = useRef<HTMLInputElement>(null)
   const [importMsg, setImportMsg] = useState<string | null>(null)
+  const [importCookbookId, setImportCookbookId] = useState('')
+  const [newCookbookName, setNewCookbookName] = useState('')
 
   function exportMarkdown() {
     downloadFile('recipes.md', recipesToMarkdown(recipes), 'text/markdown')
@@ -41,12 +48,39 @@ export function Settings() {
       const text = await readFileText(file)
       const imported = parseRecipesJSON(text)
       const deviceId = getDeviceId()
+
+      // Resolve the import target: the chosen cookbook, a new one, or —
+      // with nothing chosen — the default cookbook ("Mina recept").
+      let targetId: string | null = importCookbookId || null
+      let targetName = cookbooks.find((cb) => cb.id === targetId)?.name ?? ''
+      if (importCookbookId === CREATE_NEW_COOKBOOK) {
+        const name = newCookbookName.trim()
+        if (!name) {
+          setImportMsg('Type a name for the new cookbook first.')
+          e.target.value = ''
+          return
+        }
+        const cookbook = await createCookbookNamed(name, deviceId, null, userName)
+        targetId = cookbook.id
+        targetName = name
+        setImportCookbookId(cookbook.id)
+        setNewCookbookName('')
+      }
+
       let count = 0
       for (const r of imported) {
         await saveRecipe(r, deviceId)
         count++
       }
-      setImportMsg(`Imported ${count} recipe${count === 1 ? '' : 's'}.`)
+      const recipeIds = imported.map((r) => r.id)
+      if (targetId) {
+        for (const id of recipeIds) {
+          await addRecipeToCookbook(targetId, id, deviceId)
+        }
+      } else {
+        await fileUnfiledRecipes(deviceId, recipeIds)
+      }
+      setImportMsg(`Imported ${count} recipe${count === 1 ? '' : 's'}${targetName ? ` into "${targetName}"` : ''}.`)
     } catch (err) {
       setImportMsg(`Import failed: ${err instanceof Error ? err.message : 'invalid file'}`)
     }
@@ -140,9 +174,31 @@ export function Settings() {
       <section className="recipe-section">
         <h3>Import</h3>
         <p className="text-muted">
-          Imports recipes from a JSON file exported from Our Open Cookbook. The recipes are added
-          alongside your existing ones — nothing is deleted or overwritten.
+          Imports recipes from a JSON file exported from Our Open Cookbook — bare label rows such
+          as "Biscuits" and "Gravy" become named ingredient lists. Importing a file with recipes
+          you already have updates them in place, so re-importing is safe.
         </p>
+        <div className="field field-narrow mt-2">
+          <label htmlFor="import-cookbook">Import into</label>
+          <select
+            id="import-cookbook"
+            className="input"
+            value={importCookbookId}
+            onChange={(e) => setImportCookbookId(e.target.value)}
+          >
+            <option value="">Mina recept (default)</option>
+            {cookbooks.map((cb) => <option key={cb.id} value={cb.id}>{cb.name}</option>)}
+            <option value={CREATE_NEW_COOKBOOK}>+ New cookbook…</option>
+          </select>
+          {importCookbookId === CREATE_NEW_COOKBOOK && (
+            <input
+              className="input"
+              value={newCookbookName}
+              onChange={(e) => setNewCookbookName(e.target.value)}
+              placeholder="Cookbook name"
+            />
+          )}
+        </div>
         <input
           ref={fileInput}
           type="file"

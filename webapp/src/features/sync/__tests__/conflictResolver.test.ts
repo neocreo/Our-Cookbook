@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { detectConflicts, resolveConflict, type ConflictInfo } from '../conflictResolver'
 import { createRecipe } from '../../../types/recipe'
+import { createIngredient, createIngredientSection } from '../../../types/ingredient'
 
 function makeRecipe(id: string, counter = 0, updatedAt = '2026-01-01T00:00:00.000Z') {
   const r = createRecipe({ title: `Recipe ${id}`, category: 'Dinner' }, 'dev1')
@@ -93,6 +94,63 @@ describe('resolveConflict', () => {
     const result = resolveConflict(conflict, 'MERGE')
     expect(result.recipe.tags).toEqual(expect.arrayContaining(['dinner', 'easy', 'beef']))
     expect(result.recipe.tags).toHaveLength(3)
+  })
+
+  it('MERGE keeps the newer side\'s ingredient sections', () => {
+    const flour = createIngredient('flour', '2', 'cups', null, 0)
+    const local = makeRecipe('r1')
+    const remote = makeRecipe('r1', 1)
+    remote.ingredientSections = [createIngredientSection('Biscuits', [flour])]
+    remote.ingredients = [flour]
+    const conflict: ConflictInfo = {
+      recipeId: 'r1',
+      localRecipe: local,
+      remoteRecipe: remote,
+      conflictType: 'BOTH_MODIFIED',
+      localVersion: 0,
+      remoteVersion: 1,
+      localChecksum: null,
+      remoteChecksum: null,
+    }
+    const result = resolveConflict(conflict, 'MERGE')
+    expect(result.recipe.ingredientSections?.map((s) => s.name)).toEqual(['Biscuits'])
+    expect(result.recipe.ingredients.map((i) => i.name)).toEqual(['flour'])
+  })
+
+  it('MERGE drops sections when the winning side has none', () => {
+    const local = makeRecipe('r1')
+    local.ingredientSections = [createIngredientSection('Gravy', [createIngredient('milk', '1', 'cup', null, 0)])]
+    const remote = makeRecipe('r1', 1)
+    const conflict: ConflictInfo = {
+      recipeId: 'r1',
+      localRecipe: local,
+      remoteRecipe: remote,
+      conflictType: 'BOTH_MODIFIED',
+      localVersion: 0,
+      remoteVersion: 1,
+      localChecksum: null,
+      remoteChecksum: null,
+    }
+    const result = resolveConflict(conflict, 'MERGE')
+    expect('ingredientSections' in result.recipe).toBe(false)
+  })
+
+  it('KEEP_BOTH copies ingredient sections to the new recipe', () => {
+    const remote = makeRecipe('r1', 1)
+    remote.ingredientSections = [createIngredientSection('Biscuits', [createIngredient('flour', '2', 'cups', null, 0)])]
+    const conflict: ConflictInfo = {
+      recipeId: 'r1',
+      localRecipe: makeRecipe('r1'),
+      remoteRecipe: remote,
+      conflictType: 'BOTH_MODIFIED',
+      localVersion: 0,
+      remoteVersion: 1,
+      localChecksum: null,
+      remoteChecksum: null,
+    }
+    const result = resolveConflict(conflict, 'KEEP_BOTH')
+    expect(result.recipe.ingredientSections?.map((s) => s.name)).toEqual(['Biscuits'])
+    expect(result.recipe.ingredients.map((i) => i.name)).toEqual(['flour'])
   })
 
   it('KEEP_BOTH creates a copy with a new ID', () => {

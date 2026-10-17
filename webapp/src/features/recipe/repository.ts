@@ -10,6 +10,7 @@
 import type { Recipe, RecipeInput } from '../../types/recipe'
 import type { Cookbook } from '../../types/cookbook'
 import { createRecipe, withRecipeUpdate } from '../../types/recipe'
+import { flattenIngredientSections } from '../../types/ingredient'
 import { withRemovedRecipe, createCookbook } from '../../types/cookbook'
 import { initStore, getMode, getDb, getMemRecipes, getMemCookbooks } from '../../lib/store'
 import { enqueueSync } from '../sync/repository'
@@ -24,7 +25,8 @@ function normalizeRecipe(r: Recipe): Recipe {
   return {
     ...r,
     imageUrls: r.imageUrls ?? [],
-    ingredients: r.ingredients ?? [],
+    // Recipes with named sections but no flat list: derive it from the sections.
+    ingredients: r.ingredients ?? flattenIngredientSections(r.ingredientSections ?? []),
     instructions: r.instructions ?? [],
     tags: r.tags ?? [],
   }

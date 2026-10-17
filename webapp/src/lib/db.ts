@@ -20,8 +20,21 @@ export interface AppDatabase {
   cookbooks: CookbookCollection
 }
 
+const ingredientItemSchema = {
+  type: 'object',
+  properties: {
+    id: { type: 'string' },
+    name: { type: 'string' },
+    amount: { type: ['string', 'null'] },
+    unit: { type: ['string', 'null'] },
+    notes: { type: ['string', 'null'] },
+    order: { type: 'number' },
+  },
+  required: ['id', 'name', 'order'],
+} as const
+
 const recipeSchema = {
-  version: 0,
+  version: 1,
   primaryKey: 'id',
   type: 'object',
   properties: {
@@ -29,19 +42,19 @@ const recipeSchema = {
     title: { type: 'string' },
     description: { type: ['string', 'null'] },
     category: { type: 'string' },
-    ingredients: {
+    ingredients: { type: 'array', items: ingredientItemSchema },
+    // v1 added ingredientSections (optional): named ingredient lists, e.g.
+    // "Biscuits" and "Gravy" in a biscuits-and-gravy recipe.
+    ingredientSections: {
       type: 'array',
       items: {
         type: 'object',
         properties: {
           id: { type: 'string' },
           name: { type: 'string' },
-          amount: { type: ['string', 'null'] },
-          unit: { type: ['string', 'null'] },
-          notes: { type: ['string', 'null'] },
-          order: { type: 'number' },
+          ingredients: { type: 'array', items: ingredientItemSchema },
         },
-        required: ['id', 'name', 'order'],
+        required: ['id', 'name', 'ingredients'],
       },
     },
     instructions: { type: 'array', items: { type: 'string' } },
@@ -112,7 +125,13 @@ export function initDatabase(deviceId: string): Promise<AppDatabase> {
     })
 
     const collections = await db.addCollections({
-      recipes: { schema: recipeSchema },
+      recipes: {
+        schema: recipeSchema,
+        migrationStrategies: {
+          // v1 added ingredientSections (optional) — old docs simply lack it.
+          1: (doc) => doc,
+        },
+      },
       cookbooks: {
         schema: cookbookSchema,
         migrationStrategies: {
