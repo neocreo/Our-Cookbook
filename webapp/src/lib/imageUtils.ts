@@ -123,6 +123,53 @@ export function getExtensionFromDataURI(dataURI: string): string {
 }
 
 /**
+ * A rectangle in normalized (0..1) image coordinates, as drawn on the
+ * ScanStage. (0,0) is the top-left corner of the image.
+ */
+export interface ImageRegion {
+  x: number
+  y: number
+  w: number
+  h: number
+}
+
+function loadImageElement(dataUrl: string): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const img = new Image()
+    img.onload = () => resolve(img)
+    img.onerror = () => reject(new Error('Failed to load image'))
+    img.src = dataUrl
+  })
+}
+
+/**
+ * Crop a region out of an image data URL. The region uses normalized
+ * coordinates and is clamped to the image. `scale` multiplies the output
+ * resolution — pass 2 for OCR input, where tesseract prefers larger text.
+ */
+export async function cropImageRegion(dataUrl: string, region: ImageRegion, scale = 1): Promise<string> {
+  const img = await loadImageElement(dataUrl)
+  const x = Math.min(Math.max(region.x, 0), 1)
+  const y = Math.min(Math.max(region.y, 0), 1)
+  const w = Math.min(Math.max(region.w, 0), 1 - x)
+  const h = Math.min(Math.max(region.h, 0), 1 - y)
+  const sx = Math.round(x * img.naturalWidth)
+  const sy = Math.round(y * img.naturalHeight)
+  const sw = Math.max(1, Math.round(w * img.naturalWidth))
+  const sh = Math.max(1, Math.round(h * img.naturalHeight))
+
+  const canvas = document.createElement('canvas')
+  canvas.width = Math.max(1, Math.round(sw * scale))
+  canvas.height = Math.max(1, Math.round(sh * scale))
+  const ctx = canvas.getContext('2d')
+  if (!ctx) {
+    throw new Error('Could not get canvas context')
+  }
+  ctx.drawImage(img, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height)
+  return canvas.toDataURL('image/jpeg', 0.92)
+}
+
+/**
  * Convert data URI to blob.
  */
 export function dataURIToBlob(dataURI: string): Blob {

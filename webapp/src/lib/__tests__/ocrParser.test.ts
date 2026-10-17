@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { parseRecipeFromText, preprocessOcrText } from '../../lib/ocrParser'
+import { parseRecipeFromText, preprocessOcrText, parseIngredientsFromText, parseInstructionsFromText, stripLeadingSectionHeaders } from '../../lib/ocrParser'
 
 describe('preprocessOcrText', () => {
   it('normalizes line endings', () => {
@@ -84,5 +84,54 @@ describe('parseRecipeFromText', () => {
     const r = parseRecipeFromText('')
     expect(r.title).toBe('Untitled Recipe')
     expect(r.ingredients).toHaveLength(0)
+  })
+})
+
+describe('region text parsing (marked OCR areas)', () => {
+  it('parses one ingredient per line', () => {
+    const ings = parseIngredientsFromText('2 cups flour\n1/2 cup butter\nsalt to taste')
+    expect(ings).toHaveLength(3)
+    expect(ings[0]).toMatchObject({ amount: '2', unit: 'cups', name: 'flour' })
+    expect(ings[2]).toMatchObject({ name: 'salt to taste' })
+  })
+
+  it('parses one instruction per line', () => {
+    expect(parseInstructionsFromText('Mix everything\nBake 30 min')).toEqual(['Mix everything', 'Bake 30 min'])
+  })
+
+  it('does not turn the "Ingredients" heading into an ingredient', () => {
+    // the marked rectangle included the heading line above the list
+    const ings = parseIngredientsFromText(stripLeadingSectionHeaders('Ingredients:\n2 cups flour\n1 egg'))
+    expect(ings).toHaveLength(2)
+    expect(ings[0]).toMatchObject({ amount: '2', unit: 'cups', name: 'flour' })
+    expect(ings.map((i) => i.name)).not.toContain('Ingredients:')
+  })
+
+  it('does not turn the "Instructions" heading into a step', () => {
+    const steps = parseInstructionsFromText(stripLeadingSectionHeaders('Instructions:\n1. Mix\n2. Bake'))
+    expect(steps).toEqual(['Mix', 'Bake'])
+  })
+})
+
+describe('stripLeadingSectionHeaders', () => {
+  it('removes leading blank lines and section headers', () => {
+    expect(stripLeadingSectionHeaders('\n\nIngredients:\n\n1 cup flour')).toBe('1 cup flour')
+  })
+
+  it('removes several leading headers', () => {
+    expect(stripLeadingSectionHeaders('Ingredients:\nInstructions:\nMix')).toBe('Mix')
+  })
+
+  it('matches headers case-insensitively and with or without colon', () => {
+    expect(stripLeadingSectionHeaders('INGREDIENTS\n1 cup flour')).toBe('1 cup flour')
+    expect(stripLeadingSectionHeaders('Directions:\nMix')).toBe('Mix')
+  })
+
+  it('leaves content without leading headers untouched', () => {
+    expect(stripLeadingSectionHeaders('2 cups flour\n1 egg')).toBe('2 cups flour\n1 egg')
+  })
+
+  it('does not strip headers in the middle of the text', () => {
+    expect(stripLeadingSectionHeaders('1 cup flour\nNotes:\nchill')).toBe('1 cup flour\nNotes:\nchill')
   })
 })

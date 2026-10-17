@@ -45,6 +45,12 @@
   --color-accent-2-800: #3d472b;
   --color-accent-2-900: #272e1b;
 
+  /* Region-marker colours for the scan flow: which rectangle marks the
+     title, the ingredients or the instructions. */
+  --color-region-title: #8b5cf6;
+  --color-region-ingredients: #3b82f6;
+  --color-region-instructions: #22c55e;
+
   --font-heading: "Trocchi", system-ui, serif;
   --font-heading-weight: 400;
   --font-body: "Figtree", system-ui, sans-serif;
@@ -83,6 +89,11 @@
   --color-accent-2-100: color-mix(in srgb, var(--color-accent-2) 26%, var(--color-surface));
   --color-accent-2-200: color-mix(in srgb, var(--color-accent-2) 38%, var(--color-surface));
   --color-accent-2-800: #e1eecc;
+
+  /* Lighter region-marker colours keep their contrast on the dark ground. */
+  --color-region-title: #a78bfa;
+  --color-region-ingredients: #60a5fa;
+  --color-region-instructions: #4ade80;
   --color-neutral-100: #474238;
   --color-neutral-200: #645c50;
   --color-neutral-300: #82796a;

@@ -171,7 +171,8 @@ export function RecipeDetail() {
       </div>
 
       <div className="recipe-hero">
-        {/* Image slideshow */}
+        {/* Only a real uploaded photo is shown inside the recipe — the
+            fallback illustration is for list icons, not here. */}
         {(recipe.imageUrls ?? []).length > 0 && (
           <div className="mb-4">
             <ImageSlideshow imageUrls={recipe.imageUrls ?? []} alt={recipe.title} />

@@ -67,6 +67,7 @@ img { display: block; max-width: 100%; }
 .btn-ghost:hover { background: color-mix(in srgb, var(--color-accent) 10%, transparent); }
 .btn-ghost:active { background: color-mix(in srgb, var(--color-accent) 18%, transparent); }
 .btn-icon { width: 36px; height: 36px; padding: 0; }
+.btn-icon-lg { width: 48px; height: 48px; }
 .btn-block { width: 100%; margin-top: var(--space-2); }
 
 /* — forms — */
@@ -140,7 +141,7 @@ textarea.input { min-height: 90px; resize: vertical; border-radius: 0; }
   display: flex;
   align-items: center;
   gap: var(--space-4);
-  padding: var(--space-3) var(--space-4);
+  padding: calc(var(--space-3) + env(safe-area-inset-top, 0)) var(--space-4);
   border-bottom: none;
 }
 .nav-brand {
@@ -185,6 +186,12 @@ textarea.input { min-height: 90px; resize: vertical; border-radius: 0; }
 .washed { filter: saturate(0.6) contrast(0.85) brightness(1.1) opacity(0.94); }
 
 /* ═══ App shell ═══ */
+/* Safe areas: the Capacitor WebView draws edge-to-edge — under the iOS
+   notch/Dynamic Island, the Android status bar, the home-indicator area,
+   and the side edges in landscape. env(safe-area-inset-*) reports those
+   overlaps (0 on desktop and on devices without a cutout), so the padding
+   below only grows where the system UI actually covers the screen. Requires
+   viewport-fit=cover in index.html, which is already set. */
 #root { min-height: 100dvh; }
 
 .app-shell {
@@ -198,7 +205,19 @@ textarea.input { min-height: 90px; resize: vertical; border-radius: 0; }
   width: 100%;
   max-width: 720px;
   margin: 0 auto;
-  padding: var(--space-4) var(--space-4) calc(var(--space-8) + 72px);
+  padding: calc(var(--space-4) + env(safe-area-inset-top, 0)) calc(var(--space-4) + env(safe-area-inset-right, 0)) calc(var(--space-8) + 72px + env(safe-area-inset-bottom, 0)) calc(var(--space-4) + env(safe-area-inset-left, 0));
+}
+
+/* Landscape: the camera/notch sits on a side edge and thumbs grip the sides
+   of the phone, so keep content one thumb-width (--space-3) clear of the
+   physical edge, past the side safe-area inset. The A–Ö rail measures its
+   bleed from this content box, so it stops at the same line while its
+   letters stay on the content margin. */
+@media (orientation: landscape) {
+  .page {
+    padding-right: calc(var(--space-4) + env(safe-area-inset-right, 0) + var(--space-3));
+    padding-left: calc(var(--space-4) + env(safe-area-inset-left, 0) + var(--space-3));
+  }
 }
 
 .page-title {
@@ -218,8 +237,11 @@ textarea.input { min-height: 90px; resize: vertical; border-radius: 0; }
   display: flex;
   justify-content: space-around;
   align-items: center;
-  height: 64px;
-  padding: 0 var(--space-2) env(safe-area-inset-bottom, 0);
+  /* Height grows with the home-indicator inset so the links keep their
+     full 64px and stay clear of the gesture area. */
+  height: calc(64px + env(safe-area-inset-bottom, 0));
+  /* Side insets keep the outer links clear of the camera/notch in landscape. */
+  padding: 0 calc(var(--space-2) + env(safe-area-inset-right, 0)) env(safe-area-inset-bottom, 0) calc(var(--space-2) + env(safe-area-inset-left, 0));
   background: var(--color-surface);
   border-top: 1px solid var(--color-divider);
 }
@@ -241,7 +263,7 @@ textarea.input { min-height: 90px; resize: vertical; border-radius: 0; }
 /* — FAB — */
 .fab {
   position: fixed;
-  right: var(--space-4);
+  right: calc(var(--space-4) + env(safe-area-inset-right, 0));
   bottom: calc(72px + env(safe-area-inset-bottom, 0));
   z-index: 21;
   display: inline-flex;
@@ -270,7 +292,7 @@ textarea.input { min-height: 90px; resize: vertical; border-radius: 0; }
   gap: var(--space-6);
   max-width: 480px;
   margin: 0 auto;
-  padding: var(--space-8) var(--space-4);
+  padding: calc(var(--space-8) + env(safe-area-inset-top, 0)) var(--space-4) calc(var(--space-8) + env(safe-area-inset-bottom, 0));
 }
 .onboarding-mark {
   width: 96px;
@@ -299,8 +321,10 @@ textarea.input { min-height: 90px; resize: vertical; border-radius: 0; }
 .line-row .input { flex: 1; }
 .form-actions { display: flex; justify-content: flex-end; gap: var(--space-2); margin-top: var(--space-4); }
 
-/* Edit recipe: save/cancel always visible at the bottom of the viewport. */
-.edit-page { padding-bottom: calc(var(--space-8) + 96px); }
+/* Edit recipe: save/cancel always visible at the bottom of the viewport.
+   The fixed actions bar grows by the home-indicator inset, so the page
+   bottom padding must grow with it. */
+.edit-page { padding-bottom: calc(var(--space-8) + 96px + env(safe-area-inset-bottom, 0)); }
 .edit-actions-bar {
   position: fixed;
   left: 0;
@@ -310,7 +334,7 @@ textarea.input { min-height: 90px; resize: vertical; border-radius: 0; }
   display: flex;
   justify-content: flex-end;
   gap: var(--space-2);
-  padding: var(--space-2) var(--space-4) calc(var(--space-2) + env(safe-area-inset-bottom, 0));
+  padding: var(--space-2) calc(var(--space-4) + env(safe-area-inset-right, 0)) calc(var(--space-2) + env(safe-area-inset-bottom, 0)) calc(var(--space-4) + env(safe-area-inset-left, 0));
   background: var(--color-surface);
   border-top: 1px solid var(--color-divider);
 }
@@ -327,14 +351,18 @@ textarea.input { min-height: 90px; resize: vertical; border-radius: 0; }
    the bleed distance doubles as left padding. The rail carries the same bleed
    as its own padding so the tabs stay inside its padding box and are not
    clipped by overflow-y: auto. The bleed mirrors .page (max-width 720px,
-   centered, --space-4 padding). */
+   centered, --space-4 padding). In landscape, .page adds the side safe-area
+   inset (camera/notch) plus a thumb-grip margin, so the rail still bleeds
+   out but stops at that line instead of the physical edge; the letters stay
+   on the content margin either way. The rail sticks below the top inset and
+   its height leaves room for the bottom nav and the home-indicator inset. */
 .az-rail {
   --rail-bleed: calc(max((100vw - 720px) / 2, 0px) + var(--space-4));
   position: sticky;
-  top: 0;
+  top: env(safe-area-inset-top, 0);
   align-self: start;
   width: calc(26px + var(--rail-bleed));
-  height: calc(100dvh - 96px);
+  height: calc(100dvh - 96px - env(safe-area-inset-top, 0) - env(safe-area-inset-bottom, 0));
   display: flex;
   flex-direction: column;
   gap: 1px;
@@ -347,9 +375,10 @@ textarea.input { min-height: 90px; resize: vertical; border-radius: 0; }
 .az-rail button {
   flex: none;
   width: calc(26px + var(--rail-bleed));
-  height: 19px;
   margin-left: calc(-1 * var(--rail-bleed));
-  padding: 0 0 0 var(--rail-bleed);
+  /* 1em vertical padding keeps the tap target comfortable; when the full
+     alphabet plus "123" outgrows the screen the rail scrolls (overflow-y). */
+  padding: 1em 0 1em var(--rail-bleed);
   border: none;
   border-radius: 0 999px 999px 0;
   background: transparent;
@@ -449,14 +478,6 @@ textarea.input { min-height: 90px; resize: vertical; border-radius: 0; }
 .thumb-48 { width: 48px; height: 48px; }
 .thumb-64 { width: 64px; height: 64px; }
 .thumb-80 { width: 80px; height: 80px; }
-.thumb-placeholder {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--color-surface-3);
-  border-radius: var(--radius-md);
-  color: var(--color-text-muted);
-}
 .img-cover { width: 100%; object-fit: cover; border-radius: var(--radius-lg); }
 .img-fill { width: 100%; height: 100%; object-fit: cover; border-radius: 0.5em; }
 
@@ -521,6 +542,74 @@ textarea.input-tall { min-height: 120px; }
 .scan-actions .btn { flex: 1; max-width: 45%; }
 .raw-toggle { cursor: pointer; font-size: 13px; }
 .ocr-text { margin-top: var(--space-2); font-size: 12px; white-space: pre-wrap; }
+
+/* — scan: crop & region marking — a fullscreen stage between a top and a
+   bottom bar. One finger drags a rectangle, two fingers pinch to zoom and
+   pan. The canvas is absolutely positioned and scaled from its top-left
+   corner, matching the view math in lib/scanGeometry. Rect positions arrive
+   as CSS variables, the same pattern as --book-size and --rail-bleed. */
+.scan-fullscreen {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-bg);
+  padding: env(safe-area-inset-top, 0) env(safe-area-inset-right, 0) env(safe-area-inset-bottom, 0) env(safe-area-inset-left, 0);
+}
+.scan-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+}
+.scan-bar p { margin: 0; }
+.scan-bar-col { flex-direction: column; align-items: stretch; }
+.scan-title { margin: 0; font-size: 18px; font-weight: 600; color: var(--color-text); }
+.scan-stage {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  touch-action: none;
+  user-select: none;
+  cursor: crosshair;
+  background: var(--color-surface-3);
+}
+.scan-canvas { position: absolute; transform-origin: 0 0; }
+.scan-image { display: block; width: 100%; height: 100%; object-fit: cover; border-radius: var(--radius-lg); }
+.scan-overlay { position: absolute; inset: 0; }
+.scan-rect {
+  position: absolute;
+  left: calc(var(--rx) * 100%);
+  top: calc(var(--ry) * 100%);
+  width: calc(var(--rw) * 100%);
+  height: calc(var(--rh) * 100%);
+  border: 2px solid var(--region-color);
+  background: color-mix(in srgb, var(--region-color) 12%, transparent);
+  border-radius: var(--radius-sm);
+  pointer-events: none;
+}
+.scan-rect-active { border-style: dashed; }
+
+.region-btn {
+  --region-color: var(--color-accent);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  border: 1px solid var(--region-color);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--region-color) 12%, transparent);
+  color: var(--region-color);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+.region-btn[aria-pressed='true'] { background: var(--region-color); color: #fff; }
+.region-btn-title { --region-color: var(--color-region-title); }
+.region-btn-ingredients { --region-color: var(--color-region-ingredients); }
+.region-btn-instructions { --region-color: var(--color-region-instructions); }
 
 /* — image slideshow — */
 .slideshow {

@@ -3,9 +3,10 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeft, Pencil, Plus, Trash2, X, BookOpen, Check } from 'lucide-react'
+import { ArrowLeft, Pencil, Plus, Trash2, X, Check } from 'lucide-react'
 import { Button } from '../components/Button'
 import { WashedImage } from '../components/WashedImage'
+import { RecipeFallbackImage } from '../components/RecipeFallbackImage'
 import { Tag } from '../components/Tag'
 import { getCookbook, deleteCookbook, renameCookbook } from '../features/cookbook/repository'
 import { deleteRecipe } from '../features/recipe/repository'
@@ -27,10 +28,23 @@ function formatTime(minutes: number | null): string | null {
   return m ? `${h} hr ${m} min` : `${h} hr`
 }
 
-// The index letter a title sorts under; titles outside A-Ö fall under '#'.
+// Numeric titles (e.g. "3-ingredient pasta") sort under "123".
+const NUMERIC = '123'
+
+// The index letter a title sorts under; digits go to "123", anything else
+// outside A-Ö falls under '#'.
 function indexLetter(title: string): string {
   const first = title.trim().toUpperCase().charAt(0)
-  return AZ_LETTERS.includes(first) ? first : '#'
+  if (AZ_LETTERS.includes(first)) return first
+  if (first >= '0' && first <= '9') return NUMERIC
+  return '#'
+}
+
+// Rail order: A-Ö, then "123", then '#' for remaining symbols.
+function indexRank(letter: string): number {
+  if (letter === NUMERIC) return AZ_LETTERS.length
+  if (letter === '#') return AZ_LETTERS.length + 1
+  return AZ_LETTERS.indexOf(letter)
 }
 
 function AZIndex({ letters, onSelect, activeLetter }: {
@@ -65,46 +79,50 @@ function RecipeRow({ recipe, cookbook, onRemove, editMode }: {
   const time = formatTime(totalRecipeTime(recipe))
 
   return (
-    <div className="entry">
-      <div className="entry-thumb">
-        {imageUrl ? (
-          <WashedImage
-            src={imageUrl}
-            alt={recipe.title}
-            className="thumb thumb-48"
-          />
-        ) : (
-          <div className="thumb-placeholder thumb-48">
-            <BookOpen size={20} className="icon-muted" strokeWidth={2.75} />
+    <Link to={`/recipes/${recipe.id}`} className="link-plain">
+      <div className="entry">
+        <div className="entry-thumb">
+          {imageUrl ? (
+            <WashedImage
+              src={imageUrl}
+              alt={recipe.title}
+              className="thumb thumb-48"
+            />
+          ) : (
+            <RecipeFallbackImage className="thumb thumb-48" />
+          )}
+        </div>
+
+        <div className="entry-body">
+          <div className="entry-meta">
+            <span>{cookbook.name}</span>
+            <span>|</span>
+            <span>{recipe.category}</span>
           </div>
+          <h4 className="entry-title">{recipe.title}</h4>
+          <div className="entry-stats">
+            <span>{recipe.ingredients.length} ingredients</span>
+            {time && <span>{time}</span>}
+            {recipe.servingSize && <span>{recipe.servingSize} servings</span>}
+          </div>
+        </div>
+
+        {editMode && (
+          <button
+            type="button"
+            className="btn btn-ghost btn-icon flex-none"
+            onClick={(e) => {
+              e.preventDefault()
+              e.stopPropagation()
+              onRemove(recipe.id)
+            }}
+            aria-label={`Remove ${recipe.title}`}
+          >
+            <X size={16} strokeWidth={2.75} />
+          </button>
         )}
       </div>
-
-      <div className="entry-body">
-        <div className="entry-meta">
-          <span>{cookbook.name}</span>
-          <span>|</span>
-          <span>{recipe.category}</span>
-        </div>
-        <h4 className="entry-title">{recipe.title}</h4>
-        <div className="entry-stats">
-          <span>{recipe.ingredients.length} ingredients</span>
-          {time && <span>{time}</span>}
-          {recipe.servingSize && <span>{recipe.servingSize} servings</span>}
-        </div>
-      </div>
-
-      {editMode && (
-        <button
-          type="button"
-          className="btn btn-ghost btn-icon flex-none"
-          onClick={() => onRemove(recipe.id)}
-          aria-label={`Remove ${recipe.title}`}
-        >
-          <X size={16} strokeWidth={2.75} />
-        </button>
-      )}
-    </div>
+    </Link>
   )
 }
 
@@ -188,11 +206,7 @@ export function CookbookDetail() {
     ? members.filter((r) => r.category === filterCategory)
     : members
   const letters = [...new Set(afterCategory.map((r) => indexLetter(r.title)))]
-    .sort((a, b) => {
-      if (a === '#') return 1
-      if (b === '#') return -1
-      return AZ_LETTERS.indexOf(a) - AZ_LETTERS.indexOf(b)
-    })
+    .sort((a, b) => indexRank(a) - indexRank(b))
   const filteredMembers = filterLetter
     ? afterCategory.filter((r) => indexLetter(r.title) === filterLetter)
     : afterCategory
@@ -271,36 +285,41 @@ export function CookbookDetail() {
             )}
           </div>
 
-          {/* Category filter — under the title and owner info; the index then
-              drills down within the chosen category. */}
-          {!editing && categories.length > 0 && (
-            <div className="chip-row mb-4">
-              <button
-                type="button"
-                className="chip"
-                onClick={() => selectCategory(null)}
-                aria-pressed={filterCategory == null}
-              >
-                All
-              </button>
-              {categories.map((c) => (
-                <button
-                  key={c}
-                  type="button"
-                  className="chip"
-                  onClick={() => selectCategory(filterCategory === c ? null : c)}
-                  aria-pressed={filterCategory === c}
-                >
-                  {c}
-                </button>
-              ))}
-            </div>
-          )}
-
+          {/* Category filter and add-recipe share one row — chips left, a
+              large + on the right — so the button never pushes content around.
+              The index drills down within the chosen category. */}
           {!editing && (
-            <div className="mb-4">
-              <Link to={`/recipes/new?cookbookId=${cookbook.id}`} className="btn btn-primary">
-                <Plus size={16} strokeWidth={2.75} /> Add Recipe
+            <div className="row mb-4">
+              {categories.length > 0 && (
+                <div className="chip-row">
+                  <button
+                    type="button"
+                    className="chip"
+                    onClick={() => selectCategory(null)}
+                    aria-pressed={filterCategory == null}
+                  >
+                    All
+                  </button>
+                  {categories.map((c) => (
+                    <button
+                      key={c}
+                      type="button"
+                      className="chip"
+                      onClick={() => selectCategory(filterCategory === c ? null : c)}
+                      aria-pressed={filterCategory === c}
+                    >
+                      {c}
+                    </button>
+                  ))}
+                </div>
+              )}
+              <div className="row-spacer" />
+              <Link
+                to={`/recipes/new?cookbookId=${cookbook.id}`}
+                className="btn btn-primary btn-icon btn-icon-lg"
+                aria-label="Add recipe"
+              >
+                <Plus size={24} strokeWidth={2.75} />
               </Link>
             </div>
           )}

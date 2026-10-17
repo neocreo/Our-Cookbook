@@ -92,7 +92,8 @@ function parseInstruction(line: string): string {
   return cleanLine
 }
 
-function inferCategoryFromTitle(title: string): string {
+/** Guess a category from the recipe title (used when the text has none). */
+export function inferCategoryFromTitle(title: string): string {
   const t = title.toLowerCase()
   if (/breakfast|pancake|waffle|omelet|oatmeal|granola/.test(t)) return 'Breakfast'
   if (/cookie|cake|pie|brownie|dessert|sweet|chocolate|ice cream/.test(t)) return 'Dessert'
@@ -143,6 +144,38 @@ function extractInstructionsFromText(text: string): string[] {
     }
   }
   return instructions.length ? instructions : ['Add instructions']
+}
+
+/** Parse region text (one ingredient per line) into Ingredient objects.
+    Used when the user has marked the ingredients area on a scanned image. */
+export function parseIngredientsFromText(text: string): Ingredient[] {
+  return text
+    .split('\n')
+    .map((line) => parseIngredient(line))
+    .filter((ing): ing is ParsedIngredient => ing != null)
+    .map((ing, i) => createIngredient(ing.name, ing.amount, ing.unit, ing.notes, i))
+}
+
+/** Parse region text (one instruction per line) into steps. Used when the
+    user has marked the instructions area on a scanned image. */
+export function parseInstructionsFromText(text: string): string[] {
+  return text
+    .split('\n')
+    .map(parseInstruction)
+    .filter((step) => step.length > 0)
+}
+
+/** Remove leading blank and section-header lines from region text. A marked
+    rectangle often includes the heading sitting directly above the list
+    ("Ingredients:", "Instructions:", …) — without this it would be saved
+    as the first ingredient/step (or the title). */
+export function stripLeadingSectionHeaders(text: string): string {
+  const lines = text.split('\n')
+  let i = 0
+  while (i < lines.length && (!lines[i].trim() || isSectionHeader(lines[i].trim()))) {
+    i++
+  }
+  return lines.slice(i).join('\n')
 }
 
 /** Preprocess raw OCR text: normalize line endings, collapse whitespace. */

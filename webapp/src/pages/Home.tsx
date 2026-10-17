@@ -3,8 +3,9 @@
 
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Plus, BookOpen } from 'lucide-react'
+import { Plus } from 'lucide-react'
 import { WashedImage } from '../components/WashedImage'
+import { RecipeFallbackImage } from '../components/RecipeFallbackImage'
 import { useRecipes } from '../hooks/useRecipes'
 import { useCookbooks } from '../hooks/useCookbooks'
 import { totalRecipeTime, getFirstImageUrl } from '../types/recipe'
@@ -48,9 +49,7 @@ function RecipeEntry({ recipe, cookbook }: { recipe: Recipe; cookbook: Cookbook 
               className="thumb thumb-64"
             />
           ) : (
-            <div className="thumb-placeholder thumb-64">
-              <BookOpen size={24} strokeWidth={2.75} />
-            </div>
+            <RecipeFallbackImage />
           )}
         </div>
 

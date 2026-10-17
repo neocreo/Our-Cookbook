@@ -3,8 +3,9 @@
 
 import { useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { Search as SearchIcon, ChevronDown, ChevronUp, BookOpen } from 'lucide-react'
+import { Search as SearchIcon, ChevronDown, ChevronUp } from 'lucide-react'
 import { WashedImage } from '../components/WashedImage'
+import { RecipeFallbackImage } from '../components/RecipeFallbackImage'
 import { Tag } from '../components/Tag'
 import { useRecipes } from '../hooks/useRecipes'
 import { useCookbooks } from '../hooks/useCookbooks'
@@ -45,9 +46,7 @@ function RecipeEntry({ recipe, cookbook }: { recipe: Recipe; cookbook: Cookbook 
               className="thumb thumb-64"
             />
           ) : (
-            <div className="thumb-placeholder thumb-64">
-              <BookOpen size={24} strokeWidth={2.75} />
-            </div>
+            <RecipeFallbackImage />
           )}
         </div>
 

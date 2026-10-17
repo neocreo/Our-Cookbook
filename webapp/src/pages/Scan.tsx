@@ -4,10 +4,12 @@
 
 import { useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Camera, Upload, Loader2 } from 'lucide-react'
+import { Camera, Upload, Loader2, Check } from 'lucide-react'
 import { Button } from '../components/Button'
+import { ScanStage } from '../components/ScanStage'
 import { captureImage, runOcr, pdfPagesToImageUrls, type OcrLanguage } from '../lib/ocrService'
-import { parseRecipeFromText, preprocessOcrText } from '../lib/ocrParser'
+import { parseRecipeFromText, parseIngredientsFromText, parseInstructionsFromText, inferCategoryFromTitle, preprocessOcrText, stripLeadingSectionHeaders } from '../lib/ocrParser'
+import { cropImageRegion, type ImageRegion } from '../lib/imageUtils'
 import { saveRecipe } from '../features/recipe/repository'
 import { addRecipeToCookbook, fileUnfiledRecipes } from '../features/cookbook/repository'
 import { useCookbooks } from '../hooks/useCookbooks'
@@ -15,7 +17,15 @@ import { useAppStore } from '../stores/appStore'
 import { getDeviceId } from '../lib/device'
 import type { RecipeInput } from '../types/recipe'
 
-type Phase = 'idle' | 'recognizing' | 'reviewing' | 'saving'
+type Phase = 'idle' | 'cropping' | 'regions' | 'recognizing' | 'reviewing' | 'saving'
+
+type RegionMode = 'title' | 'ingredients' | 'instructions'
+
+const REGION_MODES: { mode: RegionMode; label: string; className: string; token: string }[] = [
+  { mode: 'title', label: 'Title', className: 'region-btn-title', token: 'var(--color-region-title)' },
+  { mode: 'ingredients', label: 'Ingredients', className: 'region-btn-ingredients', token: 'var(--color-region-ingredients)' },
+  { mode: 'instructions', label: 'Instructions', className: 'region-btn-instructions', token: 'var(--color-region-instructions)' },
+]
 
 const LANGUAGES: { value: OcrLanguage; label: string }[] = [
   { value: 'swe', label: 'Svenska' },
@@ -32,6 +42,11 @@ export function Scan() {
   const [ocrText, setOcrText] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [imagePreview, setImagePreview] = useState<string | null>(null)
+  const [sourceImage, setSourceImage] = useState<string | null>(null)
+  const [cropDraft, setCropDraft] = useState<ImageRegion | null>(null)
+  const [regionDraft, setRegionDraft] = useState<ImageRegion | null>(null)
+  const [activeMode, setActiveMode] = useState<RegionMode>('title')
+  const [markedRegions, setMarkedRegions] = useState<Partial<Record<RegionMode, ImageRegion>>>({})
   const [selectedCookbookId, setSelectedCookbookId] = useState('')
   const fileInput = useRef<HTMLInputElement>(null)
 
@@ -63,18 +78,103 @@ export function Scan() {
     setPhase('reviewing')
   }
 
-  async function processImage(dataUrl: string) {
-    setImagePreview(dataUrl)
+  // Images go through crop + optional region marking; PDFs skip straight to OCR.
+  function processImage(dataUrl: string) {
+    setSourceImage(dataUrl)
+    setImagePreview(null)
+    setOcrText('')
+    setCropDraft({ x: 0, y: 0, w: 1, h: 1 })
+    setRegionDraft(null)
+    setMarkedRegions({})
+    setError(null)
+    setPhase('cropping')
+  }
+
+  // Confirm the crop rectangle: the cropped image becomes the recipe image
+  // and the base for region marking and OCR.
+  async function confirmCrop() {
+    if (!sourceImage) return
+    setError(null)
+    try {
+      const region = cropDraft ?? { x: 0, y: 0, w: 1, h: 1 }
+      const isFullImage = region.x <= 0 && region.y <= 0 && region.w >= 1 && region.h >= 1
+      const cropped = isFullImage ? sourceImage : await cropImageRegion(sourceImage, region)
+      setImagePreview(cropped)
+      setRegionDraft(null)
+      setMarkedRegions({})
+      setPhase('regions')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not crop the image')
+    }
+  }
+
+  // A finished drag is committed straight away; drawing again for the same
+  // mode replaces the rectangle.
+  function commitRegionDraft(region: ImageRegion) {
+    setMarkedRegions((prev) => ({ ...prev, [activeMode]: region }))
+    setRegionDraft(null)
+  }
+
+  function clearRegions() {
+    setMarkedRegions({})
+    setRegionDraft(null)
+  }
+
+  function onCancel() {
+    setPhase('idle')
+    setSourceImage(null)
+    setImagePreview(null)
+    setCropDraft(null)
+    setRegionDraft(null)
+    setMarkedRegions({})
+    setError(null)
+  }
+
+  // OCR each marked region separately; with no regions, scan the whole image.
+  async function runOcrFromRegions() {
+    if (!imagePreview) return
     setPhase('recognizing')
     setError(null)
     setProgress(0)
     try {
-      const text = await recognizePages([dataUrl])
-      reviewText(text)
+      const entries = (Object.entries(markedRegions) as [RegionMode, ImageRegion][])
+      if (entries.length === 0) {
+        const text = await recognizePages([imagePreview])
+        reviewText(text)
+        return
+      }
+      const texts: Record<RegionMode, string> = { title: '', ingredients: '', instructions: '' }
+      for (let i = 0; i < entries.length; i++) {
+        const [mode, region] = entries[i]
+        // 2x scale: tesseract reads small crops more accurately.
+        const regionImage = await cropImageRegion(imagePreview, region, 2)
+        const result = await runOcr(regionImage, scanLanguage, (p) =>
+          setProgress((i + p) / entries.length),
+        )
+        texts[mode] = result.text
+      }
+      reviewFromRegions(texts.title, texts.ingredients, texts.instructions)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'OCR failed')
-      setPhase('idle')
+      setPhase('regions')
     }
+  }
+
+  // Build the review form from per-region OCR text. A marked rectangle often
+  // includes the section heading sitting directly above the list — strip
+  // leading headers so they don't end up as the first ingredient/step/title.
+  function reviewFromRegions(titleText: string, ingredientsText: string, instructionsText: string) {
+    setOcrText([titleText, ingredientsText, instructionsText].filter(Boolean).join('\n\n'))
+    const cleanTitle = stripLeadingSectionHeaders(titleText)
+    const cleanIngredients = stripLeadingSectionHeaders(ingredientsText)
+    const cleanInstructions = stripLeadingSectionHeaders(instructionsText)
+    const titleLine = cleanTitle.split('\n').map((l) => l.trim()).find(Boolean) ?? ''
+    setTitle(titleLine.slice(0, 100))
+    setCategory(titleLine ? inferCategoryFromTitle(titleLine) : '')
+    const ings = parseIngredientsFromText(cleanIngredients)
+    setIngredients(ings.map((i) => [i.amount, i.unit, i.name].filter(Boolean).join(' ')).join('\n'))
+    setInstructions(parseInstructionsFromText(cleanInstructions).join('\n'))
+    setPhase('reviewing')
   }
 
   async function processPdf(bytes: Uint8Array) {
@@ -96,7 +196,7 @@ export function Scan() {
 
   async function onCapture() {
     const dataUrl = await captureImage()
-    if (dataUrl) await processImage(dataUrl)
+    if (dataUrl) processImage(dataUrl)
   }
 
   async function onFilePick(e: React.ChangeEvent<HTMLInputElement>) {
@@ -159,6 +259,98 @@ export function Scan() {
   function onEditRaw() {
     if (!ocrText) return
     reviewText(ocrText)
+  }
+
+  if (phase === 'cropping' && sourceImage) {
+    return (
+      <div className="scan-fullscreen">
+        <header className="scan-bar">
+          <h1 className="scan-title">Crop image</h1>
+          <div className="row-spacer" />
+          <Button variant="ghost" onClick={onCancel}>Cancel</Button>
+        </header>
+        <ScanStage
+          src={sourceImage}
+          alt="Recipe to scan"
+          value={cropDraft}
+          onChange={setCropDraft}
+          color="var(--color-accent)"
+        />
+        <footer className="scan-bar scan-bar-col">
+          <p className="text-muted text-sm scan-hint">
+            Drag to select the area with the recipe — everything outside is cropped away.
+            Pinch with two fingers to zoom.
+          </p>
+          {error && <p className="text-muted text-error">{error}</p>}
+          <div className="row">
+            <div className="row-spacer" />
+            <Button variant="primary" onClick={confirmCrop}>
+              <Check size={18} strokeWidth={2.75} /> Use this area
+            </Button>
+          </div>
+        </footer>
+      </div>
+    )
+  }
+
+  if (phase === 'regions' && imagePreview) {
+    const active = REGION_MODES.find((m) => m.mode === activeMode) ?? REGION_MODES[0]
+    const confirmed = (Object.entries(markedRegions) as [RegionMode, ImageRegion][]).map(
+      ([mode, region]) => ({ region, color: `var(--color-region-${mode})` }),
+    )
+    const markedLabels = REGION_MODES.filter((m) => markedRegions[m.mode]).map((m) => m.label)
+    const remainingLabels = REGION_MODES.filter((m) => !markedRegions[m.mode]).map((m) => m.label)
+    const hint =
+      markedLabels.length === 0
+        ? 'Optional — draw a rectangle around each area, or skip and scan the whole image. Pinch with two fingers to zoom.'
+        : remainingLabels.length > 0
+          ? `Marked: ${markedLabels.join(', ')}. Draw ${remainingLabels.join(' / ').toLowerCase()} — draw again to replace.`
+          : 'All areas marked — run OCR when ready.'
+    return (
+      <div className="scan-fullscreen">
+        <header className="scan-bar">
+          <h1 className="scan-title">Mark the text</h1>
+          <div className="row-spacer" />
+          <Button variant="ghost" onClick={onCancel}>Cancel</Button>
+        </header>
+        <ScanStage
+          src={imagePreview}
+          alt="Cropped recipe"
+          value={regionDraft}
+          onChange={setRegionDraft}
+          onCommit={commitRegionDraft}
+          color={active.token}
+          confirmed={confirmed}
+        />
+        <footer className="scan-bar scan-bar-col">
+          <div className="chip-row">
+            {REGION_MODES.map((m) => (
+              <button
+                key={m.mode}
+                type="button"
+                className={`region-btn ${m.className}`}
+                aria-pressed={activeMode === m.mode}
+                onClick={() => setActiveMode(m.mode)}
+              >
+                {m.label}
+                {markedRegions[m.mode] && <Check size={12} strokeWidth={2.75} />}
+              </button>
+            ))}
+          </div>
+          <p className="text-muted text-sm scan-hint">{hint}</p>
+          {error && <p className="text-muted text-error">{error}</p>}
+          <div className="row">
+            <Button variant="secondary" onClick={clearRegions} disabled={confirmed.length === 0}>
+              Clear
+            </Button>
+            <div className="row-spacer" />
+            <Button variant="primary" onClick={runOcrFromRegions}>
+              Run OCR
+            </Button>
+          </div>
+        </footer>
+      </div>
+    )
   }
 
   if (phase === 'recognizing') {

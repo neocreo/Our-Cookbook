@@ -33,7 +33,7 @@ export function BookThumbnail({ recipeImageUrls, size = 120 }: BookThumbnailProp
         ))
       ) : (
         <img
-          src="/cookbook-cover-fallback.png"
+          src="/cookbook-fallback.png"
           alt=""
           className="img-fill book-cover-fallback"
         />
