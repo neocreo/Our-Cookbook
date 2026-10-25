@@ -1,4 +1,5 @@
-// Scan — capture/upload an image or PDF, run OCR (English or Swedish),
+// Scan — capture/upload an image or PDF, run OCR in the chosen language
+// (or "auto" — a combined best-effort model that skips the language step),
 // parse the text into a recipe, let the user edit the result, and save
 // into a cookbook.
 
@@ -14,6 +15,7 @@ import { saveRecipe } from '../features/recipe/repository'
 import { addRecipeToCookbook, fileUnfiledRecipes } from '../features/cookbook/repository'
 import { useCookbooks } from '../hooks/useCookbooks'
 import { useAppStore } from '../stores/appStore'
+import { useT } from '../i18n'
 import { getDeviceId } from '../lib/device'
 import { ingredientDisplay } from '../types/ingredient'
 import type { RecipeInput } from '../types/recipe'
@@ -22,19 +24,24 @@ type Phase = 'idle' | 'cropping' | 'regions' | 'recognizing' | 'reviewing' | 'sa
 
 type RegionMode = 'title' | 'ingredients' | 'instructions'
 
-const REGION_MODES: { mode: RegionMode; label: string; className: string; token: string }[] = [
-  { mode: 'title', label: 'Title', className: 'region-btn-title', token: 'var(--color-region-title)' },
-  { mode: 'ingredients', label: 'Ingredients', className: 'region-btn-ingredients', token: 'var(--color-region-ingredients)' },
-  { mode: 'instructions', label: 'Instructions', className: 'region-btn-instructions', token: 'var(--color-region-instructions)' },
+const REGION_MODES: { mode: RegionMode; labelKey: string; className: string; token: string }[] = [
+  { mode: 'title', labelKey: 'scan.regionTitle', className: 'region-btn-title', token: 'var(--color-region-title)' },
+  { mode: 'ingredients', labelKey: 'scan.regionIngredients', className: 'region-btn-ingredients', token: 'var(--color-region-ingredients)' },
+  { mode: 'instructions', labelKey: 'scan.regionInstructions', className: 'region-btn-instructions', token: 'var(--color-region-instructions)' },
 ]
 
-const LANGUAGES: { value: OcrLanguage; label: string }[] = [
-  { value: 'swe', label: 'Svenska' },
-  { value: 'eng', label: 'English' },
-]
+// Endonym labels — every language names itself; only "auto" is translated.
+const LANGUAGE_LABELS: Record<Exclude<OcrLanguage, 'auto'>, string> = {
+  swe: 'Svenska',
+  eng: 'English',
+  fin: 'Suomi',
+  deu: 'Deutsch',
+  fra: 'Français',
+}
 
 export function Scan() {
   const navigate = useNavigate()
+  const t = useT()
   const { cookbooks } = useCookbooks()
   const scanLanguage = useAppStore((s) => s.scanLanguage)
   const setScanLanguage = useAppStore((s) => s.setScanLanguage)
@@ -105,7 +112,7 @@ export function Scan() {
       setMarkedRegions({})
       setPhase('regions')
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not crop the image')
+      setError(err instanceof Error ? err.message : t('scan.cropFailed'))
     }
   }
 
@@ -156,7 +163,7 @@ export function Scan() {
       }
       reviewFromRegions(texts.title, texts.ingredients, texts.instructions)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'OCR failed')
+      setError(err instanceof Error ? err.message : t('scan.ocrFailed'))
       setPhase('regions')
     }
   }
@@ -185,12 +192,12 @@ export function Scan() {
     setImagePreview(null)
     try {
       const pages = await pdfPagesToImageUrls(bytes)
-      if (pages.length === 0) throw new Error('The PDF has no pages.')
+      if (pages.length === 0) throw new Error(t('scan.pdfNoPages'))
       setImagePreview(pages[0])
       const text = await recognizePages(pages)
       reviewText(text)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not read the PDF')
+      setError(err instanceof Error ? err.message : t('scan.pdfFailed'))
       setPhase('idle')
     }
   }
@@ -219,14 +226,14 @@ export function Scan() {
 
   async function onSave() {
     if (!title.trim()) {
-      setError('Title is required.')
+      setError(t('scan.titleRequired'))
       return
     }
     setPhase('saving')
     setError(null)
     const input: RecipeInput = {
       title: title.trim(),
-      category: category.trim() || 'Uncategorized',
+      category: category.trim() || t('scan.uncategorized'),
       // Parse the same way as RecipeEdit so any unit text is kept as typed.
       ingredients: parseIngredientsFromText(ingredients),
       instructions: instructions.split('\n').map((l) => l.trim()).filter(Boolean),
@@ -243,7 +250,7 @@ export function Scan() {
       }
       navigate(`/recipes/${saved.id}`, { replace: true })
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to save')
+      setError(err instanceof Error ? err.message : t('scan.saveFailed'))
       setPhase('reviewing')
     }
   }
@@ -257,27 +264,24 @@ export function Scan() {
     return (
       <div className="scan-fullscreen">
         <header className="scan-bar">
-          <h1 className="scan-title">Crop image</h1>
+          <h1 className="scan-title">{t('scan.cropTitle')}</h1>
           <div className="row-spacer" />
-          <Button variant="ghost" onClick={onCancel}>Cancel</Button>
+          <Button variant="ghost" onClick={onCancel}>{t('common.cancel')}</Button>
         </header>
         <ScanStage
           src={sourceImage}
-          alt="Recipe to scan"
+          alt={t('scan.recipeToScanAlt')}
           value={cropDraft}
           onChange={setCropDraft}
           color="var(--color-accent)"
         />
         <footer className="scan-bar scan-bar-col">
-          <p className="text-muted text-sm scan-hint">
-            Drag to select the area with the recipe — everything outside is cropped away.
-            Pinch with two fingers to zoom.
-          </p>
+          <p className="text-muted text-sm scan-hint">{t('scan.cropHint')}</p>
           {error && <p className="text-muted text-error">{error}</p>}
           <div className="row">
             <div className="row-spacer" />
             <Button variant="primary" onClick={confirmCrop}>
-              <Check size={18} strokeWidth={2.75} /> Use this area
+              <Check size={18} strokeWidth={2.75} /> {t('scan.useArea')}
             </Button>
           </div>
         </footer>
@@ -290,24 +294,24 @@ export function Scan() {
     const confirmed = (Object.entries(markedRegions) as [RegionMode, ImageRegion][]).map(
       ([mode, region]) => ({ region, color: `var(--color-region-${mode})` }),
     )
-    const markedLabels = REGION_MODES.filter((m) => markedRegions[m.mode]).map((m) => m.label)
-    const remainingLabels = REGION_MODES.filter((m) => !markedRegions[m.mode]).map((m) => m.label)
+    const markedLabels = REGION_MODES.filter((m) => markedRegions[m.mode]).map((m) => t(m.labelKey))
+    const remainingLabels = REGION_MODES.filter((m) => !markedRegions[m.mode]).map((m) => t(m.labelKey))
     const hint =
       markedLabels.length === 0
-        ? 'Optional — draw a rectangle around each area, or skip and scan the whole image. Pinch with two fingers to zoom.'
+        ? t('scan.markNoneHint')
         : remainingLabels.length > 0
-          ? `Marked: ${markedLabels.join(', ')}. Draw ${remainingLabels.join(' / ').toLowerCase()} — draw again to replace.`
-          : 'All areas marked — run OCR when ready.'
+          ? t('scan.markSomeHint', { marked: markedLabels.join(', '), remaining: remainingLabels.join(' / ') })
+          : t('scan.markAllHint')
     return (
       <div className="scan-fullscreen">
         <header className="scan-bar">
-          <h1 className="scan-title">Mark the text</h1>
+          <h1 className="scan-title">{t('scan.markTitle')}</h1>
           <div className="row-spacer" />
-          <Button variant="ghost" onClick={onCancel}>Cancel</Button>
+          <Button variant="ghost" onClick={onCancel}>{t('common.cancel')}</Button>
         </header>
         <ScanStage
           src={imagePreview}
-          alt="Cropped recipe"
+          alt={t('scan.croppedAlt')}
           value={regionDraft}
           onChange={setRegionDraft}
           onCommit={commitRegionDraft}
@@ -324,7 +328,7 @@ export function Scan() {
                 aria-pressed={activeMode === m.mode}
                 onClick={() => setActiveMode(m.mode)}
               >
-                {m.label}
+                {t(m.labelKey)}
                 {markedRegions[m.mode] && <Check size={12} strokeWidth={2.75} />}
               </button>
             ))}
@@ -333,11 +337,11 @@ export function Scan() {
           {error && <p className="text-muted text-error">{error}</p>}
           <div className="row">
             <Button variant="secondary" onClick={clearRegions} disabled={confirmed.length === 0}>
-              Clear
+              {t('scan.clear')}
             </Button>
             <div className="row-spacer" />
             <Button variant="primary" onClick={runOcrFromRegions}>
-              Run OCR
+              {t('scan.runOcr')}
             </Button>
           </div>
         </footer>
@@ -348,13 +352,13 @@ export function Scan() {
   if (phase === 'recognizing') {
     return (
       <main className="page">
-        <h1 className="page-title">Scanning…</h1>
+        <h1 className="page-title">{t('scan.scanningTitle')}</h1>
         {imagePreview && (
-          <img src={imagePreview} alt="Scanning" className="washed img-cover mb-4" />
+          <img src={imagePreview} alt={t('scan.scanningAlt')} className="washed img-cover mb-4" />
         )}
         <div className="row">
           <Loader2 size={20} strokeWidth={2.75} className="spin" />
-          <span className="text-muted">Recognizing text… {Math.round(progress * 100)}%</span>
+          <span className="text-muted">{t('scan.recognizing', { percent: Math.round(progress * 100) })}</span>
         </div>
       </main>
     )
@@ -363,36 +367,36 @@ export function Scan() {
   if (phase === 'reviewing' || phase === 'saving') {
     return (
       <main className="page">
-        <h1 className="page-title">Review recipe</h1>
+        <h1 className="page-title">{t('scan.reviewTitle')}</h1>
 
         {imagePreview && (
-          <img src={imagePreview} alt="Source" className="washed img-cover scan-preview mb-4" />
+          <img src={imagePreview} alt={t('scan.sourceAlt')} className="washed img-cover scan-preview mb-4" />
         )}
 
         <div className="form-row">
-          <label htmlFor="title">Title</label>
+          <label htmlFor="title">{t('scan.titleLabel')}</label>
           <input id="title" className="input" value={title} onChange={(e) => setTitle(e.target.value)} />
         </div>
         <div className="form-row">
-          <label htmlFor="category">Category</label>
+          <label htmlFor="category">{t('scan.categoryLabel')}</label>
           <input id="category" className="input" value={category} onChange={(e) => setCategory(e.target.value)} />
         </div>
         <div className="form-row">
-          <label htmlFor="scan-cookbook">Cookbook</label>
+          <label htmlFor="scan-cookbook">{t('scan.cookbookLabel')}</label>
           <select
             id="scan-cookbook"
             className="input"
             value={selectedCookbookId}
             onChange={(e) => setSelectedCookbookId(e.target.value)}
           >
-            <option value="">Mina recept (default)</option>
+            <option value="">{t('common.defaultCookbookOption')}</option>
             {cookbooks.map((cb) => (
               <option key={cb.id} value={cb.id}>{cb.name}</option>
             ))}
           </select>
         </div>
         <div className="form-row">
-          <label htmlFor="ingredients">Ingredients (one per line)</label>
+          <label htmlFor="ingredients">{t('edit.ingredientsLabel')}</label>
           <textarea
             id="ingredients"
             className="input input-tall"
@@ -401,7 +405,7 @@ export function Scan() {
           />
         </div>
         <div className="form-row">
-          <label htmlFor="instructions">Instructions (one per line)</label>
+          <label htmlFor="instructions">{t('edit.instructionsLabel')}</label>
           <textarea
             id="instructions"
             className="input input-tall"
@@ -412,9 +416,9 @@ export function Scan() {
 
         {ocrText && (
           <details className="mb-4">
-            <summary className="text-muted raw-toggle">Raw OCR text</summary>
+            <summary className="text-muted raw-toggle">{t('scan.rawText')}</summary>
             <pre className="text-muted ocr-text">{preprocessOcrText(ocrText)}</pre>
-            <Button variant="ghost" className="mt-1" onClick={onEditRaw}>Re-parse from raw text</Button>
+            <Button variant="ghost" className="mt-1" onClick={onEditRaw}>{t('scan.reparse')}</Button>
           </details>
         )}
 
@@ -422,10 +426,10 @@ export function Scan() {
 
         <div className="form-actions">
           <Button variant="secondary" onClick={() => { setPhase('idle'); setImagePreview(null); setError(null) }}>
-            Discard
+            {t('scan.discard')}
           </Button>
           <Button variant="primary" onClick={onSave} disabled={phase === 'saving' || !title.trim()}>
-            {phase === 'saving' ? 'Saving…' : 'Save recipe'}
+            {phase === 'saving' ? t('edit.saving') : t('scan.saveRecipe')}
           </Button>
         </div>
       </main>
@@ -434,13 +438,21 @@ export function Scan() {
 
   return (
     <main className="page">
-      <h1 className="page-title">Scan recipe</h1>
+      <h1 className="page-title">{t('scan.title')}</h1>
       <p className="text-muted text-center mb-4">
-        Supported formats: JPG, PNG, PDF
+        {t('scan.formats')}
       </p>
 
       <div className="chip-row chip-row-center mb-4">
-        {LANGUAGES.map(({ value, label }) => (
+        <button
+          type="button"
+          className="chip"
+          onClick={() => setScanLanguage('auto')}
+          aria-pressed={scanLanguage === 'auto'}
+        >
+          {t('scan.autoLanguage')}
+        </button>
+        {(Object.keys(LANGUAGE_LABELS) as Exclude<OcrLanguage, 'auto'>[]).map((value) => (
           <button
             key={value}
             type="button"
@@ -448,7 +460,7 @@ export function Scan() {
             onClick={() => setScanLanguage(value)}
             aria-pressed={scanLanguage === value}
           >
-            {label}
+            {LANGUAGE_LABELS[value]}
           </button>
         ))}
       </div>
@@ -457,7 +469,7 @@ export function Scan() {
         <Button
           variant="primary"
           onClick={onCapture}
-          aria-label="Take photo"
+          aria-label={t('scan.takePhotoAria')}
         >
           <Camera size={18} strokeWidth={2.75} />
         </Button>
@@ -465,7 +477,7 @@ export function Scan() {
           variant="secondary"
           onClick={() => fileInput.current?.click()}
         >
-          <Upload size={18} strokeWidth={2.75} /> Upload
+          <Upload size={18} strokeWidth={2.75} /> {t('scan.upload')}
         </Button>
       </div>
 

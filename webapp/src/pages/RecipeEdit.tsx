@@ -21,6 +21,7 @@ import { useCookbooks } from '../hooks/useCookbooks'
 import { useRecipes } from '../hooks/useRecipes'
 import { useAppStore } from '../stores/appStore'
 import { getIngredientSections } from '../types/recipe'
+import { useT } from '../i18n'
 import type { Recipe, RecipeInput } from '../types/recipe'
 
 const CREATE_NEW_COOKBOOK = '__create__'
@@ -30,6 +31,7 @@ const CREATE_NEW_CATEGORY = '__new_category__'
 type SectionDraft = { id: string; name: string; text: string }
 
 export function RecipeEdit() {
+  const t = useT()
   const { id } = useParams<{ id: string }>()
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
@@ -166,7 +168,7 @@ export function RecipeEdit() {
 
   async function onSave() {
     if (!title.trim() || !category.trim()) {
-      window.alert('Title and category are required.')
+      window.alert(t('edit.titleCategoryRequired'))
       return
     }
 
@@ -177,7 +179,7 @@ export function RecipeEdit() {
       .map((s) => createIngredientSection(s.name.trim(), parseIngredientsFromText(s.text)))
       .filter((s) => s.ingredients.length > 0)
     if (builtSections.length > 1 && builtSections.some((s) => !s.name)) {
-      window.alert('Each ingredient list needs a name (e.g. "Biscuits", "Gravy").')
+      window.alert(t('edit.listNeedsName'))
       return
     }
     const builtIngredients = flattenIngredientSections(builtSections)
@@ -238,7 +240,7 @@ export function RecipeEdit() {
       navigate(`/recipes/${saved.id}`, { replace: true })
     } catch (err) {
       setSaving(false)
-      window.alert(err instanceof Error ? err.message : 'Failed to save recipe')
+      window.alert(err instanceof Error ? err.message : t('edit.saveFailed'))
     }
   }
 
@@ -263,20 +265,20 @@ export function RecipeEdit() {
     setNewCookbookDesc('')
   }
 
-  if (loading) return <main className="page"><p className="text-muted">Loading…</p></main>
+  if (loading) return <main className="page"><p className="text-muted">{t('common.loading')}</p></main>
 
   return (
     <main className="page edit-page">
       <div className="row mb-2">
-        <button type="button" className="btn btn-ghost btn-icon" onClick={() => navigate(-1)} aria-label="Back">
+        <button type="button" className="btn btn-ghost btn-icon" onClick={() => navigate(-1)} aria-label={t('common.back')}>
           <ArrowLeft strokeWidth={2.75} />
         </button>
       </div>
 
-      <h1 className="page-title">{isEdit ? 'Edit recipe' : 'New recipe'}</h1>
+      <h1 className="page-title">{isEdit ? t('edit.editTitle') : t('edit.newTitle')}</h1>
 
       <div className="form-row">
-        <input className="input input-title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Title" />
+        <input className="input input-title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder={t('edit.titlePlaceholder')} />
       </div>
 
       <div className="form-row">
@@ -292,19 +294,19 @@ export function RecipeEdit() {
               setCategory(v)
             }
           }}
-          aria-label="Category"
+          aria-label={t('edit.categoryAria')}
         >
-          <option value="">Select a category...</option>
+          <option value="">{t('edit.selectCategory')}</option>
           {categories.map((c) => <option key={c} value={c}>{c}</option>)}
           {category && !categories.includes(category) && <option value={category}>{category}</option>}
-          <option value={CREATE_NEW_CATEGORY}>+ New category…</option>
+          <option value={CREATE_NEW_CATEGORY}>{t('edit.newCategoryOption')}</option>
         </select>
         {categoryMode === 'new' && (
           <input
             className="input"
             value={category}
             onChange={(e) => setCategory(e.target.value)}
-            placeholder="Category name"
+            placeholder={t('edit.categoryNamePlaceholder')}
             autoFocus
           />
         )}
@@ -315,11 +317,11 @@ export function RecipeEdit() {
           className="input"
           value={effectiveCookbookId}
           onChange={(e) => onSelectCookbook(e.target.value)}
-          aria-label="Cookbook"
+          aria-label={t('edit.cookbookAria')}
         >
-          <option value="">Select a cookbook...</option>
+          <option value="">{t('edit.selectCookbook')}</option>
           {cookbooks.map((cb) => <option key={cb.id} value={cb.id}>{cb.name}</option>)}
-          <option value={CREATE_NEW_COOKBOOK}>+ Create new cookbook…</option>
+          <option value={CREATE_NEW_COOKBOOK}>{t('edit.createNewCookbookOption')}</option>
         </select>
         {creatingCookbook && (
           <div className="card">
@@ -327,19 +329,19 @@ export function RecipeEdit() {
               className="input"
               value={newCookbookName}
               onChange={(e) => setNewCookbookName(e.target.value)}
-              placeholder="Cookbook name"
+              placeholder={t('edit.cookbookNamePlaceholder')}
               autoFocus
             />
             <input
               className="input"
               value={newCookbookDesc}
               onChange={(e) => setNewCookbookDesc(e.target.value)}
-              placeholder="Description (optional)"
+              placeholder={t('cookbooks.descriptionOptional')}
             />
             <div className="row-end">
-              <Button variant="secondary" onClick={() => setCreatingCookbook(false)}>Cancel</Button>
+              <Button variant="secondary" onClick={() => setCreatingCookbook(false)}>{t('common.cancel')}</Button>
               <Button variant="primary" onClick={onCreateCookbook} disabled={!newCookbookName.trim()}>
-                Create
+                {t('common.create')}
               </Button>
             </div>
           </div>
@@ -347,11 +349,11 @@ export function RecipeEdit() {
       </div>
 
       <div className="form-row">
-        <textarea className="input" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Description" rows={3} />
+        <textarea className="input" value={description} onChange={(e) => setDescription(e.target.value)} placeholder={t('edit.descriptionPlaceholder')} rows={3} />
       </div>
 
       <div className="form-row">
-        <label>{sections.length > 1 ? 'Ingredient lists (one per line)' : 'Ingredients (one per line)'}</label>
+        <label>{sections.length > 1 ? t('edit.ingredientListsLabel') : t('edit.ingredientsLabel')}</label>
         {sections.map((s, idx) => (
           <div key={s.id} className="ingredient-section">
             {(sections.length > 1 || s.name) && (
@@ -360,11 +362,11 @@ export function RecipeEdit() {
                   className="input"
                   value={s.name}
                   onChange={(e) => updateSection(s.id, { name: e.target.value })}
-                  placeholder="List name (e.g. Biscuits)"
-                  aria-label={`Ingredient list ${idx + 1} name`}
+                  placeholder={t('edit.listNamePlaceholder')}
+                  aria-label={t('edit.listNameAria', { n: idx + 1 })}
                 />
                 {sections.length > 1 && (
-                  <button type="button" className="btn btn-ghost btn-icon" onClick={() => removeSection(s.id)} aria-label={`Remove list ${idx + 1}`}>
+                  <button type="button" className="btn btn-ghost btn-icon" onClick={() => removeSection(s.id)} aria-label={t('edit.removeListAria', { n: idx + 1 })}>
                     <X size={18} strokeWidth={2.75} />
                   </button>
                 )}
@@ -376,15 +378,15 @@ export function RecipeEdit() {
               onChange={(e) => updateSection(s.id, { text: e.target.value })}
               placeholder={'2 cups flour\n1 tsp salt'}
               rows={6}
-              aria-label={`Ingredients, list ${idx + 1}`}
+              aria-label={t('edit.ingredientsAria', { n: idx + 1 })}
             />
           </div>
         ))}
-        <Button variant="secondary" onClick={addSection}><Plus size={16} strokeWidth={2.75} /> Add ingredient list</Button>
+        <Button variant="secondary" onClick={addSection}><Plus size={16} strokeWidth={2.75} /> {t('edit.addIngredientList')}</Button>
       </div>
 
       <div className="form-row">
-        <label htmlFor="instructions">Instructions (one per line)</label>
+        <label htmlFor="instructions">{t('edit.instructionsLabel')}</label>
         <textarea
           id="instructions"
           className="input input-tall"
@@ -396,64 +398,64 @@ export function RecipeEdit() {
 
       <div className="form-grid">
         <div className="form-row">
-          <label>Servings</label>
+          <label>{t('edit.servings')}</label>
           <input className="input" type="number" value={servings} onChange={(e) => setServings(e.target.value)} />
         </div>
         <div className="form-row">
-          <label>Prep time (min)</label>
+          <label>{t('edit.prepTime')}</label>
           <input className="input" type="number" value={prepTime} onChange={(e) => setPrepTime(e.target.value)} />
         </div>
         <div className="form-row">
-          <label>Cook time (min)</label>
+          <label>{t('edit.cookTime')}</label>
           <input className="input" type="number" value={cookTime} onChange={(e) => setCookTime(e.target.value)} />
         </div>
       </div>
 
       <div className="form-row">
-        <label>Images</label>
+        <label>{t('edit.images')}</label>
         <div className="row-wrap mt-1">
           {imageUrls.map((url, idx) => (
             <div key={idx} className="image-thumb">
-              <WashedImage src={url} alt={`Recipe ${idx + 1}`} className="thumb thumb-80" />
-              <button type="button" className="btn btn-ghost btn-icon image-remove" onClick={() => removeImage(idx)} aria-label={`Remove ${idx + 1}`}>
+              <WashedImage src={url} alt={t('edit.imageAria', { n: idx + 1 })} className="thumb thumb-80" />
+              <button type="button" className="btn btn-ghost btn-icon image-remove" onClick={() => removeImage(idx)} aria-label={t('edit.removeImageAria', { n: idx + 1 })}>
                 <X size={14} strokeWidth={2.75} />
               </button>
             </div>
           ))}
         </div>
         <input type="file" accept="image/*" onChange={addImageFromFile} hidden id="image-upload" />
-        <Button variant="secondary" onClick={() => document.getElementById('image-upload')?.click()}><Plus size={16} strokeWidth={2.75} /> Add image</Button>
+        <Button variant="secondary" onClick={() => document.getElementById('image-upload')?.click()}><Plus size={16} strokeWidth={2.75} /> {t('edit.addImage')}</Button>
       </div>
 
       <div className="form-row">
-        <label>Tags</label>
+        <label>{t('edit.tags')}</label>
         <div className="chip-row mt-1">
           {tags.map((tag) => (
             <Tag key={tag} variant="neutral">
               {tag}
-              <button type="button" className="tag-remove" onClick={() => removeTag(tag)} aria-label={`Remove ${tag}`}>
+              <button type="button" className="tag-remove" onClick={() => removeTag(tag)} aria-label={t('edit.removeTagAria', { tag })}>
                 <X size={12} strokeWidth={2.75} />
               </button>
             </Tag>
           ))}
         </div>
         <div className="tag-add">
-          <input className="input" value={tagInput} onChange={(e) => setTagInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addTag())} placeholder="Add a tag" />
+          <input className="input" value={tagInput} onChange={(e) => setTagInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addTag())} placeholder={t('edit.addTagPlaceholder')} />
           <Button variant="secondary" onClick={addTag}><Plus size={16} strokeWidth={2.75} /></Button>
         </div>
       </div>
 
       <div className="form-row">
-        <input className="input" value={source} onChange={(e) => setSource(e.target.value)} placeholder="Source" />
+        <input className="input" value={source} onChange={(e) => setSource(e.target.value)} placeholder={t('edit.sourcePlaceholder')} />
       </div>
 
       <div className="form-row">
-        <textarea className="input" value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Notes" rows={3} />
+        <textarea className="input" value={notes} onChange={(e) => setNotes(e.target.value)} placeholder={t('edit.notesPlaceholder')} rows={3} />
       </div>
 
       <div className="edit-actions-bar">
-        <Button variant="secondary" onClick={() => navigate(-1)} disabled={saving}>Cancel</Button>
-        <Button variant="primary" onClick={onSave} disabled={saving}>{saving ? 'Saving…' : (isEdit ? 'Save changes' : 'Add recipe')}</Button>
+        <Button variant="secondary" onClick={() => navigate(-1)} disabled={saving}>{t('common.cancel')}</Button>
+        <Button variant="primary" onClick={onSave} disabled={saving}>{saving ? t('edit.saving') : (isEdit ? t('edit.saveChanges') : t('edit.addRecipe'))}</Button>
       </div>
     </main>
   )

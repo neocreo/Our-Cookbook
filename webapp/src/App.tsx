@@ -8,6 +8,7 @@ import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { BottomNav } from './components/BottomNav'
 import { Onboarding } from './pages/Onboarding'
 import { Home } from './pages/Home'
+import { useT } from './i18n'
 import { useAppStore, effectiveTheme } from './stores/appStore'
 
 const RecipeDetail = lazy(() => import('./pages/RecipeDetail').then((m) => ({ default: m.RecipeDetail })))
@@ -20,7 +21,8 @@ const CookbookDetail = lazy(() => import('./pages/CookbookDetail').then((m) => (
 const SyncStatus = lazy(() => import('./pages/SyncStatus').then((m) => ({ default: m.SyncStatus })))
 
 function PageLoader() {
-  return <main className="page"><p className="text-muted">Loading…</p></main>
+  const t = useT()
+  return <main className="page"><p className="text-muted">{t('common.loading')}</p></main>
 }
 
 function useTheme() {

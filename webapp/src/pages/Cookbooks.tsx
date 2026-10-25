@@ -11,10 +11,12 @@ import { useRecipes } from '../hooks/useRecipes'
 import { createCookbookNamed } from '../features/cookbook/repository'
 import { getDeviceId } from '../lib/device'
 import { useAppStore } from '../stores/appStore'
+import { useT } from '../i18n'
 import { ownerDisplayName } from '../types/cookbook'
 import type { Cookbook } from '../types/cookbook'
 
 function CookbookEntry({ cookbook, allRecipes, owner }: { cookbook: Cookbook; allRecipes: Array<{ id: string; imageUrls: string[] }>; owner: string }) {
+  const t = useT()
   const [expanded, setExpanded] = useState(false)
 
   // Get recipe images for this cookbook
@@ -35,7 +37,7 @@ function CookbookEntry({ cookbook, allRecipes, owner }: { cookbook: Cookbook; al
         <div className="entry-body">
           <h3 className="entry-title">{cookbook.name}</h3>
           <div className="entry-meta">
-            <span>Owner: {owner}</span>
+            <span>{t('cookbooks.owner', { owner })}</span>
           </div>
           {cookbook.description && (
             <div>
@@ -51,12 +53,12 @@ function CookbookEntry({ cookbook, allRecipes, owner }: { cookbook: Cookbook; al
                   setExpanded(!expanded)
                 }}
               >
-                {expanded ? 'less' : '...more'}
+                {expanded ? t('cookbooks.less') : t('cookbooks.more')}
               </button>
             </div>
           )}
           <div className="cookbook-count">
-            {cookbook.recipeIds.length} recipe{cookbook.recipeIds.length === 1 ? '' : 's'}
+            {t('common.recipeCount', { count: cookbook.recipeIds.length })}
           </div>
         </div>
       </div>
@@ -65,6 +67,7 @@ function CookbookEntry({ cookbook, allRecipes, owner }: { cookbook: Cookbook; al
 }
 
 export function Cookbooks() {
+  const t = useT()
   const { cookbooks, loading } = useCookbooks()
   const { recipes } = useRecipes()
   const userName = useAppStore((s) => s.userName)
@@ -88,12 +91,12 @@ export function Cookbooks() {
 
   return (
     <main className="page">
-      <h1 className="page-title">Cookbooks</h1>
+      <h1 className="page-title">{t('nav.cookbooks')}</h1>
 
-      {loading && <p className="text-muted">Loading…</p>}
+      {loading && <p className="text-muted">{t('common.loading')}</p>}
 
       {!loading && cookbooks.length === 0 && !creating && (
-        <p className="text-muted">No cookbooks yet. Create one to organize your recipes.</p>
+        <p className="text-muted">{t('cookbooks.none')}</p>
       )}
 
       <div className="mt-4">
@@ -109,9 +112,9 @@ export function Cookbooks() {
 
       {creating && (
         <div className="card elev-md mt-4">
-          <h3 className="mb-4">Create Cookbook</h3>
+          <h3 className="mb-4">{t('cookbooks.createTitle')}</h3>
           <div className="form-row">
-            <label htmlFor="cb-name">Name</label>
+            <label htmlFor="cb-name">{t('cookbooks.name')}</label>
             <input
               id="cb-name"
               className="input"
@@ -121,7 +124,7 @@ export function Cookbooks() {
             />
           </div>
           <div className="form-row">
-            <label htmlFor="cb-desc">Description (optional)</label>
+            <label htmlFor="cb-desc">{t('cookbooks.descriptionOptional')}</label>
             <textarea
               id="cb-desc"
               className="input"
@@ -132,10 +135,10 @@ export function Cookbooks() {
           </div>
           <div className="form-actions">
             <Button variant="secondary" onClick={() => setCreating(false)}>
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button variant="primary" onClick={onCreate} disabled={!name.trim()}>
-              Create
+              {t('common.create')}
             </Button>
           </div>
         </div>
@@ -144,7 +147,7 @@ export function Cookbooks() {
       <button
         type="button"
         className="fab"
-        aria-label="New cookbook"
+        aria-label={t('cookbooks.newAria')}
         onClick={() => setCreating((v) => !v)}
       >
         <Plus strokeWidth={2.75} />

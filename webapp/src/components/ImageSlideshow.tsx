@@ -1,5 +1,6 @@
 // ImageSlideshow — displays multiple images with swipe gestures and full-screen capability.
 
+import { useT } from '../i18n'
 import { useState, useRef, useEffect } from 'react'
 import { ArrowLeft, ArrowRight } from 'lucide-react'
 import { WashedImage } from './WashedImage'
@@ -11,6 +12,7 @@ interface ImageSlideshowProps {
 }
 
 export function ImageSlideshow({ imageUrls, alt }: ImageSlideshowProps) {
+  const t = useT()
   const [currentIndex, setCurrentIndex] = useState(0)
   const [touchStart, setTouchStart] = useState<number | null>(null)
   const [touchEnd, setTouchEnd] = useState<number | null>(null)
@@ -109,7 +111,7 @@ export function ImageSlideshow({ imageUrls, alt }: ImageSlideshowProps) {
         type="button"
         className="slideshow-nav slideshow-nav-prev"
         onClick={prevImage}
-        aria-label="Previous image"
+        aria-label={t('slideshow.previousAria')}
       >
         <ArrowLeft size={20} strokeWidth={2.75} />
       </button>
@@ -118,7 +120,7 @@ export function ImageSlideshow({ imageUrls, alt }: ImageSlideshowProps) {
         type="button"
         className="slideshow-nav slideshow-nav-next"
         onClick={nextImage}
-        aria-label="Next image"
+        aria-label={t('slideshow.nextAria')}
       >
         <ArrowRight size={20} strokeWidth={2.75} />
       </button>

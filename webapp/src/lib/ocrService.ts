@@ -9,7 +9,19 @@
 import { Capacitor } from '@capacitor/core'
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera'
 
-export type OcrLanguage = 'eng' | 'swe'
+/** OCR languages with a Tesseract model. `auto` skips the language choice
+ *  and loads a combined eng+swe model instead — Latin script with the
+ *  Swedish diacritics, so unsupported languages are captured best-effort. */
+export type OcrLanguage = 'auto' | 'eng' | 'swe' | 'fin' | 'deu' | 'fra'
+
+const TESSERACT_LANGUAGE: Record<OcrLanguage, string> = {
+  auto: 'eng+swe',
+  eng: 'eng',
+  swe: 'swe',
+  fin: 'fin',
+  deu: 'deu',
+  fra: 'fra',
+}
 
 type ProgressFn = (progress: number) => void
 
@@ -83,11 +95,11 @@ export async function pdfPagesToImageUrls(data: Uint8Array, maxPages = 10): Prom
 /** Run OCR on an image data URL using tesseract.js, in the given language. */
 export async function runOcr(
   imageDataUrl: string,
-  language: OcrLanguage = 'eng',
+  language: OcrLanguage = 'auto',
   onProgress?: ProgressFn,
 ): Promise<OcrResult> {
   const { createWorker } = await import('tesseract.js')
-  const worker = await createWorker(language, 1, {
+  const worker = await createWorker(TESSERACT_LANGUAGE[language], 1, {
     logger: (m: { status: string; progress: number }) => {
       if (m.status === 'recognizing text' && onProgress) onProgress(m.progress)
     },

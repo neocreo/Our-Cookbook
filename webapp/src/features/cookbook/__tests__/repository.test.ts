@@ -44,8 +44,9 @@ describe('cookbook repository (RxDB persistence)', () => {
     it('lists all cookbooks including seeded ones', async () => {
       const { cookbookRepo } = await initRepos()
       const all = await cookbookRepo.listCookbooks()
-      // Seed data creates 3 cookbooks
-      expect(all.length).toBeGreaterThanOrEqual(3)
+      // Seed data creates the Example Cookbook
+      expect(all.length).toBeGreaterThanOrEqual(1)
+      expect(all.some((cb) => cb.name === 'Example Cookbook')).toBe(true)
     })
   })
 

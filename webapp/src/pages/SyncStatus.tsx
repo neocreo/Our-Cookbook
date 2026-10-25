@@ -19,15 +19,16 @@ import { getPendingCount, getSyncMetadata } from '../features/sync/repository'
 import { saveRecipeFromRemote, deleteRecipe } from '../features/recipe/repository'
 import { saveCookbookFromRemote, fileUnfiledRecipes } from '../features/cookbook/repository'
 import { useAppStore } from '../stores/appStore'
+import { useT } from '../i18n'
 import type { SyncResult } from '../features/sync/syncEngine'
 
-const AUTH_ERROR_PREFIX = 'Inloggning misslyckades: '
 
 // The OAuth redirect's error (if any) is read once and cached — lazy state
 // initializers can run twice under React StrictMode.
 let cachedAuthError: string | null | undefined
 
 export function SyncStatus() {
+  const t = useT()
   const { recipes } = useRecipes()
   const { cookbooks } = useCookbooks()
   const driveConsentGranted = useAppStore((s) => s.driveConsentGranted)
@@ -38,7 +39,7 @@ export function SyncStatus() {
   const [error, setError] = useState<string | null>(() => {
     if (cachedAuthError === undefined) {
       const authError = takeAuthError()
-      cachedAuthError = authError ? AUTH_ERROR_PREFIX + authError : null
+      cachedAuthError = authError ? t('sync.authError', { error: authError }) : null
     }
     return cachedAuthError
   })
@@ -64,11 +65,11 @@ export function SyncStatus() {
       setSyncResult(result)
       setPendingCount(getPendingCount())
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Synk misslyckades')
+      setError(err instanceof Error ? err.message : t('sync.syncFailed'))
     } finally {
       setSyncing(false)
     }
-  }, [recipes, cookbooks])
+  }, [recipes, cookbooks, t])
 
   const onSignIn = useCallback(async () => {
     setError(null)
@@ -80,9 +81,9 @@ export function SyncStatus() {
       await getDriveSyncService().signIn()
       setAuthenticated(true)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Inloggning misslyckades')
+      setError(err instanceof Error ? err.message : t('sync.signInFailed'))
     }
-  }, [setDriveConsentGranted])
+  }, [setDriveConsentGranted, t])
 
   // Returning users: silently re-authenticate, then drain any pending queue.
   // Never on native — signIn there is a full-page redirect, not silent.
@@ -114,36 +115,31 @@ export function SyncStatus() {
 
   return (
     <main className="page">
-      <h1 className="page-title">Sync</h1>
+      <h1 className="page-title">{t('sync.title')}</h1>
 
       <section className="recipe-section">
-        <h3>Google Drive</h3>
+        <h3>{t('sync.googleDriveTitle')}</h3>
         {!hasClientId && (
-          <p className="text-muted text-error">
-            Drive-sync har inte konfigurerats ännu. Det kräver en engångsinställning
-            av appens utvecklare.
-          </p>
+          <p className="text-muted text-error">{t('sync.notConfigured')}</p>
         )}
         {hasClientId && (
           <>
             <p className="text-muted">
-              {authenticated
-                ? 'Ansluten till Google Drive. Recept och kokböcker synkas till mappen /Google Drive/OurOpenCookbook/ — en katalog per kokbok.'
-                : 'Logga in med ditt Google-konto för att synka recepten till din Drive.'}
+              {authenticated ? t('sync.connected') : t('sync.signInPrompt')}
             </p>
             <div className="form-actions">
               {authenticated ? (
                 <Button variant="secondary" onClick={onSignOut}>
-                  Koppla bort
+                  {t('sync.disconnect')}
                 </Button>
               ) : (
                 <Button variant="primary" onClick={onSignIn}>
-                  Logga in med Google
+                  {t('sync.signInGoogle')}
                 </Button>
               )}
               {authenticated && (
                 <Button variant="primary" onClick={runSyncNow} disabled={syncing}>
-                  {syncing ? 'Synkar…' : 'Synka nu'}
+                  {syncing ? t('sync.syncing') : t('sync.syncNow')}
                 </Button>
               )}
             </div>
@@ -153,33 +149,33 @@ export function SyncStatus() {
 
       {hasClientId && (
         <section className="recipe-section">
-          <h3>Status</h3>
+          <h3>{t('sync.statusTitle')}</h3>
           <p className="text-muted">
-            Väntande ändringar: {pendingCount}
+            {t('sync.pending', { count: pendingCount })}
           </p>
           {metadata?.lastSyncTimestamp && (
             <p className="text-muted">
-              Senaste synk: {new Date(metadata.lastSyncTimestamp).toLocaleString()}
+              {t('sync.lastSync', { time: new Date(metadata.lastSyncTimestamp).toLocaleString() })}
             </p>
           )}
-          {metadata?.syncInProgress && <p className="text-muted">Synk pågår…</p>}
+          {metadata?.syncInProgress && <p className="text-muted">{t('sync.inProgress')}</p>}
         </section>
       )}
 
       {syncResult && (
         <section className="recipe-section">
-          <h3>Senaste synk</h3>
+          <h3>{t('sync.lastResultTitle')}</h3>
           <p className="text-muted">
-            Skickade: {syncResult.pushed} · Hämtade: {syncResult.pulled}
+            {t('sync.pushed', { count: syncResult.pushed })} · {t('sync.pulled', { count: syncResult.pulled })}
           </p>
           {syncResult.conflicts.length > 0 && (
             <p className="text-muted">
-              Konflikter: {syncResult.conflicts.length} (löstes automatiskt)
+              {t('sync.conflicts', { count: syncResult.conflicts.length })}
             </p>
           )}
           {syncResult.errors.length > 0 && (
             <div>
-              <p className="text-muted text-error">Fel:</p>
+              <p className="text-muted text-error">{t('sync.errors')}</p>
               <ul className="ingredient-list">
                 {syncResult.errors.map((e, i) => (
                   <li key={i} className="text-sm">{e}</li>

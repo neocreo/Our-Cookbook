@@ -10,18 +10,11 @@ import { useRecipes } from '../hooks/useRecipes'
 import { useCookbooks } from '../hooks/useCookbooks'
 import { totalRecipeTime, getFirstImageUrl } from '../types/recipe'
 import { allCategories } from '../features/recipe/repository'
+import { useT, formatRecipeTime } from '../i18n'
 import type { Recipe } from '../types/recipe'
 import type { Cookbook } from '../types/cookbook'
 
 type TabType = 'latest' | 'favorites' | 'categories'
-
-function formatTime(minutes: number | null): string | null {
-  if (minutes == null) return null
-  if (minutes < 60) return `${minutes} min`
-  const h = Math.floor(minutes / 60)
-  const m = minutes % 60
-  return m ? `${h} hr ${m} min` : `${h} hr`
-}
 
 function getCookbookForRecipe(recipe: Recipe, cookbooks: Cookbook[]): Cookbook | null {
   // Find which cookbook contains this recipe
@@ -34,7 +27,8 @@ function getCookbookForRecipe(recipe: Recipe, cookbooks: Cookbook[]): Cookbook |
 }
 
 function RecipeEntry({ recipe, cookbook }: { recipe: Recipe; cookbook: Cookbook | null }) {
-  const time = formatTime(totalRecipeTime(recipe))
+  const t = useT()
+  const time = formatRecipeTime(totalRecipeTime(recipe), t)
   const imageUrl = getFirstImageUrl(recipe)
 
   return (
@@ -56,15 +50,15 @@ function RecipeEntry({ recipe, cookbook }: { recipe: Recipe; cookbook: Cookbook 
         {/* Text content */}
         <div className="entry-body">
           <div className="entry-meta">
-            <span>{cookbook?.name || 'Unknown'}</span>
+            <span>{cookbook?.name || t('common.unknown')}</span>
             <span>|</span>
             <span>{recipe.category}</span>
           </div>
           <h3 className="entry-title">{recipe.title}</h3>
           <div className="entry-stats">
-            <span>{recipe.ingredients.length} ingredients</span>
+            <span>{t('common.ingredientsCount', { count: recipe.ingredients.length })}</span>
             {time && <span>{time}</span>}
-            {recipe.servingSize && <span>{recipe.servingSize} servings</span>}
+            {recipe.servingSize && <span>{t('common.servingsCount', { count: recipe.servingSize })}</span>}
           </div>
         </div>
       </div>
@@ -73,6 +67,7 @@ function RecipeEntry({ recipe, cookbook }: { recipe: Recipe; cookbook: Cookbook 
 }
 
 export function Home() {
+  const t = useT()
   const { recipes, loading, error } = useRecipes()
   const { cookbooks } = useCookbooks()
   const [activeTab, setActiveTab] = useState<TabType>('latest')
@@ -118,7 +113,7 @@ export function Home() {
             setSelectedCategory(null)
           }}
         >
-          Latest
+          {t('home.latest')}
         </button>
         <button
           type="button"
@@ -128,14 +123,14 @@ export function Home() {
             setSelectedCategory(null)
           }}
         >
-          Favorites
+          {t('home.favorites')}
         </button>
         <button
           type="button"
           className={activeTab === 'categories' ? 'btn btn-primary' : 'btn btn-secondary'}
           onClick={() => setActiveTab('categories')}
         >
-          Categories
+          {t('common.categories')}
         </button>
       </div>
 
@@ -156,19 +151,17 @@ export function Home() {
         </div>
       )}
 
-      {loading && <p className="text-muted">Loading recipes…</p>}
-      {error && <p className="text-muted">Could not load recipes: {error}</p>}
+      {loading && <p className="text-muted">{t('common.loadingRecipes')}</p>}
+      {error && <p className="text-muted">{t('home.loadError', { error })}</p>}
 
       {!loading && filteredRecipes.length === 0 && activeTab !== 'categories' && (
         <p className="text-muted">
-          {activeTab === 'favorites'
-            ? 'No favorite recipes yet. Tap the star on a recipe to add it here.'
-            : 'No recipes yet. Tap the + button to add your first one.'}
+          {activeTab === 'favorites' ? t('home.noFavorites') : t('home.noRecipes')}
         </p>
       )}
 
       {!loading && activeTab === 'categories' && selectedCategory && filteredRecipes.length === 0 && (
-        <p className="text-muted">No recipes in category "{selectedCategory}".</p>
+        <p className="text-muted">{t('home.noInCategory', { category: selectedCategory })}</p>
       )}
 
       {/* Recipe entries with separators */}
@@ -183,11 +176,11 @@ export function Home() {
 
       {displayedRecipes.length > 0 && filteredRecipes.length > 5 && (
         <p className="text-muted text-center mt-4">
-          Showing 5 of {filteredRecipes.length} recipes
+          {t('home.showing', { shown: 5, total: filteredRecipes.length })}
         </p>
       )}
 
-      <Link to="/recipes/new" className="fab" aria-label="Add recipe">
+      <Link to="/recipes/new" className="fab" aria-label={t('home.addRecipeAria')}>
         <Plus strokeWidth={2.75} />
       </Link>
     </main>

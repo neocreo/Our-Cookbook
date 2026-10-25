@@ -11,16 +11,9 @@ import { useRecipes } from '../hooks/useRecipes'
 import { useCookbooks } from '../hooks/useCookbooks'
 import { searchRecipes, allCategories } from '../features/recipe/repository'
 import { totalRecipeTime, getFirstImageUrl } from '../types/recipe'
+import { useT, formatRecipeTime } from '../i18n'
 import type { Recipe } from '../types/recipe'
 import type { Cookbook } from '../types/cookbook'
-
-function formatTime(minutes: number | null): string | null {
-  if (minutes == null) return null
-  if (minutes < 60) return `${minutes} min`
-  const h = Math.floor(minutes / 60)
-  const m = minutes % 60
-  return m ? `${h} hr ${m} min` : `${h} hr`
-}
 
 function getCookbookForRecipe(recipe: Recipe, cookbooks: Cookbook[]): Cookbook | null {
   for (const cb of cookbooks) {
@@ -32,7 +25,8 @@ function getCookbookForRecipe(recipe: Recipe, cookbooks: Cookbook[]): Cookbook |
 }
 
 function RecipeEntry({ recipe, cookbook }: { recipe: Recipe; cookbook: Cookbook | null }) {
-  const time = formatTime(totalRecipeTime(recipe))
+  const t = useT()
+  const time = formatRecipeTime(totalRecipeTime(recipe), t)
   const imageUrl = getFirstImageUrl(recipe)
 
   return (
@@ -52,15 +46,15 @@ function RecipeEntry({ recipe, cookbook }: { recipe: Recipe; cookbook: Cookbook 
 
         <div className="entry-body">
           <div className="entry-meta">
-            <span>{cookbook?.name || 'Unknown'}</span>
+            <span>{cookbook?.name || t('common.unknown')}</span>
             <span>|</span>
             <span>{recipe.category}</span>
           </div>
           <h3 className="entry-title">{recipe.title}</h3>
           <div className="entry-stats">
-            <span>{recipe.ingredients.length} ingredients</span>
+            <span>{t('common.ingredientsCount', { count: recipe.ingredients.length })}</span>
             {time && <span>{time}</span>}
-            {recipe.servingSize && <span>{recipe.servingSize} servings</span>}
+            {recipe.servingSize && <span>{t('common.servingsCount', { count: recipe.servingSize })}</span>}
           </div>
         </div>
       </div>
@@ -69,6 +63,7 @@ function RecipeEntry({ recipe, cookbook }: { recipe: Recipe; cookbook: Cookbook 
 }
 
 export function Search() {
+  const t = useT()
   const { recipes, loading } = useRecipes()
   const { cookbooks } = useCookbooks()
   const [searchParams, setSearchParams] = useSearchParams()
@@ -127,13 +122,13 @@ export function Search() {
 
   return (
     <main className="page">
-      <h1 className="page-title">Recipes</h1>
+      <h1 className="page-title">{t('nav.recipes')}</h1>
 
       {/* Search input */}
       <div className="search-field">
         <input
           className="input search-input"
-          placeholder="Search recipes, ingredients, tags…"
+          placeholder={t('search.placeholder')}
           value={query}
           onChange={(e) => updateQuery(e.target.value)}
         />
@@ -155,7 +150,7 @@ export function Search() {
             aria-pressed={Boolean(activeCategory)}
           >
             <span className="ellipsis">
-              {activeCategory || 'Categories'}
+              {activeCategory || t('common.categories')}
             </span>
             {categoriesExpanded ? <ChevronUp size={16} strokeWidth={2.75} /> : <ChevronDown size={16} strokeWidth={2.75} />}
           </button>
@@ -169,7 +164,7 @@ export function Search() {
             aria-pressed={Boolean(activeCookbook)}
           >
             <span className="ellipsis">
-              {cookbooks.find((c) => c.id === activeCookbook)?.name || 'Cookbooks'}
+              {cookbooks.find((c) => c.id === activeCookbook)?.name || t('nav.cookbooks')}
             </span>
             {cookbooksExpanded ? <ChevronUp size={16} strokeWidth={2.75} /> : <ChevronDown size={16} strokeWidth={2.75} />}
           </button>
@@ -215,7 +210,7 @@ export function Search() {
         <div className="chip-row mb-4">
           {activeCategory && (
             <Tag variant="accent">
-              Category: {activeCategory}
+              {t('search.categoryFilter', { x: activeCategory })}
               <button type="button" className="tag-remove" onClick={() => updateCategory(null)}>
                 ×
               </button>
@@ -223,7 +218,7 @@ export function Search() {
           )}
           {activeTag && (
             <Tag variant="accent">
-              Tag: {activeTag}
+              {t('search.tagFilter', { x: activeTag })}
               <button type="button" className="tag-remove" onClick={() => updateTag(null)}>
                 ×
               </button>
@@ -231,7 +226,7 @@ export function Search() {
           )}
           {activeCookbook && (
             <Tag variant="accent">
-              Cookbook: {cookbooks.find((c) => c.id === activeCookbook)?.name || activeCookbook}
+              {t('search.cookbookFilter', { x: cookbooks.find((c) => c.id === activeCookbook)?.name || activeCookbook })}
               <button type="button" className="tag-remove" onClick={() => updateCookbook(null)}>
                 ×
               </button>
@@ -242,12 +237,12 @@ export function Search() {
 
       {/* Results */}
       <div className="mt-3">
-        {loading && <p className="text-muted">Loading…</p>}
+        {loading && <p className="text-muted">{t('common.loading')}</p>}
         {!loading && results.length === 0 && query && (
-          <p className="text-muted">No recipes match "{query}".</p>
+          <p className="text-muted">{t('search.noMatch', { query })}</p>
         )}
         {!loading && results.length === 0 && !query && !activeCategory && !activeTag && !activeCookbook && (
-          <p className="text-muted">Enter a search term or select a filter to see results.</p>
+          <p className="text-muted">{t('search.noQuery')}</p>
         )}
         {results.map((r, index) => (
           <div key={r.id}>

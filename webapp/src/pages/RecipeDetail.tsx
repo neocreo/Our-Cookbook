@@ -10,19 +10,13 @@ import { getRecipe, deleteRecipe, toggleFavorite } from '../features/recipe/repo
 import { getDeviceId } from '../lib/device'
 import { totalRecipeTime, getIngredientSections } from '../types/recipe'
 import { useCookbooks } from '../hooks/useCookbooks'
+import { useT, formatRecipeTime } from '../i18n'
 import type { Recipe } from '../types/recipe'
-
-function formatTime(minutes: number | null): string | null {
-  if (minutes == null) return null
-  if (minutes < 60) return `${minutes} min`
-  const h = Math.floor(minutes / 60)
-  const m = minutes % 60
-  return m ? `${h} hr ${m} min` : `${h} hr`
-}
 
 export function RecipeDetail() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
+  const t = useT()
   const [recipe, setRecipe] = useState<Recipe | null>(null)
   const [loading, setLoading] = useState(true)
   const { cookbooks } = useCookbooks()
@@ -39,8 +33,8 @@ export function RecipeDetail() {
     return () => { active = false }
   }, [id])
 
-  if (loading) return <main className="page"><p className="text-muted">Loading…</p></main>
-  if (!recipe) return <main className="page"><p className="text-muted">Recipe not found.</p></main>
+  if (loading) return <main className="page"><p className="text-muted">{t('common.loading')}</p></main>
+  if (!recipe) return <main className="page"><p className="text-muted">{t('recipeDetail.notFound')}</p></main>
 
   // Find cookbook containing this recipe
   function getCookbookForRecipe() {
@@ -54,7 +48,7 @@ export function RecipeDetail() {
   }
 
   const cookbook = getCookbookForRecipe()
-  const time = recipe ? formatTime(totalRecipeTime(recipe)) : null
+  const time = recipe ? formatRecipeTime(totalRecipeTime(recipe), t) : null
 
   async function onFavorite() {
     if (!recipe) return
@@ -65,37 +59,37 @@ export function RecipeDetail() {
 
   async function onDelete() {
     if (!recipe) return
-    if (!window.confirm(`Delete "${recipe.title}"? This cannot be undone.`)) return
+    if (!window.confirm(t('recipeDetail.deleteConfirm', { title: recipe.title }))) return
     await deleteRecipe(recipe.id, getDeviceId())
     navigate('/')
   }
 
   // Format recipe as text for sharing
   function formatRecipeAsText(r: Recipe) {
-    const time = formatTime(totalRecipeTime(r))
+    const time = formatRecipeTime(totalRecipeTime(r), t)
     const lines: string[] = [
       `=== ${r.title} ===`,
       '',
-      `Category: ${r.category}`,
-      ...(r.description ? [`Description: ${r.description}`] : []),
+      t('recipeDetail.shareCategory', { x: r.category }),
+      ...(r.description ? [t('recipeDetail.shareDescription', { x: r.description })] : []),
       '',
-      `Cookbook: ${cookbook?.name || 'None'}`,
-      `Time: ${time || 'N/A'}`,
-      ...(r.servingSize ? [`Servings: ${r.servingSize}`] : []),
-      ...(r.source ? [`Source: ${r.source}`] : []),
+      t('recipeDetail.shareCookbook', { x: cookbook?.name || t('recipeDetail.shareCookbookNone') }),
+      t('recipeDetail.shareTime', { x: time || t('recipeDetail.shareTimeNA') }),
+      ...(r.servingSize ? [t('recipeDetail.shareServings', { x: r.servingSize })] : []),
+      ...(r.source ? [t('recipeDetail.shareSource', { x: r.source })] : []),
       '',
-      '--- Ingredients ---',
+      t('recipeDetail.shareIngredients'),
       ...getIngredientSections(r).flatMap((s) => [
         ...(s.name ? [`## ${s.name}`] : []),
         ...s.ingredients.map((ing) => `- ${[ing.amount, ing.unit].filter(Boolean).join(' ')} ${ing.name}${ing.notes ? ` (${ing.notes})` : ''}`),
       ]),
       '',
-      '--- Instructions ---',
+      t('recipeDetail.shareInstructions'),
       ...r.instructions.map((step, i) => `${i + 1}. ${step}`),
       '',
-      ...(r.notes ? [`Notes: ${r.notes}`] : []),
+      ...(r.notes ? [t('recipeDetail.shareNotes', { x: r.notes })] : []),
       '',
-      ...(r.tags.length > 0 ? [`Tags: ${r.tags.join(', ')}`] : []),
+      ...(r.tags.length > 0 ? [t('recipeDetail.shareTags', { x: r.tags.join(', ') })] : []),
     ]
     return lines.join('\n')
   }
@@ -112,12 +106,12 @@ export function RecipeDetail() {
         })
       } else {
         await navigator.clipboard.writeText(text)
-        alert('Recipe copied to clipboard!')
+        alert(t('recipeDetail.copied'))
       }
     } catch {
       // Fallback to clipboard if share fails
       await navigator.clipboard.writeText(text)
-      alert('Recipe copied to clipboard!')
+      alert(t('recipeDetail.copied'))
     }
   }
 
@@ -137,6 +131,7 @@ export function RecipeDetail() {
   // Navigate to tag search
   function handleTagClick(e: React.MouseEvent, tag: string) {
     e.preventDefault()
+    if (!recipe) return
     navigate(`/search?tag=${encodeURIComponent(tag)}`)
   }
 
@@ -151,24 +146,24 @@ export function RecipeDetail() {
   return (
     <main className="page">
       <div className="row mb-2">
-        <Link to=".." relative="path" className="btn btn-ghost btn-icon" aria-label="Back">
+        <Link to=".." relative="path" className="btn btn-ghost btn-icon" aria-label={t('common.back')}>
           <ArrowLeft strokeWidth={2.75} />
         </Link>
         <div className="row-spacer" />
         {/* Action buttons on top-right */}
-        <Button variant="ghost" onClick={handleCopy} aria-label="Copy recipe">
+        <Button variant="ghost" onClick={handleCopy} aria-label={t('recipeDetail.copyAria')}>
           <Copy size={18} strokeWidth={2.75} />
         </Button>
-        <Button variant="ghost" onClick={handleShare} aria-label="Share recipe">
+        <Button variant="ghost" onClick={handleShare} aria-label={t('recipeDetail.shareAria')}>
           <Share2 size={18} strokeWidth={2.75} />
         </Button>
-        <Button variant="secondary" onClick={onFavorite} aria-label={recipe.isFavorite ? 'Remove from favorites' : 'Add to favorites'}>
+        <Button variant="secondary" onClick={onFavorite} aria-label={recipe.isFavorite ? t('recipeDetail.favoriteRemoveAria') : t('recipeDetail.favoriteAddAria')}>
           <Star size={18} fill={recipe.isFavorite ? 'currentColor' : 'none'} strokeWidth={2.75} />
         </Button>
-        <Link to="edit" className="btn btn-secondary" aria-label="Edit recipe">
+        <Link to="edit" className="btn btn-secondary" aria-label={t('recipeDetail.editAria')}>
           <Pencil size={18} strokeWidth={2.75} />
         </Link>
-        <Button variant="ghost" onClick={onDelete} aria-label="Delete recipe">
+        <Button variant="ghost" onClick={onDelete} aria-label={t('recipeDetail.deleteAria')}>
           <Trash2 size={18} strokeWidth={2.75} />
         </Button>
       </div>
@@ -190,27 +185,27 @@ export function RecipeDetail() {
             type="button"
             className="btn-reset"
             onClick={handleCategoryClick}
-            aria-label={`Filter by ${recipe.category}`}
+            aria-label={t('common.filterBy', { x: recipe.category })}
           >
             <Tag variant="accent">{recipe.category}</Tag>
           </button>
-          {recipe.tags.map((t) => (
+          {recipe.tags.map((tag) => (
             <button
-              key={t}
+              key={tag}
               type="button"
               className="btn-reset"
-              onClick={(e) => handleTagClick(e, t)}
-              aria-label={`Filter by ${t}`}
+              onClick={(e) => handleTagClick(e, tag)}
+              aria-label={t('common.filterBy', { x: tag })}
             >
-              <Tag variant="neutral">{t}</Tag>
+              <Tag variant="neutral">{tag}</Tag>
             </button>
           ))}
         </div>
 
         <div className="card-meta mt-2">
-          {time != null && <span>{time} total</span>}
+          {time != null && <span>{t('recipeDetail.total', { time })}</span>}
           {time && recipe.servingSize && <span> · </span>}
-          {recipe.servingSize != null && <span>{recipe.servingSize} servings</span>}
+          {recipe.servingSize != null && <span>{t('common.servingsCount', { count: recipe.servingSize })}</span>}
           {((time || recipe.servingSize) && cookbook) && <span> · </span>}
           {cookbook && (
             <button
@@ -228,9 +223,9 @@ export function RecipeDetail() {
 
       {getIngredientSections(recipe).map((s) => (
         <section className="recipe-section" key={s.id}>
-          <h3>{s.name || 'Ingredients'}</h3>
+          <h3>{s.name || t('recipeDetail.ingredients')}</h3>
           {s.ingredients.length === 0 ? (
-            <p className="text-muted">None</p>
+            <p className="text-muted">{t('common.none')}</p>
           ) : (
             <ul className="ingredient-list">
               {s.ingredients.map((ing) => (
@@ -245,9 +240,9 @@ export function RecipeDetail() {
       ))}
 
       <section className="recipe-section">
-        <h3>Instructions</h3>
+        <h3>{t('recipeDetail.instructions')}</h3>
         {recipe.instructions.length === 0 ? (
-          <p className="text-muted">None</p>
+          <p className="text-muted">{t('common.none')}</p>
         ) : (
           <ol className="instruction-list">
             {recipe.instructions.map((step, i) => (
@@ -259,7 +254,7 @@ export function RecipeDetail() {
 
       {recipe.notes && (
         <section className="recipe-section">
-          <h3>Notes</h3>
+          <h3>{t('recipeDetail.notes')}</h3>
           <p>{recipe.notes}</p>
         </section>
       )}

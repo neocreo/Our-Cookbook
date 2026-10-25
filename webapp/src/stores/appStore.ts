@@ -3,9 +3,11 @@
 
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import type { Language } from '../i18n'
 
 export type SyncMode = 'offline' | 'drive'
 export type ThemePref = 'light' | 'dark' | 'system'
+export type OcrLanguagePref = 'auto' | 'eng' | 'swe' | 'fin' | 'deu' | 'fra'
 
 interface AppState {
   onboardingDone: boolean
@@ -14,14 +16,17 @@ interface AppState {
   userName: string | null
   /** True once the user has completed a Drive sign-in — gates silent re-auth. */
   driveConsentGranted: boolean
+  /** UI language; English is the default. */
+  language: Language
   /** OCR recognition language on the scan page. */
-  scanLanguage: 'eng' | 'swe'
+  scanLanguage: OcrLanguagePref
   completeOnboarding: (mode: SyncMode) => void
   setSyncMode: (mode: SyncMode) => void
   setTheme: (theme: ThemePref) => void
   setUserName: (name: string) => void
   setDriveConsentGranted: (granted: boolean) => void
-  setScanLanguage: (language: 'eng' | 'swe') => void
+  setLanguage: (language: Language) => void
+  setScanLanguage: (language: OcrLanguagePref) => void
 }
 
 export const useAppStore = create<AppState>()(
@@ -32,12 +37,14 @@ export const useAppStore = create<AppState>()(
       theme: 'system',
       userName: null,
       driveConsentGranted: false,
-      scanLanguage: 'swe',
+      language: 'en',
+      scanLanguage: 'auto',
       completeOnboarding: (mode) => set({ onboardingDone: true, syncMode: mode }),
       setSyncMode: (mode) => set({ syncMode: mode }),
       setTheme: (theme) => set({ theme }),
       setUserName: (name) => set({ userName: name }),
       setDriveConsentGranted: (granted) => set({ driveConsentGranted: granted }),
+      setLanguage: (language) => set({ language }),
       setScanLanguage: (language) => set({ scanLanguage: language }),
     }),
     { name: 'oc.app' },

@@ -13,20 +13,13 @@ import { deleteRecipe } from '../features/recipe/repository'
 import { useRecipes } from '../hooks/useRecipes'
 import { getDeviceId } from '../lib/device'
 import { useAppStore } from '../stores/appStore'
+import { useT, formatRecipeTime } from '../i18n'
 import { ownerDisplayName, type Cookbook } from '../types/cookbook'
 import { getFirstImageUrl, totalRecipeTime } from '../types/recipe'
 import type { Recipe } from '../types/recipe'
 
 // A-Ö including Swedish letters
 const AZ_LETTERS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'Å', 'Ä', 'Ö']
-
-function formatTime(minutes: number | null): string | null {
-  if (minutes == null) return null
-  if (minutes < 60) return `${minutes} min`
-  const h = Math.floor(minutes / 60)
-  const m = minutes % 60
-  return m ? `${h} hr ${m} min` : `${h} hr`
-}
 
 // Numeric titles (e.g. "3-ingredient pasta") sort under "123".
 const NUMERIC = '123'
@@ -52,6 +45,7 @@ function AZIndex({ letters, onSelect, activeLetter }: {
   onSelect: (letter: string | null) => void
   activeLetter: string | null
 }) {
+  const t = useT()
   return (
     <>
       {letters.map((letter) => (
@@ -60,7 +54,7 @@ function AZIndex({ letters, onSelect, activeLetter }: {
           type="button"
           onClick={() => onSelect(activeLetter === letter ? null : letter)}
           aria-pressed={activeLetter === letter}
-          aria-label={`Filter by ${letter}`}
+          aria-label={t('common.filterBy', { x: letter })}
         >
           {letter}
         </button>
@@ -75,8 +69,9 @@ function RecipeRow({ recipe, cookbook, onRemove, editMode }: {
   onRemove: (recipeId: string) => void
   editMode: boolean
 }) {
+  const t = useT()
   const imageUrl = getFirstImageUrl(recipe)
-  const time = formatTime(totalRecipeTime(recipe))
+  const time = formatRecipeTime(totalRecipeTime(recipe), t)
 
   return (
     <Link to={`/recipes/${recipe.id}`} className="link-plain">
@@ -101,9 +96,9 @@ function RecipeRow({ recipe, cookbook, onRemove, editMode }: {
           </div>
           <h4 className="entry-title">{recipe.title}</h4>
           <div className="entry-stats">
-            <span>{recipe.ingredients.length} ingredients</span>
+            <span>{t('common.ingredientsCount', { count: recipe.ingredients.length })}</span>
             {time && <span>{time}</span>}
-            {recipe.servingSize && <span>{recipe.servingSize} servings</span>}
+            {recipe.servingSize && <span>{t('common.servingsCount', { count: recipe.servingSize })}</span>}
           </div>
         </div>
 
@@ -116,7 +111,7 @@ function RecipeRow({ recipe, cookbook, onRemove, editMode }: {
               e.stopPropagation()
               onRemove(recipe.id)
             }}
-            aria-label={`Remove ${recipe.title}`}
+            aria-label={t('cookbookDetail.removeAria', { title: recipe.title })}
           >
             <X size={16} strokeWidth={2.75} />
           </button>
@@ -129,6 +124,7 @@ function RecipeRow({ recipe, cookbook, onRemove, editMode }: {
 export function CookbookDetail() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
+  const t = useT()
   const { recipes } = useRecipes()
   const userName = useAppStore((s) => s.userName)
   const [cookbook, setCookbook] = useState<Cookbook | null>(null)
@@ -155,8 +151,8 @@ export function CookbookDetail() {
     return () => { active = false }
   }, [id])
 
-  if (loading) return <main className="page"><p className="text-muted">Loading…</p></main>
-  if (!cookbook) return <main className="page"><p className="text-muted">Cookbook not found.</p></main>
+  if (loading) return <main className="page"><p className="text-muted">{t('common.loading')}</p></main>
+  if (!cookbook) return <main className="page"><p className="text-muted">{t('cookbookDetail.notFound')}</p></main>
 
   async function refresh() {
     if (!id) return
@@ -219,31 +215,31 @@ export function CookbookDetail() {
   return (
     <main className="page">
       <div className="cookbook-layout">
-        <aside className="az-rail" aria-label="Recipe index">
+        <aside className="az-rail" aria-label={t('cookbookDetail.indexAria')}>
           <AZIndex letters={letters} onSelect={setFilterLetter} activeLetter={filterLetter} />
         </aside>
 
         <div className="cookbook-content">
           <div className="row mb-2">
-            <Link to="/cookbooks" className="btn btn-ghost btn-icon" aria-label="Back">
+            <Link to="/cookbooks" className="btn btn-ghost btn-icon" aria-label={t('common.back')}>
               <ArrowLeft strokeWidth={2.75} />
             </Link>
             <div className="row-spacer" />
             {editing ? (
               <>
-                <Button variant="primary" onClick={onRename} disabled={!name.trim()} aria-label="Save changes">
+                <Button variant="primary" onClick={onRename} disabled={!name.trim()} aria-label={t('cookbookDetail.saveAria')}>
                   <Check size={18} strokeWidth={2.75} />
                 </Button>
-                <Button variant="ghost" onClick={() => { setEditing(false); setName(cookbook.name); setDescription(cookbook.description ?? '') }} aria-label="Cancel editing">
+                <Button variant="ghost" onClick={() => { setEditing(false); setName(cookbook.name); setDescription(cookbook.description ?? '') }} aria-label={t('cookbookDetail.cancelEditAria')}>
                   <X size={18} strokeWidth={2.75} />
                 </Button>
               </>
             ) : (
               <>
-                <Button variant="secondary" onClick={() => setEditing(true)} aria-label="Edit cookbook">
+                <Button variant="secondary" onClick={() => setEditing(true)} aria-label={t('cookbookDetail.editAria')}>
                   <Pencil size={18} strokeWidth={2.75} />
                 </Button>
-                <Button variant="ghost" onClick={onDelete} aria-label="Delete cookbook">
+                <Button variant="ghost" onClick={onDelete} aria-label={t('cookbookDetail.deleteAria')}>
                   <Trash2 size={18} strokeWidth={2.75} />
                 </Button>
               </>
@@ -259,7 +255,7 @@ export function CookbookDetail() {
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     autoFocus
-                    aria-label="Cookbook name"
+                    aria-label={t('cookbookDetail.nameAria')}
                   />
                 </div>
                 <div className="form-row">
@@ -267,8 +263,8 @@ export function CookbookDetail() {
                     className="input input-md"
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
-                    placeholder="Cookbook description..."
-                    aria-label="Cookbook description"
+                    placeholder={t('cookbookDetail.descPlaceholder')}
+                    aria-label={t('cookbookDetail.descAria')}
                   />
                 </div>
               </div>
@@ -277,9 +273,9 @@ export function CookbookDetail() {
                 <h1 className="mb-1">{cookbook.name}</h1>
                 {cookbook.description && <p className="text-muted mb-0">{cookbook.description}</p>}
                 <div className="cookbook-meta">
-                  <span>Owner: {owner}</span>
+                  <span>{t('cookbooks.owner', { owner })}</span>
                   <span>·</span>
-                  <strong>{`${members.length} recipe${members.length === 1 ? '' : 's'}`}</strong>
+                  <strong>{t('common.recipeCount', { count: members.length })}</strong>
                 </div>
               </>
             )}
@@ -298,7 +294,7 @@ export function CookbookDetail() {
                     onClick={() => selectCategory(null)}
                     aria-pressed={filterCategory == null}
                   >
-                    All
+                    {t('common.all')}
                   </button>
                   {categories.map((c) => (
                     <button
@@ -317,7 +313,7 @@ export function CookbookDetail() {
               <Link
                 to={`/recipes/new?cookbookId=${cookbook.id}`}
                 className="btn btn-primary btn-icon btn-icon-lg"
-                aria-label="Add recipe"
+                aria-label={t('cookbookDetail.addRecipeAria')}
               >
                 <Plus size={24} strokeWidth={2.75} />
               </Link>
@@ -326,8 +322,8 @@ export function CookbookDetail() {
 
           {filterLetter && (
             <div className="row mb-2">
-              <Tag variant="accent">{`Filter: ${filterLetter}`}</Tag>
-              <button type="button" className="btn btn-ghost btn-icon" onClick={() => setFilterLetter(null)} aria-label="Clear letter filter">
+              <Tag variant="accent">{t('cookbookDetail.filterTag', { letter: filterLetter })}</Tag>
+              <button type="button" className="btn btn-ghost btn-icon" onClick={() => setFilterLetter(null)} aria-label={t('cookbookDetail.clearLetterAria')}>
                 <X size={16} strokeWidth={2.75} />
               </button>
             </div>
@@ -337,10 +333,10 @@ export function CookbookDetail() {
             {filteredMembers.length === 0 ? (
               <p className="text-muted">
                 {filterLetter
-                  ? `No recipes starting with "${filterLetter}".`
+                  ? t('cookbookDetail.noLetter', { letter: filterLetter })
                   : members.length === 0
-                    ? 'No recipes in this cookbook yet.'
-                    : 'No recipes in this category.'}
+                    ? t('cookbookDetail.noRecipesYet')
+                    : t('cookbookDetail.noInCategory')}
               </p>
             ) : (
               filteredMembers.map((r, index) => (
@@ -370,15 +366,18 @@ export function CookbookDetail() {
           if (onBackdrop) dlg.close()
         }}
       >
-        <div className="dialog-title" id="delete-cookbook-title">Delete "{cookbook.name}"?</div>
+        <div className="dialog-title" id="delete-cookbook-title">
+          {t('cookbookDetail.deleteTitle', { name: cookbook.name })}
+        </div>
         <p className="dialog-body">
-          The cookbook contains {cookbook.recipeIds.length} recipe{cookbook.recipeIds.length === 1 ? '' : 's'}.
-          Choose whether to delete them as well — this cannot be undone.
+          {t('cookbookDetail.deleteBody', {
+            count: t('common.recipeCount', { count: cookbook.recipeIds.length }),
+          })}
         </p>
         <div className="dialog-actions">
-          <Button variant="ghost" onClick={() => deleteDialog.current?.close()}>Cancel</Button>
-          <Button variant="secondary" onClick={() => confirmDelete(false)}>Keep the recipes</Button>
-          <Button variant="primary" onClick={() => confirmDelete(true)}>Delete them too</Button>
+          <Button variant="ghost" onClick={() => deleteDialog.current?.close()}>{t('common.cancel')}</Button>
+          <Button variant="secondary" onClick={() => confirmDelete(false)}>{t('cookbookDetail.keepRecipes')}</Button>
+          <Button variant="primary" onClick={() => confirmDelete(true)}>{t('cookbookDetail.deleteThemToo')}</Button>
         </div>
       </dialog>
     </main>
