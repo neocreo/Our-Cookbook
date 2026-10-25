@@ -42,6 +42,8 @@ Initial internal test release. versionCode 1, minSdk 24.
   the `drive.file` scope — the folder is found by name or created at the
   top of My Drive
 - minSdkVersion raised from 23 to 24 (Play automatic protection)
+- targetSdkVersion/compileSdkVersion raised from 35 to 36 (Play requirement),
+  Android Gradle plugin 8.7.2 → 8.9.2
 
 ## Naming convention
 
