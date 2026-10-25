@@ -10,6 +10,8 @@ opencookbook.online via Loopia.
   (spegling av `_playstore/sekretesspolicy.md` — uppdatera båda vid ändring)
 - `style.css` — delad stil, portad från appens Organic-tokens
 - `icon-192.png` — app-ikonen (favicon/hero), kopia av `_playstore/grafik/icon-512.png` (nedskalad till 192 px)
+- `img/` — fyra skärmdumpar i galleriet på startsidan, nedskalade kopior
+  av bilderna i `_playstore/grafik/` (uppdatera dem när appen får nytt utseende)
 
 ## Publicera på Loopia
 
