@@ -18,8 +18,11 @@ Publiceringen sker automatiskt via GitHub Actions
 
 - Triggas vid push till `master` som ändrar något under `site/`
   (eller workflow-filen), samt manuellt via *Run workflow*.
-- Speglar `site/` till FTP-värden med `lftp mirror --reverse --delete`,
-  så filer som tagits bort ur repot raderas också på servern.
+- Speglar `site/` till `public_html/` på FTP-värden med
+  `lftp mirror --reverse --delete`, så filer som tagits bort ur repot
+  raderas också på servern. Målmappen är den katalog domänen serverar
+  ifrån — ändra inte tillbaka till roten, då `--delete` raderar allt där
+  som inte finns i `site/`.
 - FTP-uppgifterna ligger som repository secrets: `HOME_DIR` (FTP-adressen,
   t.ex. `opencookbook.online` eller `ftp://opencookbook.online`,
   ev. med sökväg), `HOME_USR` (användare) och `HOME_PASS` (lösenord).

@@ -44,12 +44,12 @@ jobs:
           set ftp:ssl-allow on
           set ftp:ssl-protect-data on
           open -u "$HOME_USR","$HOME_PASS" "$HOME_DIR"
-          mirror --reverse --delete --no-perms --verbose site/ .
+          rm -f index.html sekretesspolicy.html style.css icon-192.png README.md
+          mirror --reverse --delete --no-perms --verbose site/ public_html
           quit
           EOF
 
       - name: Verify live URL
-        continue-on-error: true
         run: |
           code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 30 https://opencookbook.online/)
           echo "HTTP $code from https://opencookbook.online/" >> "$GITHUB_STEP_SUMMARY"
@@ -62,7 +62,7 @@ jobs:
           {
             echo "## Website deploy"
             echo ""
-            echo "Mirrored \`site/\` to the FTP host. Files deployed:"
+            echo "Mirrored \`site/\` to \`public_html/\`. Files deployed:"
             echo ""
             ls site/ | sed 's/^/- `/; s/$/`/'
           } >> "$GITHUB_STEP_SUMMARY"
