@@ -1,0 +1,68 @@
+name: Deploy website
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - 'site/**'
+      - '.github/workflows/deploy-site.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-site
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: Mirror site/ to opencookbook.online
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/master'
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install lftp
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq --no-install-recommends lftp
+
+      - name: Upload via FTP
+        env:
+          HOME_DIR: ${{ secrets.HOME_DIR }}
+          HOME_USR: ${{ secrets.HOME_USR }}
+          HOME_PASS: ${{ secrets.HOME_PASS }}
+        run: |
+          lftp <<EOF
+          set net:timeout 30
+          set net:max-retries 3
+          set net:reconnect-interval-base 5
+          set ftp:ssl-allow on
+          set ftp:ssl-protect-data on
+          open -u "$HOME_USR","$HOME_PASS" "$HOME_DIR"
+          mirror --reverse --delete --no-perms --verbose site/ .
+          quit
+          EOF
+
+      - name: Verify live URL
+        continue-on-error: true
+        run: |
+          code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 30 https://opencookbook.online/)
+          echo "HTTP $code from https://opencookbook.online/" >> "$GITHUB_STEP_SUMMARY"
+          echo "HTTP $code from https://opencookbook.online/"
+          test "$code" = "200"
+
+      - name: Summary
+        if: always()
+        run: |
+          {
+            echo "## Website deploy"
+            echo ""
+            echo "Mirrored \`site/\` to the FTP host. Files deployed:"
+            echo ""
+            ls site/ | sed 's/^/- `/; s/$/`/'
+          } >> "$GITHUB_STEP_SUMMARY"

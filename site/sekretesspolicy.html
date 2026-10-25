@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sekretesspolicy — Our Open Cookbook</title>
+  <link rel="icon" href="icon-192.png">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Trocchi:wght@400;700&family=Figtree:wght@400;600;700&display=swap">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="wrap">
+    <header class="site-header">
+      <a class="brand" href="index.html">
+        <img src="icon-192.png" alt="Our Open Cookbook-ikon">
+        Our Open Cookbook
+      </a>
+      <nav class="nav">
+        <a href="index.html">Hem</a>
+      </nav>
+    </header>
+
+    <main class="article">
+      <h1>Sekretesspolicy</h1>
+      <p class="updated">Senast uppdaterad: 2026-10-25</p>
+
+      <p class="lead">Denna policy beskriver hur appen Our Open Cookbook
+      (&ldquo;appen&rdquo;) behandlar dina uppgifter. Kort version: dina recept lagras
+      på din egen enhet, synkas bara till ditt egna Google Drive-konto om du
+      själv aktiverar det, och säljs eller delas aldrig med tredje part.</p>
+
+      <h2>1. Vem är ansvarig</h2>
+      <p>Appen utvecklas av Daniel Hansson. Kontakt:
+      <a href="mailto:ouropencookbook@neocreo.net">ouropencookbook@neocreo.net</a></p>
+
+      <h2>2. Vilka uppgifter behandlas</h2>
+
+      <h3>Lagras på din enhet</h3>
+      <ul>
+        <li>Recept, kokböcker, ingredienser, instruktioner, anteckningar och
+        bilder som du själv skapar eller importerar. Lagringen är appens lokala
+        databas på enheten (IndexedDB i appens datautrymme).</li>
+        <li>App-inställningar (tema, språkval för OCR) i appens lokala lagring.</li>
+        <li>En slumpgenererad, anonym enhetsidentifierare (UUID) som används
+        för att hålla reda på versioner vid synkronisering. Den är inte kopplad
+        till din identitet.</li>
+      </ul>
+
+      <h3>Google Drive-synkronisering (endast om du aktiverar den)</h3>
+      <p>Om du loggar in med Google och startar synk skrivs dina recept och
+      kokböcker som JSON-filer till mappen <strong>/OurOpenCookbook i ditt eget
+      Google Drive-konto</strong>. Appen använder Google-behörigheten
+      <em>drive.file</em> — den kan bara läsa och skriva filer som appen själv
+      har skapat, aldrig övrigt innehåll i ditt Drive. Inloggningen sker via
+      Google OAuth; åtkomsttoken behålls bara tillfälligt i minnet under
+      sessionen och lagras inte varaktigt. Appen läser inte din e-postadress
+      eller annan profilinformation.</p>
+
+      <h3>Kamera och bilder</h3>
+      <p>Appen använder kameran enbart för att du ska kunna fotografera en
+      receptsida för inläsning med OCR. Bilderna bearbetas lokalt i appen
+      (textigenkänning sker på enheten). En bild blir en del av receptet först
+      om du sparar den, och följer då med receptet — inklusive vid Drive-synk,
+      om den är aktiverad.</p>
+
+      <h2>3. Delas uppgifter med tredje part?</h2>
+      <p>Nej. Appen innehåller ingen reklam, ingen analys eller spårning och
+      säljer aldrig uppgifter. Uppgifterna lämnar din enhet endast i form av
+      synk till ditt eget Google Drive-konto, som du initierar och när som
+      helst kan koppla bort eller rensa.</p>
+
+      <h2>4. Hur länge sparas uppgifterna</h2>
+      <p>Tills du tar bort dem. Ta bort ett recept i appen så raderas det från
+      enheten och, vid nästa synk, även ur Drive. Avinstallerar du appen
+      raderas den lokala databasen. Filer i ditt Drive raderar du själv via
+      Google Drive.</p>
+
+      <h2>5. Dina rättigheter</h2>
+      <p>Eftersom appen inte samlar in uppgifter om dig finns inget register
+      att begära utdrag ur. Du har full kontroll: radera, exportera
+      (JSON/Markdown i appen) eller koppla bort Drive-synken när du vill.</p>
+
+      <h2>6. Barn</h2>
+      <p>Appen riktar sig inte till barn och samlar inte in uppgifter från barn.</p>
+
+      <h2>7. Ändringar</h2>
+      <p>Vid ändringar i denna policy uppdateras datumet ovan och den
+      publicerade versionen på denna URL.</p>
+
+      <h2>8. Kontakt</h2>
+      <p>Frågor om policyn eller appen:
+      <a href="mailto:ouropencookbook@neocreo.net">ouropencookbook@neocreo.net</a>.</p>
+    </main>
+
+    <footer class="site-footer">
+      <p><a href="index.html">Tillbaka till startsidan</a></p>
+    </footer>
+  </div>
+</body>
+</html>
