@@ -94,6 +94,18 @@ img { max-width: 100%; }
 }
 .hero .tagline { font-size: 18px; color: color-mix(in srgb, var(--color-text) 65%, transparent); }
 .cta-row { margin: 28px 0 0; }
+.cta-row .btn { display: inline-flex; align-items: center; gap: 10px; }
+.play-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: #fff;
+  flex: none;
+}
+.play-badge svg { width: 18px; height: 18px; display: block; }
 
 /* Feature cards */
 .cards {
