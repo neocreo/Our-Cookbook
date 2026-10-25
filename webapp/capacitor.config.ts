@@ -1,7 +1,7 @@
 import type { CapacitorConfig } from '@capacitor/cli'
 
 const config: CapacitorConfig = {
-  appId: 'com.ourcookbook',
+  appId: 'our.open.cookbook',
   appName: 'Our Open Cookbook',
   webDir: 'dist',
   server: {
