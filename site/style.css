@@ -93,6 +93,7 @@ img { max-width: 100%; }
   box-shadow: 0 8px 24px rgba(32, 30, 29, 0.18);
 }
 .hero .tagline { font-size: 18px; color: color-mix(in srgb, var(--color-text) 65%, transparent); }
+.cta-row { margin: 28px 0 0; }
 
 /* Feature cards */
 .cards {
