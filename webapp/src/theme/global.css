@@ -160,19 +160,27 @@ textarea.input { min-height: 90px; resize: vertical; border-radius: 0; }
   display: grid;
   place-items: center;
   padding: var(--space-4);
-  background: color-mix(in srgb, var(--color-neutral-900) 50%, transparent);
+  /* Fixed dark scrim — theme tokens flip in dark mode and ::backdrop
+     resolves custom properties unreliably. */
+  background: rgba(0, 0, 0, 0.5);
 }
 .dialog {
   width: min(440px, 100%);
-  display: flex;
+  /* display:none while closed (UA default) — flex only when open, or the
+     dialog renders in the page flow and peeks out at the bottom. */
+  display: none;
   flex-direction: column;
   gap: var(--space-3);
   padding: var(--space-4);
   border: none;
   border-radius: var(--radius-lg);
   background: var(--color-surface);
+  /* The UA stylesheet forces color: CanvasText on <dialog>, which is black
+     on the dark surface — the app's text colour must be set explicitly. */
+  color: var(--color-text);
   box-shadow: var(--shadow-lg);
 }
+.dialog[open] { display: flex; }
 .dialog-title {
   font-family: var(--font-heading);
   font-weight: var(--font-heading-weight);
@@ -180,7 +188,7 @@ textarea.input { min-height: 90px; resize: vertical; border-radius: 0; }
 }
 .dialog-body { font-size: 14px; opacity: 0.85; }
 .dialog-actions { display: flex; justify-content: flex-end; gap: var(--space-2); margin-top: var(--space-2); }
-.dialog::backdrop { background: color-mix(in srgb, var(--color-neutral-900) 50%, transparent); }
+.dialog::backdrop { background: rgba(0, 0, 0, 0.5); }
 
 /* — washed images — */
 .washed { filter: saturate(0.6) contrast(0.85) brightness(1.1) opacity(0.94); }
