@@ -3,20 +3,29 @@
 // into the build.
 //
 // Returning users who have signed in before are silently re-authenticated
-// (GIS prompt: '') and pending changes sync automatically.
+// (GIS prompt: '') and pending changes sync automatically. On native the
+// sign-in navigates the WebView to Google and back, so re-authentication is
+// never automatic — the user taps the button instead.
 
 import { useCallback, useEffect, useState } from 'react'
+import { Capacitor } from '@capacitor/core'
 import { Button } from '../components/Button'
 import { useRecipes } from '../hooks/useRecipes'
 import { useCookbooks } from '../hooks/useCookbooks'
 import { getDeviceId } from '../lib/device'
 import { getGoogleClientId } from '../lib/googleConfig'
-import { getDriveSyncService, ensureGisLoaded } from '../features/sync/driveService'
+import { getDriveSyncService, ensureGisLoaded, takeAuthError } from '../features/sync/driveService'
 import { getPendingCount, getSyncMetadata } from '../features/sync/repository'
 import { saveRecipeFromRemote, deleteRecipe } from '../features/recipe/repository'
 import { saveCookbookFromRemote, fileUnfiledRecipes } from '../features/cookbook/repository'
 import { useAppStore } from '../stores/appStore'
 import type { SyncResult } from '../features/sync/syncEngine'
+
+const AUTH_ERROR_PREFIX = 'Inloggning misslyckades: '
+
+// The OAuth redirect's error (if any) is read once and cached — lazy state
+// initializers can run twice under React StrictMode.
+let cachedAuthError: string | null | undefined
 
 export function SyncStatus() {
   const { recipes } = useRecipes()
@@ -26,7 +35,13 @@ export function SyncStatus() {
   const [authenticated, setAuthenticated] = useState(false)
   const [syncing, setSyncing] = useState(false)
   const [syncResult, setSyncResult] = useState<SyncResult | null>(null)
-  const [error, setError] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(() => {
+    if (cachedAuthError === undefined) {
+      const authError = takeAuthError()
+      cachedAuthError = authError ? AUTH_ERROR_PREFIX + authError : null
+    }
+    return cachedAuthError
+  })
   const [pendingCount, setPendingCount] = useState(getPendingCount())
   const metadata = getSyncMetadata()
   const hasClientId = getGoogleClientId() != null
@@ -58,18 +73,21 @@ export function SyncStatus() {
   const onSignIn = useCallback(async () => {
     setError(null)
     try {
-      await ensureGisLoaded()
+      // The native flow navigates away to Google — mark the consent before
+      // the page unloads so the sync page picks the session back up.
+      setDriveConsentGranted(true)
+      if (!Capacitor.isNativePlatform()) await ensureGisLoaded()
       await getDriveSyncService().signIn()
       setAuthenticated(true)
-      setDriveConsentGranted(true)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Inloggning misslyckades')
     }
   }, [setDriveConsentGranted])
 
   // Returning users: silently re-authenticate, then drain any pending queue.
+  // Never on native — signIn there is a full-page redirect, not silent.
   useEffect(() => {
-    if (!hasClientId || !driveConsentGranted) return
+    if (!hasClientId || !driveConsentGranted || Capacitor.isNativePlatform()) return
     let active = true
     ;(async () => {
       try {

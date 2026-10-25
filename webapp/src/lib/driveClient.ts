@@ -76,15 +76,30 @@ export class DriveApiClient {
 
   // ── folders ──────────────────────────────────────────────────────────
 
-  /** The visible root folder, created on first sync. */
+  /** The visible root folder, created on first sync.
+   *  The narrow `drive.file` scope cannot read /files/root (404 — the root
+   *  folder is not a file created by this app), so find the folder by name
+   *  among the app's own files, or create it at the top of My Drive: files
+   *  created without parents land in the drive root. */
   async ensureRootFolder(): Promise<string> {
     if (this.rootFolderId) return this.rootFolderId
-    const rootId = (await this.api<{ id: string }>('/files/root?fields=id')).id
-    const existing = await this.findChildByName(rootId, ROOT_FOLDER_NAME)
-    this.rootFolderId = existing
-      ? existing.id
-      : await this.createFolder(ROOT_FOLDER_NAME, rootId)
+    const q = encodeURIComponent(
+      `name='${ROOT_FOLDER_NAME}' and mimeType='${FOLDER_MIME}' and trashed=false`,
+    )
+    const data = await this.api<{ files?: DriveFile[] }>(
+      `/files?q=${q}&fields=files(id)&pageSize=10`,
+    )
+    const existing = (data.files ?? [])[0]
+    this.rootFolderId = existing?.id ?? await this.createTopFolder(ROOT_FOLDER_NAME)
     return this.rootFolderId
+  }
+
+  private async createTopFolder(name: string): Promise<string> {
+    const created = await this.api<DriveFile>('/files', {
+      method: 'POST',
+      body: JSON.stringify({ name, mimeType: FOLDER_MIME }),
+    })
+    return created.id
   }
 
   async listChildren(parentId: string): Promise<DriveFile[]> {

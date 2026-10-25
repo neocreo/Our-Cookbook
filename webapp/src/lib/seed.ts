@@ -1,6 +1,7 @@
-// Sample seed data, adapted from _sources/cookbook-data.js, mapped to the
-// domain models. Used to populate the app on first run so the recipe list is
-// not empty. Runs once when the database has no recipes.
+// Sample seed data, taken from Gwen and Daniel's cookbook ("Now That's Good
+// Eatin'", _sources/Now thats good eatin_v3.json). Used to populate the app
+// on first run so the recipe list is not empty. Runs once when the database
+// has no recipes.
 
 import type { Cookbook } from '../types/cookbook'
 import type { Recipe } from '../types/recipe'
@@ -8,200 +9,177 @@ import { createCookbook } from '../types/cookbook'
 import { createRecipe } from '../types/recipe'
 import { createIngredient } from '../types/ingredient'
 
+interface SeedIngredient {
+  name: string
+  amount?: string | null
+  unit?: string | null
+}
+
 interface SeedRecipe {
-  cookbookId: string
   title: string
+  description: string | null
   category: string
-  servings: number
-  time: string
+  servings: number | null
+  prepTime: number | null
+  cookTime: number | null
   tags: string[]
-  ingredients: string[]
-  steps: string[]
-  source: string
-  notes: string
+  ingredients: SeedIngredient[]
+  instructions: string[]
+  source: string | null
+  isFavorite?: boolean
 }
 
-function parseMinutes(time: string): number | null {
-  const hr = /(\d+)\s*hr/.exec(time)
-  const min = /(\d+)\s*min/.exec(time)
-  let total = 0
-  let found = false
-  if (hr) {
-    total += Number(hr[1]) * 60
-    found = true
-  }
-  if (min) {
-    total += Number(min[1])
-    found = true
-  }
-  return found ? total : null
+const COOKBOOK = {
+  name: 'Example Cookbook',
+  description: "Recipes from Gwen and Daniel's kitchen — Now That's Good Eatin'",
 }
-
-const COOKBOOKS = [
-  { id: 'cb-my', name: 'My Cookbook', subtitle: 'Recipes gathered over the years' },
-  { id: 'cb-beths', name: "Beth's Favourites", subtitle: "Recipes from Beth's kitchen" },
-  { id: 'cb-family', name: 'Family Cookbook', subtitle: 'Passed down through generations' },
-]
 
 const RECIPES: SeedRecipe[] = [
   {
-    cookbookId: 'cb-my',
-    title: 'Sunday Pot Roast',
-    category: 'Dinner',
+    title: "Gwen's Huevos Luchadores",
+    description:
+      'We take breakfast very seriously and this is our absolute favorite breakfast. We eat it constantly, at least once every weekend.',
+    category: 'Breakfast',
+    servings: 2,
+    prepTime: 10,
+    cookTime: 15,
+    tags: [],
+    ingredients: [
+      { name: 'chorizo sausage (can be left out for vegetarian), crumbled', amount: '2', unit: 'links' },
+      { name: 'red onion, chopped', amount: '1/2' },
+      { name: 'cloves fresh garlic, minced', amount: '2' },
+      { name: 'fresh jalapeno pepper, finely chopped', amount: '1' },
+      { name: 'finely chopped fresh cilantro', amount: '2', unit: 'tbsp' },
+      { name: 'tomato, chopped', amount: '1' },
+      { name: 'lime, juiced', amount: '1' },
+      { name: 'black beans, drained', amount: '1', unit: 'can' },
+      { name: 'cumin', amount: '2', unit: 'tsp' },
+      { name: 'molasses', amount: '1', unit: 'tbsp' },
+      { name: 'Salt and pepper, to taste' },
+      { name: 'eggs', amount: '4' },
+    ],
+    instructions: [
+      "Combine crumbled chorizo, chopped onion, minced garlic, finely chopped jalapeno, and finely chopped cilantro and cook on medium high heat until sausage is cooked and onions are soft. Squeeze in the lime and add the chopped tomato. Let cook for a few minutes or until the tomatoes have broken down and released their juices. Then add the beans, cumin, molasses, and salt and pepper to taste. Let this cook together until it's bubbly and fragrant and some of the juices have boiled off. Make four small wells in the sauce and crack in the eggs. Cover and let simmer on medium heat until the eggs are set, approximately five minutes.",
+      'Serve with tortillas, pickled jalapenos, and a scoop of sour cream. We like to use nice and thick Turkish yogurt instead of sour cream.',
+      'Feeds two very hungry people or four normal people.',
+    ],
+    source: "Now That's Good Eatin' — Gwen and Daniel's Kitchen",
+    isFavorite: true,
+  },
+  {
+    title: 'Cuban Pork Sandwich (Cubanos) from Chef Movie',
+    description:
+      "This is the cubanos sandwich recipe from the 2014 movie Chef. The food in the recipe was created by real life rock star chef Roy Choi. This is the actual recipe from the movie! It was published on thestar.com. This is supposed to be made with a panini/sandwich press but I do not have one so I've provided instructions for how to make this in a skillet. AND these are great for freezing!",
+    category: 'Mains',
+    servings: 2,
+    prepTime: 10,
+    cookTime: 15,
+    tags: [],
+    ingredients: [
+      { name: 'slices baked leg ham', amount: '2', unit: 'thin' },
+      { name: 'Mojo Marinated Pork slices', amount: '4', unit: 'large' },
+      { name: 'white baguettes, 6 inch/15 cm in length, cut in half', amount: '2', unit: 'pieces' },
+      { name: 'Melted butter, for brushing' },
+      { name: 'American mustard' },
+      { name: 'slices Swiss cheese', amount: '2', unit: 'thin' },
+      { name: '3 dill pickles, thinly sliced', amount: '2', unit: 'or' },
+    ],
+    instructions: [
+      'Heat skillet over medium heat. Add ham and pork slices, and cook each side until slightly browned then remove to a plate.',
+      'Butter cut sides of baguettes then place in the skillet, cut side down, for 2 minutes until lightly browned. Remove onto work surface.',
+      'Layer the bottom of the baguettes with pork, ham, then cheese and pickles. Cut, break or fold the ham, pork and cheese so they fit. Spread the cut side of the bun tops with mustard then place on the sandwich.',
+      'Butter the bottom AND top of the outside of the baguettes.',
+      'Heat skillet over medium high heat. Place the baguettes in the skillet, top with a sheet of baking paper then weigh it down with a heavy skillet or pot (use cans if necessary for extra weight so the sandwich compressed). Cook for 3 minutes on each side, until dark golden brown and crispy, and the cheese is melted.',
+      'Let sandwiches stand 1 minute before cutting in half. Serve IMMEDIATELY.',
+    ],
+    source: "Now That's Good Eatin' — Gwen and Daniel's Kitchen",
+  },
+  {
+    title: 'Fermented Hot Sauce',
+    description:
+      'First, ferment the serrano peppers. Roughly chop the peppers, then pack them into a ball jar, leaving at least 1 inch of head space. The peppers may rise a bit when fermenting.',
+    category: 'Sauce',
+    servings: 2,
+    prepTime: 10,
+    cookTime: 15,
+    tags: [],
+    ingredients: [
+      { name: 'red serrano peppers, or use any chili peppers, stems removed', amount: '1', unit: 'lb' },
+      { name: 'unchlorinated water', amount: '1', unit: 'quart' },
+      { name: 'salt', amount: '3', unit: 'tbsp' },
+      {
+        name: 'white wine vinegar, to your preference, use a good quality vinegar for better quality hot sauce',
+        amount: '½-1',
+        unit: 'cup',
+      },
+    ],
+    instructions: [
+      'Next, mix 1 quart unchlorinated water with 3 tablespoons sea salt. Pour just enough brine over the peppers to cover them, pressing them down a bit as you go. It is important to keep the peppers covered with brine to avoid spoilage. Check this daily.',
+      'Screw on the lid and set the jar away from direct sunlight to ferment for at least 1 week. Ideal temperatures are between 55-75 degrees F. The most active fermentation period is between 1-2 weeks, so be sure to monitor it during this time. Burp the jars often by unscrewing the lid a bit to let out some of the accumulating gases. Or, use an airlock or membrane for easier fermenting.',
+      'After 1-2 weeks, the fermenting activity will diminish and the brine will turn cloudy and taste acidic.',
+      'Drain the peppers, but reserve the brine.',
+      'Add the fermented peppers to a food processor or blender, along with 1/2 cup of the brine and 1/2 cup vinegar. You can add more or less of each as desired to your preference. More brine will have more salty flavor, more vinegar will be more acidic.',
+      'Process until smooth.',
+      'Add the fermented hot sauce to a pot and bring to a quick boil. Reduce heat and simmer for 15 minutes. This will stop the fermentation process.',
+    ],
+    source: "Now That's Good Eatin' — Gwen and Daniel's Kitchen",
+  },
+  {
+    title: "Gwen's Spicy Love Bomb Chili",
+    description: 'With which she captured the heart and stomach of a certain young Swede named Daniel.',
+    category: 'Mains',
     servings: 6,
-    time: '3 hr 10 min',
-    tags: ['Dinner', 'Beef'],
+    prepTime: 10,
+    cookTime: 60,
+    tags: [],
     ingredients: [
-      '3 lb beef chuck roast', '2 tbsp flour', '1 onion, sliced', '3 carrots, chopped',
-      '3 potatoes, quartered', '2 cups beef broth', '1 tbsp Worcestershire sauce', 'Salt and pepper',
+      { name: 'boneless chuck roast, cut into small cubes, or you can use ground beef', amount: '1', unit: 'lb' },
+      { name: 'onion, chopped', amount: '1' },
+      { name: 'cloves of fresh garlic, finely chopped', amount: '3-4' },
+      { name: 'fresh jalapeno peppers, finely chopped', amount: '2' },
+      { name: "habanero pepper, seeded (if you're weak) and finely chopped", amount: '1' },
+      { name: 'Alternatively, you can use a small can of chipotle peppers in adobo sauce' },
+      { name: 'fresh cilantro, chopped', amount: '1/2', unit: 'bunch' },
+      { name: 'beans of your choice, with liquid. I usually use black beans.', amount: '2', unit: 'cans' },
+      { name: 'crushed tomatoes', amount: '1', unit: 'can' },
+      { name: 'whole cherry tomatoes, including juice.', amount: '1', unit: 'can' },
+      { name: 'lime, juiced', amount: '1' },
+      { name: 'molasses', amount: '2', unit: 'tbsp' },
+      { name: 'chili powder', amount: '1', unit: 'tbsp' },
+      { name: 'cumin', amount: '1', unit: 'tbsp' },
+      { name: 'Salt and pepper, to taste' },
+      { name: 'dark chocolate (I know, I know....trust me)', amount: '3', unit: 'oz' },
     ],
-    steps: [
-      'Season roast with salt, pepper and flour on all sides.',
-      'Sear roast in a hot dutch oven until browned, about 4 min per side.',
-      'Add onion, carrots and potatoes around the roast.',
-      'Pour in broth and Worcestershire, cover and simmer low 3 hours.',
-      'Rest 10 minutes, then slice against the grain and serve.',
+    instructions: [
+      "Heat about a tablespoon of oil in a large dutch oven or pot and cook the meat with the onions, garlic, and peppers, until the meat is browned and the onions are soft. (TIP: When using fresh peppers or chilis it's important to wear rubber gloves when handling them, and to add them early in the cooking process, so they have a chance to release their flavors and some of their heat. If you're not that into spicy food then I recommend using only the jalapenos and leaving out the habanero and chipotle peppers.) Add the cans of beans and tomatoes, chopped cilantro, lime juice, molasses, chili powder, cumin, salt, and pepper. Let it come to a boil and then add the chocolate and stir until melted. It may smell a lot like chocolate but it doesn't taste like it. The chocolate adds a very subtle flavor to it that's very hard to define. If you've ever had Chicken Mole Poblano with a really good mole sauce, you know what I'm talking about. Let it simmer on medium heat for about an hour or until the meat is tender. Serve with a dollop of sour cream or yogurt, shredded cheddar cheese, and chopped cilantro. Or just eat it plain.",
+      'Feeds about six people.',
     ],
-    source: 'Grandma Ruth, 1974',
-    notes: 'Leftovers make an excellent sandwich the next day.',
+    source: "Now That's Good Eatin' — Gwen and Daniel's Kitchen",
   },
   {
-    cookbookId: 'cb-my',
-    title: 'Skillet Cornbread',
-    category: 'Bread',
-    servings: 8,
-    time: '40 min',
-    tags: ['Bread', 'Side'],
-    ingredients: [
-      '1 cup cornmeal', '1 cup flour', '2 tbsp sugar', '1 tbsp baking powder',
-      '1 cup buttermilk', '2 eggs', '1/4 cup melted butter',
-    ],
-    steps: [
-      'Preheat oven to 425°F with a cast iron skillet inside.',
-      'Whisk dry ingredients together.',
-      'Stir in buttermilk, eggs and melted butter until just combined.',
-      'Pour into the hot skillet and bake 20-22 minutes until golden.',
-    ],
-    source: 'Family recipe box',
-    notes: 'A cast iron skillet gives the crust its snap.',
-  },
-  {
-    cookbookId: 'cb-my',
-    title: 'Lemon Icebox Pie',
-    category: 'Dessert',
-    servings: 8,
-    time: '25 min + chill',
-    tags: ['Dessert'],
-    ingredients: [
-      '1 graham cracker crust', '1 can sweetened condensed milk', '3 egg yolks',
-      '1/2 cup lemon juice', '1 tsp lemon zest', 'Whipped cream to serve',
-    ],
-    steps: [
-      'Whisk condensed milk, egg yolks, lemon juice and zest until smooth.',
-      'Pour into crust and bake at 350°F for 15 minutes.',
-      'Cool completely, then chill at least 3 hours before serving.',
-    ],
-    source: "Aunt Carol's card box",
-    notes: '',
-  },
-  {
-    cookbookId: 'cb-beths',
-    title: "Beth's Deviled Eggs",
-    category: 'Appetizer',
-    servings: 12,
-    time: '20 min',
-    tags: ['Appetizer'],
-    ingredients: [
-      '12 hard-boiled eggs', '1/3 cup mayonnaise', '1 tbsp mustard',
-      '1 tsp paprika', 'Salt to taste', 'Chives for garnish',
-    ],
-    steps: [
-      'Halve eggs and scoop yolks into a bowl.',
-      'Mash yolks with mayonnaise, mustard and salt until smooth.',
-      'Pipe filling back into whites and dust with paprika.',
-      'Garnish with chives and chill until serving.',
-    ],
-    source: 'Beth, church potluck 1981',
-    notes: 'Double the recipe — they disappear fast.',
-  },
-  {
-    cookbookId: 'cb-beths',
-    title: 'Green Bean Casserole',
-    category: 'Side',
-    servings: 8,
-    time: '55 min',
-    tags: ['Side', 'Casserole'],
-    ingredients: [
-      '2 lb green beans, trimmed', '2 cans cream of mushroom soup', '1 cup milk',
-      '2 cups fried onions', 'Salt and pepper',
-    ],
-    steps: [
-      'Preheat oven to 350°F.',
-      'Blanch green beans 4 minutes, then drain.',
-      'Mix beans, soup, milk and half the onions in a baking dish.',
-      'Bake 30 minutes, top with remaining onions, bake 10 more.',
-    ],
-    source: 'Beth',
-    notes: '',
-  },
-  {
-    cookbookId: 'cb-beths',
-    title: 'Chicken & Dumplings',
-    category: 'Dinner',
-    servings: 6,
-    time: '1 hr 20 min',
-    tags: ['Dinner', 'Comfort Food'],
-    ingredients: [
-      '1 whole chicken', '6 cups chicken broth', '2 carrots, sliced',
-      '2 celery stalks, sliced', '2 cups flour', '1 tbsp baking powder', '3/4 cup milk',
-    ],
-    steps: [
-      'Simmer chicken in broth with carrots and celery until tender, about 45 min.',
-      'Remove chicken, shred meat and return to the pot.',
-      'Mix flour, baking powder, salt and milk into a soft dough.',
-      'Drop spoonfuls of dough into the simmering broth, cover and cook 15 minutes.',
-    ],
-    source: "Beth's mother",
-    notes: 'Do not lift the lid while the dumplings steam.',
-  },
-  {
-    cookbookId: 'cb-family',
-    title: "Grandma's Meatloaf",
-    category: 'Dinner',
-    servings: 6,
-    time: '1 hr 10 min',
-    tags: ['Dinner', 'Beef'],
-    ingredients: [
-      '2 lb ground beef', '1 cup breadcrumbs', '2 eggs', '1/2 cup ketchup',
-      '1 onion, diced', '1 tsp garlic powder', 'Salt and pepper',
-    ],
-    steps: [
-      'Preheat oven to 375°F.',
-      'Mix all ingredients except a quarter cup of ketchup.',
-      'Shape into a loaf in a baking pan and brush with remaining ketchup.',
-      'Bake 55-60 minutes until cooked through.',
-    ],
-    source: 'Grandma Ruth, 1968',
-    notes: 'Rest 10 minutes before slicing so it holds together.',
-  },
-  {
-    cookbookId: 'cb-family',
-    title: 'Rhubarb Crisp',
+    title: "She's my cherry pie",
+    description:
+      'TIP: put sugar, flour and cinnamon in a large zip-loc bag. Add the cherries and toss to coat. This coats them more even than doing it in a bowl and the filling is firmer.',
     category: 'Dessert',
     servings: 6,
-    time: '50 min',
-    tags: ['Dessert'],
+    prepTime: 10,
+    cookTime: 40,
+    tags: [],
     ingredients: [
-      '4 cups rhubarb, chopped', '3/4 cup sugar', '1 cup oats', '1/2 cup flour',
-      '1/2 cup brown sugar', '1/2 cup butter, softened', '1 tsp cinnamon',
+      { name: 'cherries, pitted', amount: '4', unit: 'cups' },
+      { name: 'sugar (1 1/4 cups for sour cherries)', amount: '1', unit: 'cup' },
+      { name: 'flour', amount: '1/4', unit: 'cup' },
+      { name: 'cinnamon', amount: '1/2', unit: 'tsp' },
+      { name: 'pastry for a double-crust 9-inch pie' },
     ],
-    steps: [
-      'Preheat oven to 375°F. Toss rhubarb with sugar in a baking dish.',
-      'Mix oats, flour, brown sugar, butter and cinnamon into a crumble.',
-      'Scatter crumble over rhubarb and bake 35-40 minutes until bubbling.',
+    instructions: [
+      'Mix ingredients for filling.',
+      'Place in pastry-lined pie pan.',
+      'Put top crust on. Cut vent slits in top crust, and flute edges.',
+      'Brush with milk and sprinkle with sugar.',
+      'Bake at 425°F for 10 minutes, reduce heat to 375°F and bake for 25-30 minutes more.',
     ],
-    source: 'Family recipe box',
-    notes: 'Serve warm with vanilla ice cream.',
+    source: "Now That's Good Eatin' — Gwen and Daniel's Kitchen",
   },
 ]
 
@@ -210,26 +188,30 @@ export function buildSeed(deviceId: string): { cookbooks: Cookbook[]; recipes: R
     createRecipe(
       {
         title: s.title,
+        description: s.description,
         category: s.category,
         servingSize: s.servings,
-        cookTime: parseMinutes(s.time),
+        prepTime: s.prepTime,
+        cookTime: s.cookTime,
         source: s.source,
-        notes: s.notes || null,
+        notes: null,
         tags: s.tags,
-        ingredients: s.ingredients.map((line, i) => createIngredient(line, null, null, null, i)),
-        instructions: s.steps,
-        isFavorite: s.title === 'Sunday Pot Roast',
+        ingredients: s.ingredients.map((ing, i) =>
+          createIngredient(ing.name, ing.amount ?? null, ing.unit ?? null, null, i),
+        ),
+        instructions: s.instructions,
+        isFavorite: s.isFavorite ?? false,
       },
       deviceId,
     ),
   )
 
-  const cookbooks: Cookbook[] = COOKBOOKS.map((cb) => {
-    const ids = RECIPES
-      .map((s, i) => (s.cookbookId === cb.id ? recipes[i].id : null))
-      .filter((id): id is string => id != null)
-    return createCookbook(cb.name, deviceId, cb.subtitle, ids)
-  })
+  const cookbook: Cookbook = createCookbook(
+    COOKBOOK.name,
+    deviceId,
+    COOKBOOK.description,
+    recipes.map((r) => r.id),
+  )
 
-  return { cookbooks, recipes }
+  return { cookbooks: [cookbook], recipes }
 }

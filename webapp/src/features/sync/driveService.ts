@@ -2,21 +2,55 @@
 // (GIS) for OAuth and Drive REST API v3 for file-based sync.
 //
 // The service manages the access token lifecycle and delegates Drive I/O to
-// the sync engine. The OAuth flow uses the implicit token model (GIS token
-// client), which works in browser and Capacitor WebView.
+// the sync engine. In the browser the OAuth flow uses the GIS token client
+// (implicit flow). In the Capacitor WebView popups and third-party-cookie
+// iframes don't work, so the native flow navigates the WebView to Google's
+// OAuth page and back with the token in the URL fragment (captured at module
+// load below). `accounts.google.com` must be listed in `server.allowNavigation`
+// so the flow stays inside the WebView.
 //
 // The user must configure their Google Cloud client ID in Settings (or via
 // VITE_GOOGLE_CLIENT_ID env var) before sign-in works.
 
+import { Capacitor } from '@capacitor/core'
 import type { Recipe } from '../../types/recipe'
 import type { Cookbook } from '../../types/cookbook'
 import { getGoogleClientId, GOOGLE_SCOPES } from '../../lib/googleConfig'
 import { runSync, type SyncResult, type SyncCallbacks } from './syncEngine'
 
-// Token stored in memory (session-scoped). GIS tokens are short-lived (~1h);
-// returning users are silently re-authenticated (prompt: '') on the sync page.
+// Tokens are short-lived (~1h). Web keeps the token in memory for the
+// session; native survives the OAuth redirect by parking it in
+// sessionStorage, which the redirect reload then picks up.
+const TOKEN_KEY = 'driveAccessToken'
+const AUTH_ERROR_KEY = 'driveAuthError'
+const RETURN_TO_KEY = 'driveAuthReturnTo'
 
 let accessToken: string | null = null
+
+// Capture the OAuth redirect (native): Google sends the token back as a URL
+// fragment (#access_token=…). Runs on import, before any page renders, so the
+// app resumes with the token in place and the fragment stripped from the URL.
+if (typeof window !== 'undefined' && Capacitor.isNativePlatform()) {
+  const hash = window.location.hash
+  if (hash.includes('access_token=') || hash.includes('error=')) {
+    const params = new URLSearchParams(hash.slice(1))
+    const token = params.get('access_token')
+    const err = params.get('error')
+    if (token) sessionStorage.setItem(TOKEN_KEY, token)
+    else if (err) sessionStorage.setItem(AUTH_ERROR_KEY, err)
+    const returnTo = sessionStorage.getItem(RETURN_TO_KEY)
+    sessionStorage.removeItem(RETURN_TO_KEY)
+    // Strip the fragment and land back where the user signed in.
+    window.history.replaceState(null, '', returnTo || window.location.pathname)
+  }
+}
+
+/** The access token from the OAuth redirect, if the flow just completed. */
+export function takeAuthError(): string | null {
+  const err = sessionStorage.getItem(AUTH_ERROR_KEY)
+  if (err) sessionStorage.removeItem(AUTH_ERROR_KEY)
+  return err
+}
 
 export interface DriveSyncService {
   signIn(): Promise<void>
@@ -35,19 +69,24 @@ export class RealDriveSyncService implements DriveSyncService {
     const clientId = getGoogleClientId()
     if (!clientId) throw new Error('Google client ID not configured. Set it in Settings first.')
 
+    if (Capacitor.isNativePlatform()) {
+      startNativeSignIn(clientId)
+      return
+    }
     // Use Google Identity Services token client (implicit flow)
     accessToken = await requestToken(clientId)
   }
 
   async signOut(): Promise<void> {
-    const token = accessToken
+    const token = accessToken ?? sessionStorage.getItem(TOKEN_KEY)
     accessToken = null
-    // GIS doesn't have a logout endpoint for token model; just clear the token
+    sessionStorage.removeItem(TOKEN_KEY)
+    // Best-effort revoke — GIS has no logout endpoint for the token model.
     revokeToken(token ?? '')
   }
 
   async isAuthenticated(): Promise<boolean> {
-    return accessToken != null
+    return accessToken != null || sessionStorage.getItem(TOKEN_KEY) != null
   }
 
   async sync(
@@ -56,12 +95,30 @@ export class RealDriveSyncService implements DriveSyncService {
     deviceId: string,
     callbacks: SyncCallbacks,
   ): Promise<SyncResult> {
-    if (!accessToken) throw new Error('Not authenticated. Sign in to Drive first.')
-    return runSync(accessToken, localRecipes, localCookbooks, deviceId, callbacks)
+    const token = accessToken ?? sessionStorage.getItem(TOKEN_KEY)
+    if (!token) throw new Error('Not authenticated. Sign in to Drive first.')
+    return runSync(token, localRecipes, localCookbooks, deviceId, callbacks)
   }
 }
 
-/** Request an access token using GIS token client (implicit flow). */
+/** Start the WebView OAuth flow: navigate to Google's implicit-grant page.
+ *  The token comes back as a URL fragment when Google redirects to the app
+ *  origin — captured at module load. This promise never settles; the page
+ *  navigates away instead. */
+function startNativeSignIn(clientId: string): Promise<void> {
+  const params = new URLSearchParams({
+    client_id: clientId,
+    response_type: 'token',
+    redirect_uri: window.location.origin,
+    scope: GOOGLE_SCOPES,
+    prompt: 'select_account',
+  })
+  sessionStorage.setItem(RETURN_TO_KEY, window.location.pathname)
+  window.location.assign(`https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`)
+  return new Promise(() => {})
+}
+
+/** Request an access token using GIS token client (implicit flow, browser). */
 function requestToken(clientId: string): Promise<string> {
   return new Promise((resolve, reject) => {
     if (!('google' in window) || !window.google?.accounts?.oauth2) {
@@ -88,12 +145,19 @@ function requestToken(clientId: string): Promise<string> {
   })
 }
 
-/** Revoke a GIS access token. */
+/** Revoke an access token — GIS on web, the REST endpoint on native. */
 function revokeToken(token: string): void {
   if (!token) return
-  if ('google' in window && window.google?.accounts?.oauth2) {
+  if (!Capacitor.isNativePlatform() && 'google' in window && window.google?.accounts?.oauth2) {
     window.google.accounts.oauth2.revoke(token, () => {})
+    return
   }
+  // Best-effort; failures just mean the token lives out its ~1h lifetime.
+  void fetch('https://oauth2.googleapis.com/revoke', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({ token }).toString(),
+  }).catch(() => {})
 }
 
 // TypeScript declarations for the Google Identity Services API
