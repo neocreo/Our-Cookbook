@@ -1,4 +1,6 @@
 # The privacy policy moved when the site got language folders:
 # English at /privacy.html, Swedish at /sv/sekretesspolicy.html.
 # Keep the old Swedish URL alive for anyone (Play Console) linking to it.
-Redirect 301 /sekretesspolicy.html /sv/sekretesspolicy.html
+# Absolute target: Apache sits behind an nginx proxy, so a relative
+# Redirect would guess the wrong (http) scheme.
+Redirect 301 /sekretesspolicy.html https://opencookbook.online/sv/sekretesspolicy.html
