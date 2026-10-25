@@ -133,6 +133,15 @@ img { max-width: 100%; }
   margin-top: 10px;
 }
 
+/* Languages */
+.languages { padding: 8px 0 48px; }
+.languages h2 { text-align: center; }
+.lang-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
 /* Article (policy) */
 .article { padding: 40px 0 56px; }
 .article h2 {
