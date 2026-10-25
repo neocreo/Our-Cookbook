@@ -13,7 +13,7 @@ Nothing yet.
 
 ## [1.0.0] — First Serving — 2026-10-25
 
-Initial internal test release. versionCode 2, minSdk 24.
+Initial internal test release. versionCode 3, minSdk 24.
 
 ### Added
 
