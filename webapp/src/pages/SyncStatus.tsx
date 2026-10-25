@@ -4,10 +4,11 @@
 //
 // Returning users who have signed in before are silently re-authenticated
 // (GIS prompt: '') and pending changes sync automatically. On native the
-// sign-in navigates the WebView to Google and back, so re-authentication is
-// never automatic — the user taps the button instead.
+// sign-in navigates the WebView to Google and back; the returned token is
+// adopted on mount so the session survives, but re-authentication of an
+// expired token is never automatic — the user taps the button instead.
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Capacitor } from '@capacitor/core'
 import { Button } from '../components/Button'
 import { useRecipes } from '../hooks/useRecipes'
@@ -106,6 +107,26 @@ export function SyncStatus() {
     })()
     return () => { active = false }
   }, [hasClientId, driveConsentGranted, runSyncNow])
+
+  // Native: the OAuth redirect parks the token in sessionStorage, so a
+  // returning user is authenticated without any UI state knowing it. Check
+  // once on mount and adopt the stored session, then drain any pending queue
+  // — otherwise the page would keep showing "Sign in with Google" and the
+  // sync would never run.
+  const runSyncNowRef = useRef(runSyncNow)
+  useEffect(() => { runSyncNowRef.current = runSyncNow })
+  useEffect(() => {
+    if (!Capacitor.isNativePlatform()) return
+    let active = true
+    ;(async () => {
+      const service = getDriveSyncService()
+      if (!(await service.isAuthenticated())) return
+      if (!active) return
+      setAuthenticated(true)
+      if (getPendingCount() > 0) await runSyncNowRef.current()
+    })()
+    return () => { active = false }
+  }, [])
 
   async function onSignOut() {
     await getDriveSyncService().signOut()
