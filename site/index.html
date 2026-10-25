@@ -1,105 +1,117 @@
 <!DOCTYPE html>
-<html lang="sv">
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Our Open Cookbook</title>
-  <meta name="description" content="Our Open Cookbook — en varm, offline-first receptapp. Samla dina recept, skanna från foto med OCR, organisera i kokböcker och synka via ditt eget Google Drive.">
+  <meta name="description" content="Our Open Cookbook — a warm, offline-first recipe app. Collect your recipes, scan from photos with OCR, organize them into cookbooks, and sync via your own Google Drive.">
   <link rel="icon" href="icon-192.png">
+  <link rel="canonical" href="https://opencookbook.online/">
+  <link rel="alternate" hreflang="en" href="https://opencookbook.online/">
+  <link rel="alternate" hreflang="sv" href="https://opencookbook.online/sv/">
+  <link rel="alternate" hreflang="x-default" href="https://opencookbook.online/">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Trocchi:wght@400;700&family=Figtree:wght@400;600;700&display=swap">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <div class="wrap">
+    <nav class="langbar" aria-label="Language">
+      <a href="/" hreflang="en" aria-current="page">English</a>
+      <span aria-hidden="true">·</span>
+      <a href="sv/" hreflang="sv">Svenska</a>
+    </nav>
+
     <header class="site-header">
       <a class="brand" href="index.html">
-        <img src="icon-192.png" alt="Our Open Cookbook-ikon">
+        <img src="icon-192.png" alt="Our Open Cookbook icon">
         Our Open Cookbook
       </a>
       <nav class="nav">
-        <a href="sekretesspolicy.html">Sekretesspolicy</a>
+        <a href="privacy.html">Privacy Policy</a>
       </nav>
     </header>
 
     <main>
       <section class="hero">
         <img class="app-icon" src="icon-192.png" alt="Our Open Cookbook">
-        <h1>Dina recept, på ditt sätt</h1>
-        <p class="tagline">En varm, offline-first receptapp. Skanna recept från foto,
-        organisera dem i kokböcker och synka via ditt eget Google Drive — utan reklam,
-        utan spårning.</p>
+        <h1>Your recipes, your way</h1>
+        <p class="tagline">A warm, offline-first recipe app. Scan recipes from
+        photos, organize them into cookbooks, and sync via your own Google
+        Drive — no ads, no tracking.</p>
       </section>
 
       <section class="cards">
         <div class="card">
-          <h3>Skanna med OCR</h3>
-          <p>Fotografera en receptsida — appen läser av texten på din enhet och gör om den till ett redigerbart recept.</p>
+          <h3>Scan with OCR</h3>
+          <p>Photograph a recipe page — the app reads the text on your own device and turns it into an editable recipe.</p>
         </div>
         <div class="card">
-          <h3>Kokböcker</h3>
-          <p>Organisera recepten i samlingar med bokformade omslag byggda av dina egna bilder.</p>
+          <h3>Cookbooks</h3>
+          <p>Organize your recipes into collections with book-shaped covers built from your own images.</p>
         </div>
         <div class="card">
-          <h3>Drive-synk</h3>
-          <p>Helt frivilligt: synka en backup eller dela din receptsamling mellan enheter via ditt eget Google Drive-konto. Recepten lämnar aldrig din kontroll.</p>
+          <h3>Drive sync</h3>
+          <p>Completely optional: back up or share your recipe collection across devices via your own Google Drive account. Your recipes never leave your control.</p>
         </div>
         <div class="card">
           <h3>Offline-first</h3>
-          <p>Allt lagras på din egen enhet. Appen fungerar helt utan internet — synk sker bara när du själv väljer det.</p>
+          <p>Everything is stored on your own device. The app works fully offline — sync happens only when you choose it.</p>
         </div>
         <div class="card">
           <h3>Export</h3>
-          <p>Exportera till Markdown eller JSON. Dina recept är alltid dina, i ett format du kan läsa.</p>
+          <p>Export to Markdown or JSON. Your recipes are always yours, in a format you can read.</p>
         </div>
         <div class="card">
-          <h3>Ingen reklam</h3>
-          <p>Ingen reklam, ingen analys och ingen försäljning av uppgifter. Någonsin.</p>
+          <h3>No ads</h3>
+          <p>No ads, no analytics, and no selling of data. Ever.</p>
         </div>
       </section>
+
       <section class="gallery">
-        <h2>Så ser den ut</h2>
+        <h2>This is what it looks like</h2>
         <div class="shots">
           <figure>
-            <img src="img/home-light.png" alt="Hemskärmen med senaste recept, favoriter och kategorier" loading="lazy">
-            <figcaption>Hem</figcaption>
+            <img src="img/home-light.png" alt="The home screen with latest recipes, favorites and categories" loading="lazy">
+            <figcaption>Home</figcaption>
           </figure>
           <figure>
-            <img src="img/recipes.png" alt="Receptlistan med sök och filter" loading="lazy">
-            <figcaption>Recept</figcaption>
+            <img src="img/recipes.png" alt="The recipe list with search and filters" loading="lazy">
+            <figcaption>Recipes</figcaption>
           </figure>
           <figure>
-            <img src="img/scan.png" alt="Skanna en receptsida med kameran och läs av texten med OCR" loading="lazy">
-            <figcaption>Skanna med OCR</figcaption>
+            <img src="img/scan.png" alt="Scanning a recipe page with the camera and reading the text with OCR" loading="lazy">
+            <figcaption>Scan with OCR</figcaption>
           </figure>
           <figure>
-            <img src="img/cookbook.png" alt="En kokbok med recept och A–Ö-register" loading="lazy">
-            <figcaption>Kokböcker</figcaption>
+            <img src="img/cookbook.png" alt="A cookbook with recipes and an A–Z index" loading="lazy">
+            <figcaption>Cookbooks</figcaption>
           </figure>
         </div>
       </section>
+
       <section class="languages">
-        <h2>Språk</h2>
+        <h2>Languages</h2>
         <div class="lang-grid">
           <div class="card">
-            <h3>Appens gränssnitt</h3>
-            <p>Svenska</p>
+            <h3>App interface</h3>
+            <p>Swedish</p>
           </div>
           <div class="card">
-            <h3>Skanna med OCR</h3>
-            <p>Recept på svenska och engelska kan läsas av automatiskt.</p>
+            <h3>Scan with OCR</h3>
+            <p>Recipes in Swedish and English can be read automatically.</p>
           </div>
           <div class="card">
-            <h3>Dina recept</h3>
-            <p>Skriv och spara på vilket språk du vill — innehållet är ditt.</p>
+            <h3>Your recipes</h3>
+            <p>Write and save in any language you like — the content is yours.</p>
           </div>
         </div>
       </section>
     </main>
 
     <footer class="site-footer">
-      <p>Our Open Cookbook utvecklas av Daniel Hansson.<br>
-      Frågor? Skriv till <a href="mailto:ouropencookbook@neocreo.net">ouropencookbook@neocreo.net</a>.</p>
-      <p><a href="sekretesspolicy.html">Sekretesspolicy</a></p>
+      <p>Our Open Cookbook is developed by Daniel Hansson.<br>
+      Questions? Write to <a href="mailto:ouropencookbook@neocreo.net">ouropencookbook@neocreo.net</a>.</p>
+      <p><a href="privacy.html">Privacy Policy</a></p>
     </footer>
   </div>
 </body>

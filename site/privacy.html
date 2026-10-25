@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Privacy Policy — Our Open Cookbook</title>
+  <link rel="icon" href="icon-192.png">
+  <link rel="canonical" href="https://opencookbook.online/privacy.html">
+  <link rel="alternate" hreflang="en" href="https://opencookbook.online/privacy.html">
+  <link rel="alternate" hreflang="sv" href="https://opencookbook.online/sv/sekretesspolicy.html">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Trocchi:wght@400;700&family=Figtree:wght@400;600;700&display=swap">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="wrap">
+    <nav class="langbar" aria-label="Language">
+      <a href="/" hreflang="en">English</a>
+      <span aria-hidden="true">·</span>
+      <a href="sv/sekretesspolicy.html" hreflang="sv">Svenska</a>
+    </nav>
+
+    <header class="site-header">
+      <a class="brand" href="index.html">
+        <img src="icon-192.png" alt="Our Open Cookbook icon">
+        Our Open Cookbook
+      </a>
+      <nav class="nav">
+        <a href="index.html">Home</a>
+      </nav>
+    </header>
+
+    <main class="article">
+      <h1>Privacy Policy</h1>
+      <p class="updated">Last updated: 2026-10-25</p>
+
+      <p class="lead">This policy describes how the app Our Open Cookbook
+      (the &ldquo;app&rdquo;) processes your data. The short version: your
+      recipes are stored on your own device, are only synced to your own
+      Google Drive account if you enable it yourself, and are never sold or
+      shared with third parties.</p>
+
+      <h2>1. Who is responsible</h2>
+      <p>The app is developed by Daniel Hansson. Contact:
+      <a href="mailto:ouropencookbook@neocreo.net">ouropencookbook@neocreo.net</a></p>
+
+      <h2>2. What data is processed</h2>
+
+      <h3>Stored on your device</h3>
+      <ul>
+        <li>Recipes, cookbooks, ingredients, instructions, notes, and images
+        that you create or import yourself. Storage is the app's local
+        database on the device (IndexedDB in the app's data space).</li>
+        <li>App settings (theme, OCR language choice) in the app's local
+        storage.</li>
+        <li>A randomly generated, anonymous device identifier (UUID) used to
+        keep track of versions during synchronization. It is not linked to
+        your identity.</li>
+      </ul>
+
+      <h3>Google Drive synchronization (only if you enable it)</h3>
+      <p>If you sign in with Google and start a sync, your recipes and
+      cookbooks are written as JSON files to the folder <strong>/OurOpenCookbook
+      in your own Google Drive account</strong>. The app uses the Google
+      permission <em>drive.file</em> — it can only read and write files the
+      app itself has created, never other content in your Drive. Sign-in
+      happens via Google OAuth; the access token is kept only temporarily in
+      memory during the session and is not stored permanently. The app does
+      not read your email address or other profile information.</p>
+
+      <h3>Camera and images</h3>
+      <p>The app uses the camera only so that you can photograph a recipe
+      page for OCR reading. Images are processed locally in the app (text
+      recognition happens on the device). An image only becomes part of a
+      recipe when you save it, and then follows the recipe — including
+      Drive sync, if enabled.</p>
+
+      <h2>3. Is data shared with third parties?</h2>
+      <p>No. The app contains no advertising, no analytics or tracking, and
+      never sells data. Your data leaves your device only in the form of a
+      sync to your own Google Drive account, which you initiate and can
+      disconnect or clear at any time. This website (opencookbook.online)
+      sets no cookies and uses no analytics or tracking.</p>
+
+      <h2>4. How long is data kept</h2>
+      <p>Until you delete it. Delete a recipe in the app and it is removed
+      from the device and, at the next sync, also from Drive. If you
+      uninstall the app, the local database is deleted. Files in your Drive
+      are deleted by you via Google Drive.</p>
+
+      <h2>5. Your rights</h2>
+      <p>Since the app does not collect data about you, there is no register
+      to request extracts from. You have full control: delete, export
+      (JSON/Markdown in the app), or disconnect Drive sync whenever you
+      want.</p>
+
+      <h2>6. Children</h2>
+      <p>The app is not directed at children and does not collect data from
+      children.</p>
+
+      <h2>7. Changes</h2>
+      <p>When this policy changes, the date above and the published version
+      at this URL are updated.</p>
+
+      <h2>8. Contact</h2>
+      <p>Questions about the policy or the app:
+      <a href="mailto:ouropencookbook@neocreo.net">ouropencookbook@neocreo.net</a>.</p>
+    </main>
+
+    <footer class="site-footer">
+      <p><a href="index.html">Back to the start page</a></p>
+    </footer>
+  </div>
+</body>
+</html>

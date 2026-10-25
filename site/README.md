@@ -5,9 +5,17 @@ opencookbook.online via Loopia.
 
 ## Filer
 
-- `index.html` — landningssida (pitch, funktioner, kontakt)
-- `sekretesspolicy.html` — sekretesspolicyn som krävs av Google Play/App Store
-  (spegling av `_playstore/sekretesspolicy.md` — uppdatera båda vid ändring)
+Språk: roten (`/`) är engelska, `sv/` är svenska. Varje sida har en
+språkremsa (`langbar`) högst upp och `hreflang`-alternativ i `<head>`.
+
+- `index.html` — landningssida på engelska (default)
+- `privacy.html` — sekretesspolicyn på engelska
+- `sv/index.html` — landningssida på svenska
+- `sv/sekretesspolicy.html` — sekretesspolicyn på svenska
+  (spegling av `_playstore/sekretesspolicy.md` — uppdatera båda vid ändring;
+  den engelska översättningen i `privacy.html` följer med)
+- `.htaccess` — 301-redirect: gamla `/sekretesspolicy.html` →
+  `/sv/sekretesspolicy.html`
 - `style.css` — delad stil, portad från appens Organic-tokens
 - `icon-192.png` — app-ikonen (favicon/hero), kopia av `_playstore/grafik/icon-512.png` (nedskalad till 192 px)
 - `img/` — fyra skärmdumpar i galleriet på startsidan, nedskalade kopior
@@ -46,7 +54,8 @@ till `master` körs första deployen automatiskt.
    Filerna ska ligga direkt i mappen, inte i en undermapp som `site/`.
 5. Klart — [https://opencookbook.online](https://opencookbook.online)
    visar då `index.html`. Kontrollera även
-   [https://opencookbook.online/sekretesspolicy.html](https://opencookbook.online/sekretesspolicy.html).
+   [https://opencookbook.online/sv/](https://opencookbook.online/sv/)
+   och att gamla `/sekretesspolicy.html` redirectar.
 
 HTTPS: Loopia tillhandahåller ett gratis Let's Encrypt-certifikat — aktivera
 det under domänens inställningar i Customer zone.
@@ -54,4 +63,5 @@ det under domänens inställningar i Customer zone.
 ## Play Console
 
 Ange sekretesspolicy-URL:n i Google Play Console (App content → Privacy
-policy): `https://opencookbook.online/sekretesspolicy.html`
+policy): `https://opencookbook.online/privacy.html` (engelska) eller
+`https://opencookbook.online/sv/sekretesspolicy.html` (svenska).
