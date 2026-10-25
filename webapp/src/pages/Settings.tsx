@@ -1,7 +1,9 @@
 // Settings — language, theme, sync mode, export/import, and about.
+// Each section is a collapsible accordion (native details/summary).
 
-import { useRef, useState } from 'react'
+import { useRef, useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
+import { ChevronDown } from 'lucide-react'
 import { Button } from '../components/Button'
 import { useAppStore, effectiveTheme, type ThemePref, type SyncMode } from '../stores/appStore'
 import { useRecipes } from '../hooks/useRecipes'
@@ -14,6 +16,19 @@ import { getPendingCount } from '../features/sync/repository'
 import { useT, LANGUAGES } from '../i18n'
 
 const CREATE_NEW_COOKBOOK = '__create__'
+
+/** One collapsible settings section. */
+function SettingsSection({ title, children }: { title: string; children: ReactNode }) {
+  return (
+    <details className="settings-accordion">
+      <summary>
+        <h3>{title}</h3>
+        <ChevronDown size={18} strokeWidth={2.75} />
+      </summary>
+      <div className="settings-accordion-body">{children}</div>
+    </details>
+  )
+}
 
 export function Settings() {
   const t = useT()
@@ -37,6 +52,11 @@ export function Settings() {
     { value: 'dark', labelKey: 'settings.themeDark' },
     { value: 'system', labelKey: 'settings.themeSystem' },
   ]
+
+  const privacyUrl =
+    language === 'sv'
+      ? 'https://opencookbook.online/sv/sekretesspolicy.html'
+      : 'https://opencookbook.online/privacy.html'
 
   function exportMarkdown() {
     downloadFile('recipes.md', recipesToMarkdown(recipes), 'text/markdown')
@@ -99,24 +119,23 @@ export function Settings() {
     <main className="page">
       <h1 className="page-title">{t('settings.title')}</h1>
 
-      <section className="recipe-section">
-        <h3>{t('settings.language')}</h3>
+      <SettingsSection title={t('settings.language')}>
         <p className="text-muted">{t('settings.languageDesc')}</p>
-        <div className="row">
+        <div className="settings-lang-list">
           {LANGUAGES.map((l) => (
             <Button
               key={l.value}
               variant={language === l.value ? 'primary' : 'secondary'}
               onClick={() => setLanguage(l.value)}
+              block
             >
               {l.label}
             </Button>
           ))}
         </div>
-      </section>
+      </SettingsSection>
 
-      <section className="recipe-section">
-        <h3>{t('settings.you')}</h3>
+      <SettingsSection title={t('settings.you')}>
         <p className="text-muted">{t('settings.youDesc')}</p>
         <div className="field field-narrow">
           <label htmlFor="settings-name">{t('settings.yourName')}</label>
@@ -128,10 +147,9 @@ export function Settings() {
             placeholder={t('settings.yourName')}
           />
         </div>
-      </section>
+      </SettingsSection>
 
-      <section className="recipe-section">
-        <h3>{t('settings.theme')}</h3>
+      <SettingsSection title={t('settings.theme')}>
         <div className="row">
           {themes.map((th) => (
             <Button
@@ -143,10 +161,9 @@ export function Settings() {
             </Button>
           ))}
         </div>
-      </section>
+      </SettingsSection>
 
-      <section className="recipe-section">
-        <h3>{t('settings.syncTitle')}</h3>
+      <SettingsSection title={t('settings.syncTitle')}>
         <p className="text-muted">
           {syncMode === 'drive' ? t('settings.syncOnDesc') : t('settings.syncOffDesc')}
         </p>
@@ -174,10 +191,9 @@ export function Settings() {
               : t('settings.noPending')}
           </p>
         )}
-      </section>
+      </SettingsSection>
 
-      <section className="recipe-section">
-        <h3>{t('settings.export')}</h3>
+      <SettingsSection title={t('settings.export')}>
         <p className="text-muted">{t('settings.exportDesc', { count: recipes.length })}</p>
         <div className="row mt-2">
           <Button variant="secondary" onClick={exportMarkdown} disabled={recipes.length === 0}>
@@ -187,10 +203,9 @@ export function Settings() {
             {t('settings.exportJson')}
           </Button>
         </div>
-      </section>
+      </SettingsSection>
 
-      <section className="recipe-section">
-        <h3>{t('settings.import')}</h3>
+      <SettingsSection title={t('settings.import')}>
         <p className="text-muted">{t('settings.importDesc')}</p>
         <div className="field field-narrow mt-2">
           <label htmlFor="import-cookbook">{t('settings.importInto')}</label>
@@ -224,22 +239,24 @@ export function Settings() {
           {t('settings.chooseJson')}
         </Button>
         {importMsg && <p className="text-muted mt-2">{importMsg}</p>}
-      </section>
+      </SettingsSection>
 
-      <section className="recipe-section">
-        <h3>{t('settings.about')}</h3>
+      <SettingsSection title={t('settings.aboutTitle')}>
         <p className="text-muted">Our Open Cookbook · Version 0.1.0</p>
         <p className="text-muted">{getRepositoryMode() === 'rxdb' ? t('settings.storageRxdb') : t('settings.storageFallback')}</p>
-        <p className="text-muted mt-2">
+        <p className="mt-2">
           <a href="https://opencookbook.online">{t('settings.homepage')}</a>
         </p>
-        <p className="text-muted mt-1">
+        <p className="mt-1">
+          <a href={privacyUrl}>{t('settings.privacyPolicy')}</a>
+        </p>
+        <p className="mt-1">
           <a href="mailto:ouropencookbook@neocreo.net">{t('settings.support')}</a>
         </p>
         <p className="text-muted mt-2 text-xs">
           {t('settings.disclaimer')}
         </p>
-      </section>
+      </SettingsSection>
     </main>
   )
 }

@@ -268,6 +268,8 @@ const en = {
   'settings.imported': 'Imported {count}.',
   'settings.importNeedsName': 'Type a name for the new cookbook first.',
   'settings.importFailed': 'Import failed: {error}',
+  'settings.aboutTitle': 'About Our Open Cookbook',
+  'settings.privacyPolicy': 'Privacy policy',
   'settings.about': 'About',
   'settings.storageRxdb': 'Storage: RxDB (IndexedDB)',
   'settings.storageFallback': 'Storage: Session (memory fallback)',

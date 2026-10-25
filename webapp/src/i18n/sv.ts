@@ -253,6 +253,8 @@ const sv: Messages = {
   'settings.imported': 'Importerade {count}.',
   'settings.importNeedsName': 'Skriv ett namn för den nya kokboken först.',
   'settings.importFailed': 'Importen misslyckades: {error}',
+  'settings.aboutTitle': 'Om Our Open Cookbook',
+  'settings.privacyPolicy': 'Sekretesspolicy',
   'settings.about': 'Om',
   'settings.storageRxdb': 'Lagring: RxDB (IndexedDB)',
   'settings.storageFallback': 'Lagring: session (minnesreserv)',

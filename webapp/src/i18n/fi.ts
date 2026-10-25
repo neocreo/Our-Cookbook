@@ -253,6 +253,8 @@ const fi: Messages = {
   'settings.imported': 'Tuotu {count}.',
   'settings.importNeedsName': 'Kirjoita ensin uuden keittokirjan nimi.',
   'settings.importFailed': 'Tuonti epäonnistui: {error}',
+  'settings.aboutTitle': 'Tietoja Our Open Cookbookista',
+  'settings.privacyPolicy': 'Tietosuojakäytäntö',
   'settings.about': 'Tietoja',
   'settings.storageRxdb': 'Tallennus: RxDB (IndexedDB)',
   'settings.storageFallback': 'Tallennus: istunto (muistivaraus)',

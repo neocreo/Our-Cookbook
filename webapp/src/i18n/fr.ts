@@ -253,6 +253,8 @@ const fr: Messages = {
   'settings.imported': '{count} importées.',
   'settings.importNeedsName': 'Tapez d\'abord un nom pour le nouveau livre de recettes.',
   'settings.importFailed': 'Échec de l\'import : {error}',
+  'settings.aboutTitle': "À propos d'Our Open Cookbook",
+  'settings.privacyPolicy': 'Politique de confidentialité',
   'settings.about': 'À propos',
   'settings.storageRxdb': 'Stockage : RxDB (IndexedDB)',
   'settings.storageFallback': 'Stockage : session (repli en mémoire)',
